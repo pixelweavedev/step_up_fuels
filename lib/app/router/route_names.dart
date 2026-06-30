@@ -23,6 +23,9 @@ class RouteNames {
   static const String inventoryMovements = '/inventory/movements';
   static const String stockAdjustment = '/inventory/adjust';
 
+  static const String vehicles = '/vehicles';
+  static const String drivers = '/drivers';
+
   static const String purchases = '/purchases';
   static const String purchaseDetail = '/purchases/:id';
   static const String purchaseNew = '/purchases/new';

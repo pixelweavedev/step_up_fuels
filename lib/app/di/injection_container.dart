@@ -12,6 +12,13 @@ import 'package:step_up_fuels/features/customers/data/daos/customers_dao.dart';
 import 'package:step_up_fuels/features/customers/data/repositories/customer_repository_impl.dart';
 import 'package:step_up_fuels/features/customers/domain/repositories/customer_repository.dart';
 import 'package:step_up_fuels/features/customers/domain/services/customer_credit_service.dart';
+import 'package:step_up_fuels/features/drivers/application/usecases/assign_driver_usecase.dart';
+import 'package:step_up_fuels/features/drivers/application/usecases/get_assignments_usecase.dart';
+import 'package:step_up_fuels/features/drivers/application/usecases/get_drivers_usecase.dart';
+import 'package:step_up_fuels/features/drivers/application/usecases/save_driver_usecase.dart';
+import 'package:step_up_fuels/features/drivers/data/daos/drivers_dao.dart';
+import 'package:step_up_fuels/features/drivers/data/repositories/driver_repository_impl.dart';
+import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_current_stock_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_movements_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_storage_locations_usecase.dart';
@@ -27,6 +34,13 @@ import 'package:step_up_fuels/features/products/application/usecases/save_produc
 import 'package:step_up_fuels/features/products/data/daos/products_dao.dart';
 import 'package:step_up_fuels/features/products/data/repositories/product_repository_impl.dart';
 import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
+import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
+import 'package:step_up_fuels/features/vehicles/application/usecases/get_vehicles_usecase.dart';
+import 'package:step_up_fuels/features/vehicles/application/usecases/save_service_record_usecase.dart';
+import 'package:step_up_fuels/features/vehicles/application/usecases/save_vehicle_usecase.dart';
+import 'package:step_up_fuels/features/vehicles/data/daos/vehicles_dao.dart';
+import 'package:step_up_fuels/features/vehicles/data/repositories/vehicle_repository_impl.dart';
+import 'package:step_up_fuels/features/vehicles/domain/repositories/vehicle_repository.dart';
 
 /// Global service locator instance.
 final GetIt sl = GetIt.instance;
@@ -117,6 +131,43 @@ Future<void> configureDependencies() async {
   );
   sl.registerSingleton<GetMovementsUseCase>(
     GetMovementsUseCase(sl<InventoryRepository>()),
+  );
+
+  // ── Phase 4: Vehicles & Drivers Dependencies ──────────────────────────────
+  final vehiclesDao = VehiclesDao(sl<AppDatabase>());
+  sl.registerSingleton<VehiclesDao>(vehiclesDao);
+  sl.registerSingleton<VehicleRepository>(
+    VehicleRepositoryImpl(sl<VehiclesDao>()),
+  );
+  sl.registerSingleton<GetVehiclesUseCase>(
+    GetVehiclesUseCase(sl<VehicleRepository>()),
+  );
+  sl.registerSingleton<SaveVehicleUseCase>(
+    SaveVehicleUseCase(sl<VehicleRepository>()),
+  );
+  sl.registerSingleton<GetServiceRecordsUseCase>(
+    GetServiceRecordsUseCase(sl<VehicleRepository>()),
+  );
+  sl.registerSingleton<SaveServiceRecordUseCase>(
+    SaveServiceRecordUseCase(sl<VehicleRepository>()),
+  );
+
+  final driversDao = DriversDao(sl<AppDatabase>());
+  sl.registerSingleton<DriversDao>(driversDao);
+  sl.registerSingleton<DriverRepository>(
+    DriverRepositoryImpl(sl<DriversDao>()),
+  );
+  sl.registerSingleton<GetDriversUseCase>(
+    GetDriversUseCase(sl<DriverRepository>()),
+  );
+  sl.registerSingleton<SaveDriverUseCase>(
+    SaveDriverUseCase(sl<DriverRepository>()),
+  );
+  sl.registerSingleton<GetAssignmentsUseCase>(
+    GetAssignmentsUseCase(sl<DriverRepository>()),
+  );
+  sl.registerSingleton<AssignDriverUseCase>(
+    AssignDriverUseCase(sl<DriverRepository>()),
   );
 
   // ── Phase 4: Invoice Dependencies ──────────────────────────────────────────

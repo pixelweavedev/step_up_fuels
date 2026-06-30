@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:step_up_fuels/app/router/route_names.dart';
 import 'package:step_up_fuels/features/customers/presentation/screens/customers_screen.dart';
 import 'package:step_up_fuels/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:step_up_fuels/features/drivers/presentation/screens/drivers_screen.dart';
 import 'package:step_up_fuels/features/inventory/presentation/screens/inventory_screen.dart';
 import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
+import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';
 import 'package:step_up_fuels/shared/widgets/app_scaffold.dart';
 
 /// Global router provider — accessible from anywhere via ref.read/watch.
@@ -61,6 +63,26 @@ class AppRouter {
             pageBuilder: (context, state) => _fadeTransitionPage(
               state: state,
               child: const InventoryScreen(),
+            ),
+          ),
+
+          // ── Vehicles ─────────────────────────────────────────────────────
+          GoRoute(
+            path: RouteNames.vehicles,
+            name: 'vehicles',
+            pageBuilder: (context, state) => _fadeTransitionPage(
+              state: state,
+              child: const VehiclesScreen(),
+            ),
+          ),
+
+          // ── Drivers ──────────────────────────────────────────────────────
+          GoRoute(
+            path: RouteNames.drivers,
+            name: 'drivers',
+            pageBuilder: (context, state) => _fadeTransitionPage(
+              state: state,
+              child: const DriversScreen(),
             ),
           ),
 

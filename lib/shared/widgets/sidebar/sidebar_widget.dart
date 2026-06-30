@@ -41,6 +41,18 @@ class SidebarWidget extends ConsumerWidget {
       section: 'OPERATIONS',
     ),
     SidebarItemModel(
+      label: 'Vehicles',
+      icon: Icons.local_shipping_outlined,
+      activeIcon: Icons.local_shipping_rounded,
+      route: RouteNames.vehicles,
+    ),
+    SidebarItemModel(
+      label: 'Drivers',
+      icon: Icons.badge_outlined,
+      activeIcon: Icons.badge_rounded,
+      route: RouteNames.drivers,
+    ),
+    SidebarItemModel(
       label: 'Products',
       icon: Icons.inventory_2_outlined,
       activeIcon: Icons.inventory_2_rounded,
