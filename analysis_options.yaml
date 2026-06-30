@@ -1,0 +1,55 @@
+# This file configures the Dart analyzer for the Step Up Fuels ERP.
+# We use strict lints to enforce clean, consistent, production-quality code.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    invalid_annotation_target: ignore   # freezed generates these
+    missing_required_param: error
+    missing_return: error
+    dead_code: warning
+    unused_import: warning
+    unused_local_variable: warning
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/app/database/app_database.g.dart"
+
+linter:
+  rules:
+    # ── Style ────────────────────────────────────────────────────────
+    prefer_single_quotes: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+
+    # ── Safety ───────────────────────────────────────────────────────
+    avoid_print: true
+    avoid_dynamic_calls: true
+    avoid_redundant_argument_values: true
+    avoid_type_to_string: true
+    cancel_subscriptions: true
+    close_sinks: true
+
+    # ── Dart Best Practices ──────────────────────────────────────────
+    require_trailing_commas: true
+    sort_constructors_first: true
+    use_super_parameters: true
+    always_use_package_imports: true
+    directives_ordering: true
+
+    # ── Flutter Best Practices ───────────────────────────────────────
+    use_key_in_widget_constructors: true
+    sized_box_for_whitespace: true
+    sized_box_shrink_expand: true
+
+    # ── Disabled ─────────────────────────────────────────────────────
+    # These conflict with our patterns or code generation:
+    public_member_api_docs: false

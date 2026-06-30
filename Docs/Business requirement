@@ -1,0 +1,420 @@
+PHASE 0 — Enterprise Architecture & Foundation
+You are a Senior Software Architect, Flutter Architect, Enterprise ERP Architect, and Domain Driven Design expert.
+
+Your responsibility is NOT to immediately write code.
+
+Your first responsibility is to design a production-ready architecture for this application.
+
+# Project Overview
+
+You are building a Fuel Distribution Management System for an Indian diesel distribution company.
+
+The company purchases diesel from authorized suppliers and delivers fuel to customers such as construction companies, factories, industries, infrastructure projects, and government organizations using portable fuel bowsers.
+
+This application will become the company's primary ERP system.
+
+Initially it will be an offline Flutter desktop application using local storage, but it must be designed from day one to evolve into a cloud-based multi-user SaaS application with a Spring Boot backend and PostgreSQL without requiring architectural rewrites.
+
+The uploaded sample invoice represents the desired invoice format and GST compliance requirements.
+
+Business requirements include:
+
+• Customer Management
+• Multiple Delivery Sites
+• Multiple Contact Persons
+• GST Billing
+• Invoice Management
+• Inventory Management
+• Fuel Purchase
+• Payment Tracking
+• Reports
+• Dashboard
+
+Future modules include:
+
+• Vehicle Management
+• Driver Management
+• Fuel Dispatch
+• Fuel Delivery
+• Purchase Orders
+• Delivery Challans
+• Government API Integration (e-Invoice / e-Way Bill)
+• Multi-user Authentication
+• RBAC
+• Audit Logs
+• Notifications
+• Multi Branch
+• Multi Company (SaaS)
+
+The architecture must support all of these.
+
+--------------------------------------------------------
+
+# IMPORTANT
+
+DO NOT START WRITING UI SCREENS.
+
+DO NOT CREATE RANDOM FILES.
+
+DO NOT IMPLEMENT FEATURES YET.
+
+First analyze the project.
+
+--------------------------------------------------------
+
+# Your Tasks
+
+Perform a complete architecture analysis.
+
+Produce a detailed architecture report including:
+
+1. Folder Structure
+
+Design an enterprise Flutter folder structure using:
+
+• Feature First
+• Clean Architecture
+• Repository Pattern
+• Dependency Injection
+• Riverpod
+
+Explain why every folder exists.
+
+--------------------------------------------------------
+
+2. Domain Analysis
+
+Identify every business domain.
+
+For example:
+
+Dashboard
+
+Customers
+
+Customer Sites
+
+Contacts
+
+Products
+
+Inventory
+
+Purchases
+
+Invoices
+
+Payments
+
+Reports
+
+Settings
+
+Vehicles
+
+Drivers
+
+Dispatch
+
+Delivery
+
+Authentication
+
+RBAC
+
+Notifications
+
+Audit
+
+etc.
+
+Explain responsibilities of each module.
+
+--------------------------------------------------------
+
+3. Database Design
+
+Design all entities.
+
+List:
+
+• Entity Name
+• Purpose
+• Primary Key
+• Relationships
+• Important Fields
+
+Normalize the database.
+
+Avoid future migrations.
+
+--------------------------------------------------------
+
+4. Entity Relationships
+
+Design ER relationships.
+
+Explain One-to-One
+
+One-to-Many
+
+Many-to-Many
+
+relationships.
+
+--------------------------------------------------------
+
+5. Application Layers
+
+Design
+
+Presentation Layer
+
+Application Layer
+
+Domain Layer
+
+Data Layer
+
+Infrastructure Layer
+
+Shared Components
+
+Core Module
+
+--------------------------------------------------------
+
+6. Navigation
+
+Design application navigation.
+
+Desktop First.
+
+Sidebar Navigation.
+
+Dashboard.
+
+Dialogs.
+
+Master Detail Layout.
+
+--------------------------------------------------------
+
+7. Local Database
+
+Recommend the best local database.
+
+Explain why.
+
+Design repositories so the implementation can later switch to REST APIs without affecting UI.
+
+--------------------------------------------------------
+
+8. State Management
+
+Use Riverpod.
+
+Explain provider hierarchy.
+
+--------------------------------------------------------
+
+9. Services
+
+Identify shared services.
+
+Example
+
+Logger
+
+Storage
+
+PDF
+
+Printing
+
+Barcode
+
+Export
+
+Settings
+
+Authentication
+
+Theme
+
+Validation
+
+Connectivity
+
+--------------------------------------------------------
+
+10. Coding Standards
+
+Define coding conventions.
+
+Naming.
+
+File organization.
+
+Class responsibilities.
+
+Maximum widget size.
+
+Maximum class size.
+
+SOLID principles.
+
+--------------------------------------------------------
+
+11. Future Scalability
+
+Explain how the architecture will support
+
+Spring Boot
+
+PostgreSQL
+
+REST APIs
+
+Offline Sync
+
+Multi User
+
+RBAC
+
+Government APIs
+
+Cloud Sync
+
+--------------------------------------------------------
+
+12. Risks
+
+Identify architectural risks.
+
+Recommend improvements.
+
+--------------------------------------------------------
+
+# Deliverables
+
+Before writing any code produce
+
+Architecture.md
+
+FolderStructure.md
+
+DatabaseDesign.md
+
+ModuleBreakdown.md
+
+DevelopmentRoadmap.md
+
+The roadmap should split implementation into small phases.
+
+Do NOT start coding until the architecture has been finalized.
+After the AI finishes Phase 0
+
+Then give it Phase 1.
+
+PHASE 1 — Project Foundation
+Now begin implementation.
+
+Create ONLY the project foundation.
+
+Do NOT implement business features.
+
+Tasks:
+
+1. Create the entire folder structure.
+
+2. Configure:
+   - Riverpod
+   - GoRouter
+   - Drift (or Isar if justified)
+   - Dependency Injection (GetIt)
+   - Logging
+   - Theme
+   - Localization support
+   - Responsive layout
+   - Core utilities
+   - Shared widgets
+
+3. Create:
+   - Base Repository
+   - Base Service
+   - Base Entity
+   - Base Model
+   - Result<T> class
+   - Failure hierarchy
+   - App Router
+   - App Theme
+   - Constants
+   - Validators
+   - Extensions
+
+4. Configure lint rules.
+
+5. Configure analysis options.
+
+6. Create reusable project infrastructure.
+
+Do NOT implement Customer, Invoice, Inventory or any feature.
+
+The application should compile successfully after this phase.
+Then Phase 2
+Implement ONLY the Customer module.
+
+No other modules.
+
+The Customer module should support:
+
+• Customer
+• Customer Site
+• Customer Contact
+• Customer Credit
+• Customer Notes
+• Customer Documents
+
+Implement:
+
+Domain
+
+Data
+
+Presentation
+
+Repositories
+
+Local Database
+
+CRUD
+
+Validation
+
+Riverpod providers
+
+Responsive UI
+
+Dialogs
+
+Search
+
+Filtering
+
+Pagination-ready architecture
+
+Soft Delete
+
+Audit fields
+
+Do not proceed to another module after Customer is complete.
+Then Phase 3
+Implement Product & Fuel Inventory.
+Then Phase 4
+Implement Billing & GST Invoice Generation.
+Then Phase 5
+Implement Purchases.
+Then Payments
+Then Reports
+Then Dashboard

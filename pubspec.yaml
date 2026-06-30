@@ -1,0 +1,72 @@
+name: step_up_fuels
+description: "Step Up Fuels — Indian Fuel Distribution ERP System"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # ── State Management ─────────────────────────────────────────
+  flutter_riverpod: ^2.6.1
+
+  # ── Navigation ───────────────────────────────────────────────
+  go_router: ^14.6.3
+
+  # ── Local Database (Drift / SQLite) ──────────────────────────
+  drift: ^2.26.0
+  sqlite3_flutter_libs: ^0.5.30
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # ── Dependency Injection ─────────────────────────────────────
+  get_it: ^8.0.3
+
+  # ── Logging ──────────────────────────────────────────────────
+  logger: ^2.5.0
+
+  # ── PDF Generation & Printing ────────────────────────────────
+  pdf: ^3.11.2
+  printing: ^5.13.3
+
+  # ── Charts (Dashboard) ───────────────────────────────────────
+  fl_chart: ^0.70.2
+
+  # ── Internationalisation & Formatting ────────────────────────
+  intl: ^0.20.2
+
+  # ── Unique IDs (cloud-sync ready) ────────────────────────────
+  uuid: ^4.5.1
+
+  # ── Immutable Models / Code Gen ──────────────────────────────
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ── Value Equality ───────────────────────────────────────────
+  equatable: ^2.0.7
+
+  # ── Excel Export (GSTR-1) ────────────────────────────────────
+  excel: ^4.0.6
+
+  # ── Google Fonts ─────────────────────────────────────────────
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # ── Code Generation ──────────────────────────────────────────
+  build_runner: ^2.4.14
+  drift_dev: ^2.26.0
+  freezed: ^2.5.8
+  json_serializable: ^6.9.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
