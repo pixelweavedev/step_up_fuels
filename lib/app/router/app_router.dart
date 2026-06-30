@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:step_up_fuels/app/router/route_names.dart';
 import 'package:step_up_fuels/features/customers/presentation/screens/customers_screen.dart';
 import 'package:step_up_fuels/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:step_up_fuels/features/inventory/presentation/screens/inventory_screen.dart';
+import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
 import 'package:step_up_fuels/shared/widgets/app_scaffold.dart';
 
 /// Global router provider — accessible from anywhere via ref.read/watch.
@@ -96,20 +98,16 @@ class AppRouter {
           GoRoute(
             path: RouteNames.ledger,
             name: 'ledger',
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              state: state,
-              child: const LedgerScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _fadeTransitionPage(state: state, child: const LedgerScreen()),
           ),
 
           // ── Reports ──────────────────────────────────────────────────────
           GoRoute(
             path: RouteNames.reports,
             name: 'reports',
-            pageBuilder: (context, state) => _fadeTransitionPage(
-              state: state,
-              child: const ReportsScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _fadeTransitionPage(state: state, child: const ReportsScreen()),
           ),
 
           // ── Settings ─────────────────────────────────────────────────────
@@ -142,13 +140,12 @@ class AppRouter {
   static CustomTransitionPage<void> _fadeTransitionPage({
     required GoRouterState state,
     required Widget child,
-  }) =>
-      CustomTransitionPage<void>(
-        key: state.pageKey,
-        child: child,
-        transitionDuration: const Duration(milliseconds: 180),
-        reverseTransitionDuration: const Duration(milliseconds: 120),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(opacity: animation, child: child),
-      );
+  }) => CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 180),
+    reverseTransitionDuration: const Duration(milliseconds: 120),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(opacity: animation, child: child),
+  );
 }

@@ -1636,37 +1636,6 @@ class _CustomerDetailScaffoldState
   }
 }
 
-/// Products module — Phase 3 implementation target.
-class ProductsScreen extends StatelessWidget {
-  const ProductsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Products',
-      description: 'Manage fuel products, HSN codes, GST rates, and pricing.',
-      icon: Icons.inventory_2_rounded,
-      phase: 'Phase 3',
-    );
-  }
-}
-
-/// Inventory module — Phase 3 implementation target.
-class InventoryScreen extends StatelessWidget {
-  const InventoryScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Inventory',
-      description:
-          'Real-time stock tracking via movement records. '
-          'View current stock, record adjustments, and opening stock.',
-      icon: Icons.local_gas_station_rounded,
-      phase: 'Phase 3',
-    );
-  }
-}
 
 /// Purchases module — Phase 5 implementation target.
 class PurchasesScreen extends StatelessWidget {

@@ -12,13 +12,28 @@ import 'package:step_up_fuels/features/customers/data/daos/customers_dao.dart';
 import 'package:step_up_fuels/features/customers/data/repositories/customer_repository_impl.dart';
 import 'package:step_up_fuels/features/customers/domain/repositories/customer_repository.dart';
 import 'package:step_up_fuels/features/customers/domain/services/customer_credit_service.dart';
+import 'package:step_up_fuels/features/inventory/application/usecases/get_current_stock_usecase.dart';
+import 'package:step_up_fuels/features/inventory/application/usecases/get_movements_usecase.dart';
+import 'package:step_up_fuels/features/inventory/application/usecases/get_storage_locations_usecase.dart';
+import 'package:step_up_fuels/features/inventory/application/usecases/record_adjustment_usecase.dart';
+import 'package:step_up_fuels/features/inventory/application/usecases/save_storage_location_usecase.dart';
+import 'package:step_up_fuels/features/inventory/data/daos/inventory_dao.dart';
+import 'package:step_up_fuels/features/inventory/data/repositories/inventory_repository_impl.dart';
+import 'package:step_up_fuels/features/inventory/domain/repositories/inventory_repository.dart';
+import 'package:step_up_fuels/features/inventory/domain/services/inventory_service.dart';
+import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
+import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
+import 'package:step_up_fuels/features/products/application/usecases/save_product_usecase.dart';
+import 'package:step_up_fuels/features/products/data/daos/products_dao.dart';
+import 'package:step_up_fuels/features/products/data/repositories/product_repository_impl.dart';
+import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
 
 /// Global service locator instance.
 final GetIt sl = GetIt.instance;
 
 /// Riverpod provider exposing the AppDatabase from GetIt.
 ///
-/// Use this in feature providers instead of calling sl<AppDatabase>() directly.
+/// Use this in feature providers instead of calling `sl<AppDatabase>()` directly.
 /// This makes providers testable — you can override this in tests.
 final databaseProvider = Provider<AppDatabase>((ref) {
   return sl<AppDatabase>();
@@ -64,9 +79,45 @@ Future<void> configureDependencies() async {
     GetCustomerDetailUseCase(sl<CustomerRepository>()),
   );
 
-  // ── Phase 3: Inventory Dependencies ────────────────────────────────────────
-  // sl.registerSingleton<ProductsDao>(ProductsDao(sl()));
-  // sl.registerSingleton<InventoryService>(InventoryServiceImpl(sl()));
+  // ── Phase 3: Inventory & Products Dependencies ──────────────────────────────
+  final productsDao = ProductsDao(sl<AppDatabase>());
+  sl.registerSingleton<ProductsDao>(productsDao);
+  sl.registerSingleton<ProductRepository>(
+    ProductRepositoryImpl(sl<ProductsDao>()),
+  );
+  sl.registerSingleton<GetProductsUseCase>(
+    GetProductsUseCase(sl<ProductRepository>()),
+  );
+  sl.registerSingleton<SaveProductUseCase>(
+    SaveProductUseCase(sl<ProductRepository>()),
+  );
+  sl.registerSingleton<DeleteProductUseCase>(
+    DeleteProductUseCase(sl<ProductRepository>()),
+  );
+
+  final inventoryDao = InventoryDao(sl<AppDatabase>());
+  sl.registerSingleton<InventoryDao>(inventoryDao);
+  sl.registerSingleton<InventoryRepository>(
+    InventoryRepositoryImpl(sl<InventoryDao>()),
+  );
+  sl.registerSingleton<InventoryService>(
+    InventoryService(sl<InventoryRepository>()),
+  );
+  sl.registerSingleton<GetStorageLocationsUseCase>(
+    GetStorageLocationsUseCase(sl<InventoryRepository>()),
+  );
+  sl.registerSingleton<SaveStorageLocationUseCase>(
+    SaveStorageLocationUseCase(sl<InventoryRepository>()),
+  );
+  sl.registerSingleton<GetCurrentStockUseCase>(
+    GetCurrentStockUseCase(sl<InventoryService>()),
+  );
+  sl.registerSingleton<RecordAdjustmentUseCase>(
+    RecordAdjustmentUseCase(sl<InventoryService>()),
+  );
+  sl.registerSingleton<GetMovementsUseCase>(
+    GetMovementsUseCase(sl<InventoryRepository>()),
+  );
 
   // ── Phase 4: Invoice Dependencies ──────────────────────────────────────────
   // sl.registerSingleton<InvoicesDao>(InvoicesDao(sl()));
