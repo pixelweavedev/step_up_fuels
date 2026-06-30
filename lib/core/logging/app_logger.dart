@@ -14,11 +14,6 @@ class AppLogger {
 
   static final Logger _logger = Logger(
     printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
       dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
     level: Level.debug,
@@ -40,19 +35,11 @@ class AppLogger {
     _logger.w(message, error: data);
   }
 
-  static void error(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) {
+  static void error(String message, {Object? error, StackTrace? stackTrace}) {
     _logger.e(message, error: error, stackTrace: stackTrace);
   }
 
-  static void fatal(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) {
+  static void fatal(String message, {Object? error, StackTrace? stackTrace}) {
     _logger.f(message, error: error, stackTrace: stackTrace);
   }
 }

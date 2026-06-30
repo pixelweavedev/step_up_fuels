@@ -153,21 +153,21 @@ class SidebarWidget extends ConsumerWidget {
             ),
             if (!isCollapsed) ...[
               const SizedBox(width: 10),
-              Expanded(
+              const Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       AppConstants.companyName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.darkTextPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const Text(
+                    Text(
                       'ERP System',
                       style: TextStyle(
                         fontSize: 10,

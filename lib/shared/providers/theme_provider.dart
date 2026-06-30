@@ -12,8 +12,9 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
 extension ThemeModeProviderExt on WidgetRef {
   void toggleTheme() {
     final current = read(themeModeProvider);
-    read(themeModeProvider.notifier).state =
-        current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    read(themeModeProvider.notifier).state = current == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
   }
 }
 
@@ -26,14 +27,16 @@ class ThemeModeTile extends ConsumerWidget {
     final mode = ref.watch(themeModeProvider);
     return ListTile(
       leading: Icon(
-        mode == ThemeMode.dark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+        mode == ThemeMode.dark
+            ? Icons.dark_mode_rounded
+            : Icons.light_mode_rounded,
         color: AppColors.brandAmber,
       ),
       title: const Text('Theme'),
       subtitle: Text(mode == ThemeMode.dark ? 'Dark' : 'Light'),
       trailing: Switch(
         value: mode == ThemeMode.dark,
-        activeColor: AppColors.brandAmber,
+        activeThumbColor: AppColors.brandAmber,
         onChanged: (_) => ref.toggleTheme(),
       ),
     );
@@ -42,7 +45,7 @@ class ThemeModeTile extends ConsumerWidget {
 
 /// Returns the correct AppTheme for a given ThemeMode.
 ThemeData themeDataForMode(ThemeMode mode) => switch (mode) {
-      ThemeMode.dark => AppTheme.dark,
-      ThemeMode.light => AppTheme.light,
-      ThemeMode.system => AppTheme.dark, // default to dark for this ERP
-    };
+  ThemeMode.dark => AppTheme.dark,
+  ThemeMode.light => AppTheme.light,
+  ThemeMode.system => AppTheme.dark, // default to dark for this ERP
+};

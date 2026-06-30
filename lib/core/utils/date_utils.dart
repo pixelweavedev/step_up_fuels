@@ -6,10 +6,12 @@ import 'package:step_up_fuels/core/constants/gst_constants.dart';
 class AppDateUtils {
   AppDateUtils._();
 
-  static final DateFormat _displayFormat =
-      DateFormat(AppConstants.displayDateFormat);
-  static final DateFormat _displayDateTimeFormat =
-      DateFormat(AppConstants.displayDateTimeFormat);
+  static final DateFormat _displayFormat = DateFormat(
+    AppConstants.displayDateFormat,
+  );
+  static final DateFormat _displayDateTimeFormat = DateFormat(
+    AppConstants.displayDateTimeFormat,
+  );
   static final DateFormat _isoFormat = DateFormat(AppConstants.isoDateFormat);
 
   /// Format for display in the UI: 30-Jun-2024
@@ -40,7 +42,7 @@ class AppDateUtils {
     final fyStartYear = now.month >= GstConstants.financialYearStartMonth
         ? now.year
         : now.year - 1;
-    return DateTime(fyStartYear, GstConstants.financialYearStartMonth, 1);
+    return DateTime(fyStartYear, GstConstants.financialYearStartMonth);
   }
 
   /// Get the end of the current financial year (March 31).

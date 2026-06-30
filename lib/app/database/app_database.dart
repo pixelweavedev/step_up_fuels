@@ -5,6 +5,12 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:step_up_fuels/core/constants/app_constants.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customer_contacts_table.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customer_credit_limits_table.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customer_documents_table.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customer_notes_table.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customer_sites_table.dart';
+import 'package:step_up_fuels/features/customers/data/tables/customers_table.dart';
 
 part 'app_database.g.dart';
 
@@ -37,11 +43,12 @@ class AppSettings extends Table {
 @DriftDatabase(
   tables: [
     AppSettings,
-    // Feature tables will be added here as each phase is implemented.
-    // Example (Phase 2):
-    //   Customers,
-    //   CustomerSites,
-    //   CustomerContacts,
+    Customers,
+    CustomerSites,
+    CustomerContacts,
+    CustomerCreditLimits,
+    CustomerDocuments,
+    CustomerNotes,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -49,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,9 +65,24 @@ class AppDatabase extends _$AppDatabase {
           await _seedDefaultSettings();
         },
         onUpgrade: (m, from, to) async {
-          // Schema migrations will be added here for each version bump.
+          if (from < 3) {
+            await _createTableIfNotExists(m, customers);
+            await _createTableIfNotExists(m, customerSites);
+            await _createTableIfNotExists(m, customerContacts);
+            await _createTableIfNotExists(m, customerCreditLimits);
+            await _createTableIfNotExists(m, customerDocuments);
+            await _createTableIfNotExists(m, customerNotes);
+          }
         },
       );
+
+  Future<void> _createTableIfNotExists(Migrator m, TableInfo<Table, Object?> table) async {
+    try {
+      await m.createTable(table);
+    } catch (_) {
+      // Table already exists, ignore exception
+    }
+  }
 
   // ── Settings Helpers ────────────────────────────────────────────────────────
 
@@ -80,9 +102,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<String?> getSetting(String key) async {
-    final row = await (select(appSettings)
-          ..where((t) => t.key.equals(key)))
-        .getSingleOrNull();
+    final row = await (select(
+      appSettings,
+    )..where((t) => t.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 

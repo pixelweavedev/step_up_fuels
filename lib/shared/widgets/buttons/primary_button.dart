@@ -20,14 +20,13 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget child = isLoading
+    final Widget child = isLoading
         ? const SizedBox(
             width: 18,
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(AppColors.brandNavy),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandNavy),
             ),
           )
         : Row(
@@ -74,10 +73,7 @@ class SecondaryButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16),
-            const SizedBox(width: 8),
-          ],
+          if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: 8)],
           Text(label),
         ],
       ),

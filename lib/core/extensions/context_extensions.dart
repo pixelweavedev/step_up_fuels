@@ -35,8 +35,11 @@ extension ContextExtensions on BuildContext {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_outline,
-                  color: Colors.white, size: 18),
+              const Icon(
+                Icons.check_circle_outline,
+                color: Colors.white,
+                size: 18,
+              ),
               const SizedBox(width: 10),
               Text(message),
             ],
@@ -66,7 +69,6 @@ extension ContextExtensions on BuildContext {
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          duration: const Duration(seconds: 4),
         ),
       );
   }
