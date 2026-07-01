@@ -34,6 +34,14 @@ import 'package:step_up_fuels/features/products/application/usecases/save_produc
 import 'package:step_up_fuels/features/products/data/daos/products_dao.dart';
 import 'package:step_up_fuels/features/products/data/repositories/product_repository_impl.dart';
 import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
+import 'package:step_up_fuels/features/invoices/application/usecases/cancel_invoice_usecase.dart';
+import 'package:step_up_fuels/features/invoices/application/usecases/get_invoice_detail_usecase.dart';
+import 'package:step_up_fuels/features/invoices/application/usecases/get_invoices_usecase.dart';
+import 'package:step_up_fuels/features/invoices/application/usecases/post_invoice_usecase.dart';
+import 'package:step_up_fuels/features/invoices/application/usecases/save_invoice_usecase.dart';
+import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
+import 'package:step_up_fuels/features/invoices/data/repositories/invoice_repository_impl.dart';
+import 'package:step_up_fuels/features/invoices/domain/repositories/invoice_repository.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_vehicles_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/save_service_record_usecase.dart';
@@ -175,10 +183,32 @@ Future<void> configureDependencies() async {
   // sl.registerSingleton<GstCalculationService>(GstCalculationServiceImpl());
   // sl.registerSingleton<InvoiceService>(InvoiceServiceImpl(sl(), sl(), sl()));
 
-  // ── Phase 5: Purchase Dependencies ─────────────────────────────────────────
+  // ── Phase 5: Billing & Invoicing Dependencies ──────────────────────────────
+  final invoicesDao = InvoicesDao(sl<AppDatabase>());
+  sl.registerSingleton<InvoicesDao>(invoicesDao);
+  sl.registerSingleton<InvoiceRepository>(
+    InvoiceRepositoryImpl(sl<InvoicesDao>()),
+  );
+  sl.registerSingleton<GetInvoicesUseCase>(
+    GetInvoicesUseCase(sl<InvoiceRepository>()),
+  );
+  sl.registerSingleton<GetInvoiceDetailUseCase>(
+    GetInvoiceDetailUseCase(sl<InvoiceRepository>()),
+  );
+  sl.registerSingleton<SaveInvoiceUseCase>(
+    SaveInvoiceUseCase(sl<InvoiceRepository>()),
+  );
+  sl.registerSingleton<PostInvoiceUseCase>(
+    PostInvoiceUseCase(sl<InvoiceRepository>()),
+  );
+  sl.registerSingleton<CancelInvoiceUseCase>(
+    CancelInvoiceUseCase(sl<InvoiceRepository>()),
+  );
+
+  // ── Phase 6: Purchase Dependencies ─────────────────────────────────────────
   // sl.registerSingleton<PurchasesDao>(PurchasesDao(sl()));
 
-  // ── Phase 6: Payment + Ledger Dependencies ─────────────────────────────────
+  // ── Phase 7: Payment + Ledger Dependencies ─────────────────────────────────
   // sl.registerSingleton<LedgerService>(LedgerServiceImpl(sl()));
   // sl.registerSingleton<PaymentService>(PaymentServiceImpl(sl(), sl()));
 

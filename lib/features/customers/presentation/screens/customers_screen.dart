@@ -1654,22 +1654,8 @@ class PurchasesScreen extends StatelessWidget {
   }
 }
 
-/// Invoices module — Phase 4 implementation target.
-class InvoicesScreen extends StatelessWidget {
-  const InvoicesScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Invoices',
-      description:
-          'Create GST-compliant tax invoices. '
-          'Auto-calculates CGST/SGST/IGST. Generates PDF and prints.',
-      icon: Icons.receipt_long_rounded,
-      phase: 'Phase 4',
-    );
-  }
-}
+
 
 /// Payments module — Phase 6 implementation target.
 class PaymentsScreen extends StatelessWidget {

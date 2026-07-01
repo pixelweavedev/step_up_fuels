@@ -19,6 +19,7 @@ import 'package:step_up_fuels/features/inventory/data/tables/daily_stock_reconci
 import 'package:step_up_fuels/features/inventory/data/tables/inventory_movements_table.dart';
 import 'package:step_up_fuels/features/inventory/data/tables/stock_adjustments_table.dart';
 import 'package:step_up_fuels/features/inventory/data/tables/storage_locations_table.dart';
+import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
 import 'package:step_up_fuels/features/invoices/data/tables/invoice_items_table.dart';
 import 'package:step_up_fuels/features/invoices/data/tables/invoices_table.dart';
 import 'package:step_up_fuels/features/ledger/data/tables/ledger_accounts_table.dart';
@@ -83,6 +84,7 @@ class AppSettings extends Table {
     Users,
     Documents,
   ],
+  daos: [InvoicesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
