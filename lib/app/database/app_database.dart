@@ -14,6 +14,7 @@ import 'package:step_up_fuels/features/customers/data/tables/customers_table.dar
 import 'package:step_up_fuels/features/deliveries/data/tables/fuel_deliveries_table.dart';
 import 'package:step_up_fuels/features/drivers/data/tables/driver_assignments_table.dart';
 import 'package:step_up_fuels/features/drivers/data/tables/drivers_table.dart';
+import 'package:step_up_fuels/features/expenses/data/daos/expenses_dao.dart';
 import 'package:step_up_fuels/features/expenses/data/tables/expenses_table.dart';
 import 'package:step_up_fuels/features/inventory/data/tables/daily_stock_reconciliations_table.dart';
 import 'package:step_up_fuels/features/inventory/data/tables/inventory_movements_table.dart';
@@ -26,6 +27,7 @@ import 'package:step_up_fuels/features/ledger/data/tables/ledger_accounts_table.
 import 'package:step_up_fuels/features/ledger/data/tables/ledger_entries_table.dart';
 import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
 import 'package:step_up_fuels/features/products/data/tables/products_table.dart';
+import 'package:step_up_fuels/features/purchases/data/daos/purchases_dao.dart';
 import 'package:step_up_fuels/features/purchases/data/tables/purchase_items_table.dart';
 import 'package:step_up_fuels/features/purchases/data/tables/purchases_table.dart';
 import 'package:step_up_fuels/features/purchases/data/tables/suppliers_table.dart';
@@ -84,7 +86,7 @@ class AppSettings extends Table {
     Users,
     Documents,
   ],
-  daos: [InvoicesDao],
+  daos: [InvoicesDao, PurchasesDao, ExpensesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

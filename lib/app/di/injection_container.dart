@@ -19,6 +19,12 @@ import 'package:step_up_fuels/features/drivers/application/usecases/save_driver_
 import 'package:step_up_fuels/features/drivers/data/daos/drivers_dao.dart';
 import 'package:step_up_fuels/features/drivers/data/repositories/driver_repository_impl.dart';
 import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
+import 'package:step_up_fuels/features/expenses/application/usecases/delete_expense_usecase.dart';
+import 'package:step_up_fuels/features/expenses/application/usecases/get_expenses_usecase.dart';
+import 'package:step_up_fuels/features/expenses/application/usecases/save_expense_usecase.dart';
+import 'package:step_up_fuels/features/expenses/data/daos/expenses_dao.dart';
+import 'package:step_up_fuels/features/expenses/data/repositories/expense_repository_impl.dart';
+import 'package:step_up_fuels/features/expenses/domain/repositories/expense_repository.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_current_stock_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_movements_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_storage_locations_usecase.dart';
@@ -28,12 +34,6 @@ import 'package:step_up_fuels/features/inventory/data/daos/inventory_dao.dart';
 import 'package:step_up_fuels/features/inventory/data/repositories/inventory_repository_impl.dart';
 import 'package:step_up_fuels/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:step_up_fuels/features/inventory/domain/services/inventory_service.dart';
-import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
-import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
-import 'package:step_up_fuels/features/products/application/usecases/save_product_usecase.dart';
-import 'package:step_up_fuels/features/products/data/daos/products_dao.dart';
-import 'package:step_up_fuels/features/products/data/repositories/product_repository_impl.dart';
-import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/cancel_invoice_usecase.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/get_invoice_detail_usecase.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/get_invoices_usecase.dart';
@@ -42,6 +42,20 @@ import 'package:step_up_fuels/features/invoices/application/usecases/save_invoic
 import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
 import 'package:step_up_fuels/features/invoices/data/repositories/invoice_repository_impl.dart';
 import 'package:step_up_fuels/features/invoices/domain/repositories/invoice_repository.dart';
+import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
+import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
+import 'package:step_up_fuels/features/products/application/usecases/save_product_usecase.dart';
+import 'package:step_up_fuels/features/products/data/daos/products_dao.dart';
+import 'package:step_up_fuels/features/products/data/repositories/product_repository_impl.dart';
+import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/get_purchase_detail_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/get_purchases_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/get_suppliers_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/save_purchase_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/save_supplier_usecase.dart';
+import 'package:step_up_fuels/features/purchases/data/daos/purchases_dao.dart';
+import 'package:step_up_fuels/features/purchases/data/repositories/purchase_repository_impl.dart';
+import 'package:step_up_fuels/features/purchases/domain/repositories/purchase_repository.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_vehicles_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/save_service_record_usecase.dart';
@@ -206,7 +220,42 @@ Future<void> configureDependencies() async {
   );
 
   // ── Phase 6: Purchase Dependencies ─────────────────────────────────────────
-  // sl.registerSingleton<PurchasesDao>(PurchasesDao(sl()));
+  final purchasesDao = PurchasesDao(sl<AppDatabase>());
+  sl.registerSingleton<PurchasesDao>(purchasesDao);
+  sl.registerSingleton<PurchaseRepository>(
+    PurchaseRepositoryImpl(sl<PurchasesDao>()),
+  );
+  sl.registerSingleton<GetSuppliersUseCase>(
+    GetSuppliersUseCase(sl<PurchaseRepository>()),
+  );
+  sl.registerSingleton<SaveSupplierUseCase>(
+    SaveSupplierUseCase(sl<PurchaseRepository>()),
+  );
+  sl.registerSingleton<GetPurchasesUseCase>(
+    GetPurchasesUseCase(sl<PurchaseRepository>()),
+  );
+  sl.registerSingleton<SavePurchaseUseCase>(
+    SavePurchaseUseCase(sl<PurchaseRepository>()),
+  );
+  sl.registerSingleton<GetPurchaseDetailUseCase>(
+    GetPurchaseDetailUseCase(sl<PurchaseRepository>()),
+  );
+
+  // ── Phase 6.5: Expense Dependencies ────────────────────────────────────────
+  final expensesDao = ExpensesDao(sl<AppDatabase>());
+  sl.registerSingleton<ExpensesDao>(expensesDao);
+  sl.registerSingleton<ExpenseRepository>(
+    ExpenseRepositoryImpl(sl<ExpensesDao>()),
+  );
+  sl.registerSingleton<GetExpensesUseCase>(
+    GetExpensesUseCase(sl<ExpenseRepository>()),
+  );
+  sl.registerSingleton<SaveExpenseUseCase>(
+    SaveExpenseUseCase(sl<ExpenseRepository>()),
+  );
+  sl.registerSingleton<DeleteExpenseUseCase>(
+    DeleteExpenseUseCase(sl<ExpenseRepository>()),
+  );
 
   // ── Phase 7: Payment + Ledger Dependencies ─────────────────────────────────
   // sl.registerSingleton<LedgerService>(LedgerServiceImpl(sl()));

@@ -1637,22 +1637,8 @@ class _CustomerDetailScaffoldState
 }
 
 
-/// Purchases module — Phase 5 implementation target.
-class PurchasesScreen extends StatelessWidget {
-  const PurchasesScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Purchases',
-      description:
-          'Record fuel purchases from suppliers. '
-          'Each purchase automatically increments the stock ledger.',
-      icon: Icons.shopping_cart_rounded,
-      phase: 'Phase 5',
-    );
-  }
-}
+
 
 
 

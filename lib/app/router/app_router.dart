@@ -6,9 +6,10 @@ import 'package:step_up_fuels/features/customers/presentation/screens/customers_
 import 'package:step_up_fuels/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:step_up_fuels/features/drivers/presentation/screens/drivers_screen.dart';
 import 'package:step_up_fuels/features/inventory/presentation/screens/inventory_screen.dart';
-import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
-import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';
 import 'package:step_up_fuels/features/invoices/presentation/screens/invoices_screen.dart';
+import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
+import 'package:step_up_fuels/features/purchases/presentation/screens/purchases_screen.dart';
+import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';
 import 'package:step_up_fuels/shared/widgets/app_scaffold.dart';
 
 /// Global router provider — accessible from anywhere via ref.read/watch.
