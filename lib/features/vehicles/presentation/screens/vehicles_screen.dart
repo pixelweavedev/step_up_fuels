@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
+import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/inventory/presentation/providers/inventory_provider.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
@@ -484,7 +485,6 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
           // Tabs headers
           TabBar(
             controller: _tabController,
-            isScrollable: false,
             dividerColor: AppColors.darkBorder,
             indicatorColor: AppColors.brandAmber,
             labelColor: AppColors.brandAmber,
@@ -668,8 +668,7 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
                     ),
                     subtitle: Text(
-                      'Assigned: ${AppDateUtils.toDisplay(asg.assignedAt)}' +
-                          (asg.releasedAt != null ? '\nReleased: ${AppDateUtils.toDisplay(asg.releasedAt!)}' : '\nCurrently Active'),
+                      'Assigned: ${AppDateUtils.toDisplay(asg.assignedAt)}\n${asg.releasedAt != null ? 'Released: ${AppDateUtils.toDisplay(asg.releasedAt!)}' : 'Currently Active'}',
                       style: const TextStyle(fontSize: 11, color: AppColors.darkTextSecondary, height: 1.3),
                     ),
                     isThreeLine: asg.releasedAt != null,

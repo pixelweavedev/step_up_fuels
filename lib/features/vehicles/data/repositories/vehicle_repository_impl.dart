@@ -30,7 +30,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     try {
       final row = await _vehiclesDao.getVehicleById(id);
       if (row == null) {
-        return Result.failure(DatabaseFailure(message: 'Vehicle not found'));
+        return const Result.failure(DatabaseFailure(message: 'Vehicle not found'));
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
@@ -55,7 +55,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
           final locationCompanion = StorageLocationsCompanion(
             id: Value(vehicle.id),
             name: Value(vehicle.registrationNumber),
-            type: const Value(StorageLocationType.bowser),
+            type: const Value('BOWSER'),
             isActive: const Value(true),
             createdBy: Value(vehicle.createdBy),
             createdAt: Value(vehicle.createdAt),
@@ -135,7 +135,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
           paymentMode: const Value('CASH'), // Default
           vehicleId: Value(record.vehicleId),
           billDocumentId: Value(record.billDocumentId),
-          notes: Value('Linked to service record: ${record.details}'),
+          notes: Value('Linked to service record ID: ${record.id} - ${record.details}'),
           createdBy: Value(record.createdBy),
           createdAt: Value(record.createdAt),
           updatedBy: Value(record.updatedBy),

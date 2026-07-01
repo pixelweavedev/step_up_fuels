@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:step_up_fuels/app/database/app_database.dart';
-import 'package:step_up_fuels/features/vehicles/data/tables/vehicles_table.dart';
 import 'package:step_up_fuels/features/vehicles/data/tables/vehicle_service_records_table.dart';
+import 'package:step_up_fuels/features/vehicles/data/tables/vehicles_table.dart';
 
 part 'vehicles_dao.g.dart';
 

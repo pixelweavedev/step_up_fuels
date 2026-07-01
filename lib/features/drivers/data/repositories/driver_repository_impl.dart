@@ -26,7 +26,7 @@ class DriverRepositoryImpl implements DriverRepository {
     try {
       final row = await _driversDao.getDriverById(id);
       if (row == null) {
-        return Result.failure(DatabaseFailure(message: 'Driver not found'));
+        return const Result.failure(DatabaseFailure(message: 'Driver not found'));
       }
       return Result.success(row.toDomain());
     } catch (e, st) {

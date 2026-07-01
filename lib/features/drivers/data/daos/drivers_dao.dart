@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:step_up_fuels/app/database/app_database.dart';
-import 'package:step_up_fuels/features/drivers/data/tables/drivers_table.dart';
 import 'package:step_up_fuels/features/drivers/data/tables/driver_assignments_table.dart';
+import 'package:step_up_fuels/features/drivers/data/tables/drivers_table.dart';
 
 part 'drivers_dao.g.dart';
 

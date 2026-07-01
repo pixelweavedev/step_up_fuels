@@ -5,6 +5,7 @@ import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
+import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
@@ -29,10 +30,10 @@ class DriversScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Drivers Directory',
                       style: TextStyle(
                         fontSize: 22,
@@ -40,7 +41,7 @@ class DriversScreen extends ConsumerWidget {
                         color: AppColors.darkTextPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       'Manage delivery drivers, licenses validity, and vehicle assignments.',
                       style: TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
@@ -136,7 +137,6 @@ class _DriverGridCard extends ConsumerWidget {
           color: isLicenseExpired
               ? AppColors.error.withValues(alpha: 0.5)
               : (isLicenseExpiringSoon ? AppColors.brandAmber.withValues(alpha: 0.5) : AppColors.darkBorder),
-          width: 1.0,
         ),
       ),
       child: Padding(

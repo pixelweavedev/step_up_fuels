@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
+import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
+import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_vehicles_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/save_service_record_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/save_vehicle_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle_service_record.dart';
-import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
-import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
 
 final vehicleSearchQueryProvider = StateProvider<String>((ref) => '');
 
