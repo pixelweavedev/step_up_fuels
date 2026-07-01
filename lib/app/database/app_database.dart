@@ -95,7 +95,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -134,6 +134,9 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfNotExists(m, ledgerEntries);
         await _createTableIfNotExists(m, users);
         await _createTableIfNotExists(m, documents);
+      }
+      if (from < 5) {
+        await m.addColumn(fuelPurchases, fuelPurchases.destinationLocationId);
       }
     },
   );

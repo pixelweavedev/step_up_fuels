@@ -162,31 +162,33 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
 
         // 4. Hook: Auto-log inventory movements for new purchase entries
         if (isNew) {
-          // Resolve main storage location
-          final mainLoc = await (db.select(
-            db.storageLocations,
-          )..where((t) => t.type.equals('MAIN_STORAGE'))).getSingleOrNull();
+          String destLocId = purchase.destinationLocationId ?? '';
+          if (destLocId.isEmpty) {
+            // Resolve main storage location
+            final mainLoc = await (db.select(
+              db.storageLocations,
+            )..where((t) => t.type.equals('MAIN_STORAGE'))).getSingleOrNull();
 
-          String mainLocId;
-          if (mainLoc == null) {
-            mainLocId = 'main-storage-terminal';
-            await db
-                .into(db.storageLocations)
-                .insertOnConflictUpdate(
-                  StorageLocationsCompanion(
-                    id: const Value('main-storage-terminal'),
-                    name: const Value('Main Terminal Storage'),
-                    type: const Value('MAIN_STORAGE'),
-                    isActive: const Value(true),
-                    createdAt: Value(DateTime.now()),
-                    createdBy: Value(purchase.createdBy),
-                    updatedAt: Value(DateTime.now()),
-                    updatedBy: Value(purchase.createdBy),
-                    version: const Value(1),
-                  ),
-                );
-          } else {
-            mainLocId = mainLoc.id;
+            if (mainLoc == null) {
+              destLocId = 'main-storage-terminal';
+              await db
+                  .into(db.storageLocations)
+                  .insertOnConflictUpdate(
+                    StorageLocationsCompanion(
+                      id: const Value('main-storage-terminal'),
+                      name: const Value('Main Terminal Storage'),
+                      type: const Value('MAIN_STORAGE'),
+                      isActive: const Value(true),
+                      createdAt: Value(DateTime.now()),
+                      createdBy: Value(purchase.createdBy),
+                      updatedAt: Value(DateTime.now()),
+                      updatedBy: Value(purchase.createdBy),
+                      version: const Value(1),
+                    ),
+                  );
+            } else {
+              destLocId = mainLoc.id;
+            }
           }
 
           // Record a movement for each item purchased
@@ -195,7 +197,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
               id: Value(_uuid.v4()),
               productId: Value(item.productId),
               sourceLocationId: const Value(null),
-              destinationLocationId: Value(mainLocId),
+              destinationLocationId: Value(destLocId),
               type: const Value('PURCHASE_IN'),
               quantity: Value(item.quantity),
               referenceId: Value(purchase.id),
@@ -264,6 +266,90 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
           if (creditRes.isFailure) {
             throw Exception(creditRes.failureOrNull?.message);
           }
+        }
+      });
+      return const Result.success(null);
+    } catch (e, st) {
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> markPurchaseAsPaid(
+    String purchaseId, {
+    required String paymentMode,
+    required DateTime paymentDate,
+    String? notes,
+  }) async {
+    try {
+      final db = _dao.attachedDatabase;
+      await db.transaction(() async {
+        // 1. Fetch purchase record
+        final purchaseRow = await _dao.getPurchaseById(purchaseId);
+        if (purchaseRow == null) throw Exception('Purchase not found');
+
+        // 2. Fetch Supplier details
+        final supplierRow = await _dao.getSupplierById(purchaseRow.supplierId);
+        if (supplierRow == null) throw Exception('Supplier not found');
+
+        // 3. Resolve Ledger Accounts (Supplier Account + Bank/Cash Account)
+        final supplierLedgerRes = await _ledgerRepo.getOrCreateSupplierAccount(
+          supplierRow.id,
+          supplierRow.name,
+          supplierRow.supplierCode,
+        );
+        final supplierLedger = supplierLedgerRes.dataOrThrow;
+
+        final isCash = paymentMode.toUpperCase() == 'CASH';
+        final bankOrCashRes = await _ledgerRepo.getOrCreateSystemAccount(
+          isCash ? 'ACT-CASH' : 'ACT-BANK',
+          isCash ? 'Cash Account' : 'Bank Account',
+          isCash ? 'CASH' : 'BANK',
+        );
+        final bankOrCashLedger = bankOrCashRes.dataOrThrow;
+
+        // 4. Update Purchase status to PAID in DB
+        final updatedRow = purchaseRow.toDomain().copyWith(
+          paymentStatus: 'PAID',
+          notes: notes != null && notes.isNotEmpty
+              ? (purchaseRow.notes != null ? '${purchaseRow.notes}\n$notes' : notes)
+              : purchaseRow.notes,
+        );
+        await _dao.savePurchase(updatedRow.toCompanion());
+
+        // 5. Post Ledger Entries (Double-entry Bookkeeping)
+        // Debit Supplier Account
+        final debitRes = await _ledgerRepo.postEntry(
+          accountId: supplierLedger.id,
+          entryDate: paymentDate,
+          description:
+              'Payment made to supplier ${supplierRow.name} for Invoice ${purchaseRow.supplierInvoiceNo} (${purchaseRow.purchaseNumber}) via $paymentMode',
+          debit: purchaseRow.totalAmount,
+          credit: 0.0,
+          referenceId: purchaseId,
+          referenceType: 'PURCHASE_PAYMENT',
+          createdBy: 'system',
+        );
+        if (debitRes.isFailure) {
+          throw Exception(debitRes.failureOrNull?.message);
+        }
+
+        // Credit Cash/Bank Account
+        final creditRes = await _ledgerRepo.postEntry(
+          accountId: bankOrCashLedger.id,
+          entryDate: paymentDate,
+          description:
+              'Payment made to supplier ${supplierRow.name} for Invoice ${purchaseRow.supplierInvoiceNo} (${purchaseRow.purchaseNumber}) via $paymentMode',
+          debit: 0.0,
+          credit: purchaseRow.totalAmount,
+          referenceId: purchaseId,
+          referenceType: 'PURCHASE_PAYMENT',
+          createdBy: 'system',
+        );
+        if (creditRes.isFailure) {
+          throw Exception(creditRes.failureOrNull?.message);
         }
       });
       return const Result.success(null);

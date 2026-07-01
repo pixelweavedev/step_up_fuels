@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:step_up_fuels/features/inventory/data/tables/storage_locations_table.dart';
 import 'package:step_up_fuels/features/purchases/data/tables/suppliers_table.dart';
 
 /// Drift table representing a Fuel Purchase invoice.
@@ -16,6 +17,7 @@ class FuelPurchases extends Table {
   RealColumn get totalAmount => real()(); // Total purchase amount
   TextColumn get paymentStatus => text()(); // UNPAID, PARTIALLY_PAID, PAID
   TextColumn get notes => text().nullable()();
+  TextColumn get destinationLocationId => text().nullable().references(StorageLocations, #id)();
 
   // Audits
   TextColumn get createdBy => text().withDefault(const Constant('system'))();

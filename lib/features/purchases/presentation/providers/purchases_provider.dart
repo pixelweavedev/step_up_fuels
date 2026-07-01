@@ -3,6 +3,7 @@ import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchase_detail_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchases_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_suppliers_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/mark_purchase_as_paid_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/save_purchase_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/save_supplier_usecase.dart';
 import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase.dart';
@@ -93,6 +94,33 @@ class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
       success: (_) async {
         ref.invalidateSelf();
         // Also invalidate the inventory providers since stock balance has changed
+        ref.invalidate(databaseProvider);
+      },
+      failure: (f) {
+        state = AsyncValue.error(f.userMessage, StackTrace.current);
+        throw Exception(f.userMessage);
+      },
+    );
+  }
+
+  Future<void> markAsPaid(
+    String purchaseId, {
+    required String paymentMode,
+    required DateTime paymentDate,
+    String? notes,
+  }) async {
+    state = const AsyncValue.loading();
+    final useCase = sl<MarkPurchaseAsPaidUseCase>();
+    final result = await useCase(
+      purchaseId,
+      paymentMode: paymentMode,
+      paymentDate: paymentDate,
+      notes: notes,
+    );
+    await result.when(
+      success: (_) async {
+        ref.invalidateSelf();
+        ref.invalidate(purchaseDetailProvider(purchaseId));
         ref.invalidate(databaseProvider);
       },
       failure: (f) {

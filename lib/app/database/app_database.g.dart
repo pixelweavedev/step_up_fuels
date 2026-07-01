@@ -19085,6 +19085,20 @@ class $FuelPurchasesTable extends FuelPurchases
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _destinationLocationIdMeta =
+      const VerificationMeta('destinationLocationId');
+  @override
+  late final GeneratedColumn<String> destinationLocationId =
+      GeneratedColumn<String>(
+        'destination_location_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES storage_locations (id)',
+        ),
+      );
   static const VerificationMeta _createdByMeta = const VerificationMeta(
     'createdBy',
   );
@@ -19179,6 +19193,7 @@ class $FuelPurchasesTable extends FuelPurchases
     totalAmount,
     paymentStatus,
     notes,
+    destinationLocationId,
     createdBy,
     createdAt,
     updatedBy,
@@ -19299,6 +19314,15 @@ class $FuelPurchasesTable extends FuelPurchases
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('destination_location_id')) {
+      context.handle(
+        _destinationLocationIdMeta,
+        destinationLocationId.isAcceptableOrUnknown(
+          data['destination_location_id']!,
+          _destinationLocationIdMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_by')) {
       context.handle(
         _createdByMeta,
@@ -19402,6 +19426,10 @@ class $FuelPurchasesTable extends FuelPurchases
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      destinationLocationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}destination_location_id'],
+      ),
       createdBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}created_by'],
@@ -19452,6 +19480,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
   final double totalAmount;
   final String paymentStatus;
   final String? notes;
+  final String? destinationLocationId;
   final String createdBy;
   final DateTime createdAt;
   final String updatedBy;
@@ -19472,6 +19501,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
     required this.totalAmount,
     required this.paymentStatus,
     this.notes,
+    this.destinationLocationId,
     required this.createdBy,
     required this.createdAt,
     required this.updatedBy,
@@ -19496,6 +19526,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
     map['payment_status'] = Variable<String>(paymentStatus);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || destinationLocationId != null) {
+      map['destination_location_id'] = Variable<String>(destinationLocationId);
     }
     map['created_by'] = Variable<String>(createdBy);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -19527,6 +19560,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      destinationLocationId: destinationLocationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(destinationLocationId),
       createdBy: Value(createdBy),
       createdAt: Value(createdAt),
       updatedBy: Value(updatedBy),
@@ -19559,6 +19595,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
       totalAmount: serializer.fromJson<double>(json['totalAmount']),
       paymentStatus: serializer.fromJson<String>(json['paymentStatus']),
       notes: serializer.fromJson<String?>(json['notes']),
+      destinationLocationId: serializer.fromJson<String?>(
+        json['destinationLocationId'],
+      ),
       createdBy: serializer.fromJson<String>(json['createdBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedBy: serializer.fromJson<String>(json['updatedBy']),
@@ -19584,6 +19623,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
       'totalAmount': serializer.toJson<double>(totalAmount),
       'paymentStatus': serializer.toJson<String>(paymentStatus),
       'notes': serializer.toJson<String?>(notes),
+      'destinationLocationId': serializer.toJson<String?>(
+        destinationLocationId,
+      ),
       'createdBy': serializer.toJson<String>(createdBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedBy': serializer.toJson<String>(updatedBy),
@@ -19607,6 +19649,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
     double? totalAmount,
     String? paymentStatus,
     Value<String?> notes = const Value.absent(),
+    Value<String?> destinationLocationId = const Value.absent(),
     String? createdBy,
     DateTime? createdAt,
     String? updatedBy,
@@ -19627,6 +19670,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
     totalAmount: totalAmount ?? this.totalAmount,
     paymentStatus: paymentStatus ?? this.paymentStatus,
     notes: notes.present ? notes.value : this.notes,
+    destinationLocationId: destinationLocationId.present
+        ? destinationLocationId.value
+        : this.destinationLocationId,
     createdBy: createdBy ?? this.createdBy,
     createdAt: createdAt ?? this.createdAt,
     updatedBy: updatedBy ?? this.updatedBy,
@@ -19667,6 +19713,9 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
           ? data.paymentStatus.value
           : this.paymentStatus,
       notes: data.notes.present ? data.notes.value : this.notes,
+      destinationLocationId: data.destinationLocationId.present
+          ? data.destinationLocationId.value
+          : this.destinationLocationId,
       createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
@@ -19692,6 +19741,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
           ..write('totalAmount: $totalAmount, ')
           ..write('paymentStatus: $paymentStatus, ')
           ..write('notes: $notes, ')
+          ..write('destinationLocationId: $destinationLocationId, ')
           ..write('createdBy: $createdBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedBy: $updatedBy, ')
@@ -19717,6 +19767,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
     totalAmount,
     paymentStatus,
     notes,
+    destinationLocationId,
     createdBy,
     createdAt,
     updatedBy,
@@ -19741,6 +19792,7 @@ class FuelPurchaseRow extends DataClass implements Insertable<FuelPurchaseRow> {
           other.totalAmount == this.totalAmount &&
           other.paymentStatus == this.paymentStatus &&
           other.notes == this.notes &&
+          other.destinationLocationId == this.destinationLocationId &&
           other.createdBy == this.createdBy &&
           other.createdAt == this.createdAt &&
           other.updatedBy == this.updatedBy &&
@@ -19763,6 +19815,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
   final Value<double> totalAmount;
   final Value<String> paymentStatus;
   final Value<String?> notes;
+  final Value<String?> destinationLocationId;
   final Value<String> createdBy;
   final Value<DateTime> createdAt;
   final Value<String> updatedBy;
@@ -19784,6 +19837,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
     this.totalAmount = const Value.absent(),
     this.paymentStatus = const Value.absent(),
     this.notes = const Value.absent(),
+    this.destinationLocationId = const Value.absent(),
     this.createdBy = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedBy = const Value.absent(),
@@ -19806,6 +19860,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
     required double totalAmount,
     required String paymentStatus,
     this.notes = const Value.absent(),
+    this.destinationLocationId = const Value.absent(),
     this.createdBy = const Value.absent(),
     required DateTime createdAt,
     this.updatedBy = const Value.absent(),
@@ -19837,6 +19892,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
     Expression<double>? totalAmount,
     Expression<String>? paymentStatus,
     Expression<String>? notes,
+    Expression<String>? destinationLocationId,
     Expression<String>? createdBy,
     Expression<DateTime>? createdAt,
     Expression<String>? updatedBy,
@@ -19859,6 +19915,8 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
       if (totalAmount != null) 'total_amount': totalAmount,
       if (paymentStatus != null) 'payment_status': paymentStatus,
       if (notes != null) 'notes': notes,
+      if (destinationLocationId != null)
+        'destination_location_id': destinationLocationId,
       if (createdBy != null) 'created_by': createdBy,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedBy != null) 'updated_by': updatedBy,
@@ -19883,6 +19941,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
     Value<double>? totalAmount,
     Value<String>? paymentStatus,
     Value<String?>? notes,
+    Value<String?>? destinationLocationId,
     Value<String>? createdBy,
     Value<DateTime>? createdAt,
     Value<String>? updatedBy,
@@ -19905,6 +19964,8 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
       totalAmount: totalAmount ?? this.totalAmount,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       notes: notes ?? this.notes,
+      destinationLocationId:
+          destinationLocationId ?? this.destinationLocationId,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       updatedBy: updatedBy ?? this.updatedBy,
@@ -19955,6 +20016,11 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (destinationLocationId.present) {
+      map['destination_location_id'] = Variable<String>(
+        destinationLocationId.value,
+      );
+    }
     if (createdBy.present) {
       map['created_by'] = Variable<String>(createdBy.value);
     }
@@ -19997,6 +20063,7 @@ class FuelPurchasesCompanion extends UpdateCompanion<FuelPurchaseRow> {
           ..write('totalAmount: $totalAmount, ')
           ..write('paymentStatus: $paymentStatus, ')
           ..write('notes: $notes, ')
+          ..write('destinationLocationId: $destinationLocationId, ')
           ..write('createdBy: $createdBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedBy: $updatedBy, ')
@@ -31706,6 +31773,28 @@ final class $$StorageLocationsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$FuelPurchasesTable, List<FuelPurchaseRow>>
+  _fuelPurchasesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.fuelPurchases,
+    aliasName: $_aliasNameGenerator(
+      db.storageLocations.id,
+      db.fuelPurchases.destinationLocationId,
+    ),
+  );
+
+  $$FuelPurchasesTableProcessedTableManager get fuelPurchasesRefs {
+    final manager = $$FuelPurchasesTableTableManager($_db, $_db.fuelPurchases)
+        .filter(
+          (f) =>
+              f.destinationLocationId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_fuelPurchasesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$StorageLocationsTableFilterComposer
@@ -31826,6 +31915,31 @@ class $$StorageLocationsTableFilterComposer
                     $removeJoinBuilderFromRootComposer,
               ),
         );
+    return f(composer);
+  }
+
+  Expression<bool> fuelPurchasesRefs(
+    Expression<bool> Function($$FuelPurchasesTableFilterComposer f) f,
+  ) {
+    final $$FuelPurchasesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fuelPurchases,
+      getReferencedColumn: (t) => t.destinationLocationId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FuelPurchasesTableFilterComposer(
+            $db: $db,
+            $table: $db.fuelPurchases,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 }
@@ -31996,6 +32110,31 @@ class $$StorageLocationsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> fuelPurchasesRefs<T extends Object>(
+    Expression<T> Function($$FuelPurchasesTableAnnotationComposer a) f,
+  ) {
+    final $$FuelPurchasesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fuelPurchases,
+      getReferencedColumn: (t) => t.destinationLocationId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FuelPurchasesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fuelPurchases,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StorageLocationsTableTableManager
@@ -32014,6 +32153,7 @@ class $$StorageLocationsTableTableManager
           PrefetchHooks Function({
             bool stockAdjustmentsRefs,
             bool dailyStockReconciliationsRefs,
+            bool fuelPurchasesRefs,
           })
         > {
   $$StorageLocationsTableTableManager(
@@ -32101,6 +32241,7 @@ class $$StorageLocationsTableTableManager
               ({
                 stockAdjustmentsRefs = false,
                 dailyStockReconciliationsRefs = false,
+                fuelPurchasesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -32108,6 +32249,7 @@ class $$StorageLocationsTableTableManager
                     if (stockAdjustmentsRefs) db.stockAdjustments,
                     if (dailyStockReconciliationsRefs)
                       db.dailyStockReconciliations,
+                    if (fuelPurchasesRefs) db.fuelPurchases,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -32154,6 +32296,27 @@ class $$StorageLocationsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (fuelPurchasesRefs)
+                        await $_getPrefetchedData<
+                          StorageLocationRow,
+                          $StorageLocationsTable,
+                          FuelPurchaseRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StorageLocationsTableReferences
+                              ._fuelPurchasesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StorageLocationsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).fuelPurchasesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.destinationLocationId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -32177,6 +32340,7 @@ typedef $$StorageLocationsTableProcessedTableManager =
       PrefetchHooks Function({
         bool stockAdjustmentsRefs,
         bool dailyStockReconciliationsRefs,
+        bool fuelPurchasesRefs,
       })
     >;
 typedef $$InventoryMovementsTableCreateCompanionBuilder =
@@ -39729,6 +39893,7 @@ typedef $$FuelPurchasesTableCreateCompanionBuilder =
       required double totalAmount,
       required String paymentStatus,
       Value<String?> notes,
+      Value<String?> destinationLocationId,
       Value<String> createdBy,
       required DateTime createdAt,
       Value<String> updatedBy,
@@ -39752,6 +39917,7 @@ typedef $$FuelPurchasesTableUpdateCompanionBuilder =
       Value<double> totalAmount,
       Value<String> paymentStatus,
       Value<String?> notes,
+      Value<String?> destinationLocationId,
       Value<String> createdBy,
       Value<DateTime> createdAt,
       Value<String> updatedBy,
@@ -39784,6 +39950,30 @@ final class $$FuelPurchasesTableReferences
       $_db.suppliers,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_supplierIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $StorageLocationsTable _destinationLocationIdTable(_$AppDatabase db) =>
+      db.storageLocations.createAlias(
+        $_aliasNameGenerator(
+          db.fuelPurchases.destinationLocationId,
+          db.storageLocations.id,
+        ),
+      );
+
+  $$StorageLocationsTableProcessedTableManager? get destinationLocationId {
+    final $_column = $_itemColumn<String>('destination_location_id');
+    if ($_column == null) return null;
+    final manager = $$StorageLocationsTableTableManager(
+      $_db,
+      $_db.storageLocations,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(
+      _destinationLocationIdTable($_db),
+    );
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -39928,6 +40118,29 @@ class $$FuelPurchasesTableFilterComposer
           }) => $$SuppliersTableFilterComposer(
             $db: $db,
             $table: $db.suppliers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StorageLocationsTableFilterComposer get destinationLocationId {
+    final $$StorageLocationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.destinationLocationId,
+      referencedTable: $db.storageLocations,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StorageLocationsTableFilterComposer(
+            $db: $db,
+            $table: $db.storageLocations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -40084,6 +40297,29 @@ class $$FuelPurchasesTableOrderingComposer
     );
     return composer;
   }
+
+  $$StorageLocationsTableOrderingComposer get destinationLocationId {
+    final $$StorageLocationsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.destinationLocationId,
+      referencedTable: $db.storageLocations,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StorageLocationsTableOrderingComposer(
+            $db: $db,
+            $table: $db.storageLocations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$FuelPurchasesTableAnnotationComposer
@@ -40188,6 +40424,29 @@ class $$FuelPurchasesTableAnnotationComposer
     return composer;
   }
 
+  $$StorageLocationsTableAnnotationComposer get destinationLocationId {
+    final $$StorageLocationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.destinationLocationId,
+      referencedTable: $db.storageLocations,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StorageLocationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storageLocations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   Expression<T> fuelPurchaseItemsRefs<T extends Object>(
     Expression<T> Function($$FuelPurchaseItemsTableAnnotationComposer a) f,
   ) {
@@ -40228,7 +40487,11 @@ class $$FuelPurchasesTableTableManager
           $$FuelPurchasesTableUpdateCompanionBuilder,
           (FuelPurchaseRow, $$FuelPurchasesTableReferences),
           FuelPurchaseRow,
-          PrefetchHooks Function({bool supplierId, bool fuelPurchaseItemsRefs})
+          PrefetchHooks Function({
+            bool supplierId,
+            bool destinationLocationId,
+            bool fuelPurchaseItemsRefs,
+          })
         > {
   $$FuelPurchasesTableTableManager(_$AppDatabase db, $FuelPurchasesTable table)
     : super(
@@ -40255,6 +40518,7 @@ class $$FuelPurchasesTableTableManager
                 Value<double> totalAmount = const Value.absent(),
                 Value<String> paymentStatus = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> destinationLocationId = const Value.absent(),
                 Value<String> createdBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<String> updatedBy = const Value.absent(),
@@ -40276,6 +40540,7 @@ class $$FuelPurchasesTableTableManager
                 totalAmount: totalAmount,
                 paymentStatus: paymentStatus,
                 notes: notes,
+                destinationLocationId: destinationLocationId,
                 createdBy: createdBy,
                 createdAt: createdAt,
                 updatedBy: updatedBy,
@@ -40299,6 +40564,7 @@ class $$FuelPurchasesTableTableManager
                 required double totalAmount,
                 required String paymentStatus,
                 Value<String?> notes = const Value.absent(),
+                Value<String?> destinationLocationId = const Value.absent(),
                 Value<String> createdBy = const Value.absent(),
                 required DateTime createdAt,
                 Value<String> updatedBy = const Value.absent(),
@@ -40320,6 +40586,7 @@ class $$FuelPurchasesTableTableManager
                 totalAmount: totalAmount,
                 paymentStatus: paymentStatus,
                 notes: notes,
+                destinationLocationId: destinationLocationId,
                 createdBy: createdBy,
                 createdAt: createdAt,
                 updatedBy: updatedBy,
@@ -40338,7 +40605,11 @@ class $$FuelPurchasesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({supplierId = false, fuelPurchaseItemsRefs = false}) {
+              ({
+                supplierId = false,
+                destinationLocationId = false,
+                fuelPurchaseItemsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
@@ -40371,6 +40642,21 @@ class $$FuelPurchasesTableTableManager
                                     referencedColumn:
                                         $$FuelPurchasesTableReferences
                                             ._supplierIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (destinationLocationId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.destinationLocationId,
+                                    referencedTable:
+                                        $$FuelPurchasesTableReferences
+                                            ._destinationLocationIdTable(db),
+                                    referencedColumn:
+                                        $$FuelPurchasesTableReferences
+                                            ._destinationLocationIdTable(db)
                                             .id,
                                   )
                                   as T;
@@ -40421,7 +40707,11 @@ typedef $$FuelPurchasesTableProcessedTableManager =
       $$FuelPurchasesTableUpdateCompanionBuilder,
       (FuelPurchaseRow, $$FuelPurchasesTableReferences),
       FuelPurchaseRow,
-      PrefetchHooks Function({bool supplierId, bool fuelPurchaseItemsRefs})
+      PrefetchHooks Function({
+        bool supplierId,
+        bool destinationLocationId,
+        bool fuelPurchaseItemsRefs,
+      })
     >;
 typedef $$FuelPurchaseItemsTableCreateCompanionBuilder =
     FuelPurchaseItemsCompanion Function({

@@ -57,6 +57,7 @@ import 'package:step_up_fuels/features/products/domain/repositories/product_repo
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchase_detail_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchases_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_suppliers_usecase.dart';
+import 'package:step_up_fuels/features/purchases/application/usecases/mark_purchase_as_paid_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/save_purchase_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/save_supplier_usecase.dart';
 import 'package:step_up_fuels/features/purchases/data/daos/purchases_dao.dart';
@@ -253,6 +254,9 @@ Future<void> configureDependencies() async {
   );
   sl.registerSingleton<SavePurchaseUseCase>(
     SavePurchaseUseCase(sl<PurchaseRepository>()),
+  );
+  sl.registerSingleton<MarkPurchaseAsPaidUseCase>(
+    MarkPurchaseAsPaidUseCase(sl<PurchaseRepository>()),
   );
   sl.registerSingleton<GetPurchaseDetailUseCase>(
     GetPurchaseDetailUseCase(sl<PurchaseRepository>()),

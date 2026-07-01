@@ -14,6 +14,7 @@ class FuelPurchase extends Equatable {
     required this.totalAmount,
     required this.paymentStatus,
     this.notes,
+    this.destinationLocationId,
     required this.createdBy,
     required this.createdAt,
     required this.updatedBy,
@@ -35,6 +36,7 @@ class FuelPurchase extends Equatable {
   final double totalAmount; // Total purchase amount
   final String paymentStatus; // UNPAID, PARTIALLY_PAID, PAID
   final String? notes;
+  final String? destinationLocationId;
 
   // Audits
   final String createdBy;
@@ -57,6 +59,7 @@ class FuelPurchase extends Equatable {
     double? totalAmount,
     String? paymentStatus,
     String? notes,
+    String? destinationLocationId,
     String? updatedBy,
     DateTime? deletedAt,
     int? version,
@@ -75,6 +78,7 @@ class FuelPurchase extends Equatable {
       totalAmount: totalAmount ?? this.totalAmount,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       notes: notes ?? this.notes,
+      destinationLocationId: destinationLocationId ?? this.destinationLocationId,
       createdBy: createdBy,
       createdAt: createdAt,
       updatedBy: updatedBy ?? this.updatedBy,
@@ -99,6 +103,7 @@ class FuelPurchase extends Equatable {
         totalAmount,
         paymentStatus,
         notes,
+        destinationLocationId,
         createdBy,
         createdAt,
         updatedBy,
