@@ -1,20 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/app/di/injection_container.dart';
+import 'package:step_up_fuels/core/constants/app_constants.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/app_theme.dart';
 
+class ThemeModeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    _loadTheme();
+    return ThemeMode.dark;
+  }
+
+  Future<void> _loadTheme() async {
+    try {
+      final db = ref.read(databaseProvider);
+      final storedValue = await db.getSetting(AppConstants.settingsKeyThemeMode);
+      if (storedValue != null) {
+        state = storedValue.toLowerCase() == 'light' ? ThemeMode.light : ThemeMode.dark;
+      }
+    } catch (_) {
+      // Keep default ThemeMode.dark
+    }
+  }
+
+  Future<void> toggleTheme() async {
+    final newMode = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    state = newMode;
+    try {
+      final db = ref.read(databaseProvider);
+      await db.setSetting(AppConstants.settingsKeyThemeMode, newMode == ThemeMode.light ? 'light' : 'dark');
+    } catch (_) {
+      // Keep in-memory update even if DB save fails
+    }
+  }
+}
+
 /// Riverpod provider for the current ThemeMode.
-///
-/// Persisted to AppSettings in Phase 9 (Settings module).
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
 
 /// Extension to easily toggle the theme.
 extension ThemeModeProviderExt on WidgetRef {
   void toggleTheme() {
-    final current = read(themeModeProvider);
-    read(themeModeProvider.notifier).state = current == ThemeMode.dark
-        ? ThemeMode.light
-        : ThemeMode.dark;
+    read(themeModeProvider.notifier).toggleTheme();
   }
 }
 

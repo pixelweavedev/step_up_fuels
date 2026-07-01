@@ -608,7 +608,7 @@ class DashboardScreen extends ConsumerWidget {
               )
             else
               ...bowsers.entries.map((entry) {
-                final capacity = 10000.0; // Assume 10KL standard capacity
+                const capacity = 10000.0; // Assume 10KL standard capacity
                 final pct = math.min(1.0, entry.value / capacity);
 
                 return Padding(

@@ -73,6 +73,8 @@ import 'package:step_up_fuels/features/reports/domain/services/reporting_service
 import 'package:step_up_fuels/features/reports/data/services/reporting_service_impl.dart';
 import 'package:step_up_fuels/features/dashboard/domain/services/dashboard_service.dart';
 import 'package:step_up_fuels/features/dashboard/data/services/dashboard_service_impl.dart';
+import 'package:step_up_fuels/features/settings/domain/repositories/settings_repository.dart';
+import 'package:step_up_fuels/features/settings/data/repositories/settings_repository_impl.dart';
 
 /// Global service locator instance.
 final GetIt sl = GetIt.instance;
@@ -286,6 +288,9 @@ Future<void> configureDependencies() async {
   // ── Phase 8: Reports & Dashboard Dependencies ──────────────────────────────
   sl.registerSingleton<ReportingService>(ReportingServiceImpl(sl<AppDatabase>()));
   sl.registerSingleton<DashboardService>(DashboardServiceImpl(sl<AppDatabase>()));
+
+  // ── Phase 9: Settings Dependencies ─────────────────────────────────────────
+  sl.registerSingleton<SettingsRepository>(SettingsRepositoryImpl(sl<AppDatabase>()));
 
   AppLogger.info('All dependencies configured successfully');
 }
