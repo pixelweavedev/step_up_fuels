@@ -4,10 +4,12 @@ import 'package:step_up_fuels/features/expenses/data/daos/expenses_dao.dart';
 import 'package:step_up_fuels/features/expenses/data/models/expense_mapper.dart';
 import 'package:step_up_fuels/features/expenses/domain/entities/expense.dart';
 import 'package:step_up_fuels/features/expenses/domain/repositories/expense_repository.dart';
+import 'package:step_up_fuels/features/ledger/domain/repositories/ledger_repository.dart';
 
 class ExpenseRepositoryImpl implements ExpenseRepository {
-  ExpenseRepositoryImpl(this._dao);
+  ExpenseRepositoryImpl(this._dao, this._ledgerRepo);
   final ExpensesDao _dao;
+  final LedgerRepository _ledgerRepo;
 
   @override
   Future<Result<List<Expense>>> getAll({
@@ -29,7 +31,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       );
       return Result.success(rows.map((r) => r.toDomain()).toList());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -38,11 +42,15 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     try {
       final row = await _dao.getExpenseById(id);
       if (row == null) {
-        return const Result.failure(DatabaseFailure(message: 'Expense not found'));
+        return const Result.failure(
+          DatabaseFailure(message: 'Expense not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -66,10 +74,62 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
         final expenseToSave = expense.copyWith(expenseNumber: expenseNumber);
         await _dao.saveExpense(expenseToSave.toCompanion());
+
+        if (isNew) {
+          // Double-entry postings
+          final isCash = expense.paymentMode.toUpperCase() == 'CASH';
+          final bankOrCashRes = await _ledgerRepo.getOrCreateSystemAccount(
+            isCash ? 'ACT-CASH' : 'ACT-BANK',
+            isCash ? 'Cash Account' : 'Bank Account',
+            isCash ? 'CASH' : 'BANK',
+          );
+          final bankOrCashLedger = bankOrCashRes.dataOrThrow;
+
+          final expenseAccountRes = await _ledgerRepo.getOrCreateSystemAccount(
+            'ACT-EXP-${expense.category}',
+            '${expense.category.replaceAll('_', ' ')} Expense',
+            'EXPENSE',
+          );
+          final expenseLedger = expenseAccountRes.dataOrThrow;
+
+          // Debit Expense account
+          final debitRes = await _ledgerRepo.postEntry(
+            accountId: expenseLedger.id,
+            entryDate: expense.expenseDate,
+            description:
+                'Expense recorded $expenseNumber: ${expense.notes ?? ""}',
+            debit: expense.amount,
+            credit: 0.0,
+            referenceId: expense.id,
+            referenceType: 'EXPENSE',
+            createdBy: expense.createdBy,
+          );
+          if (debitRes.isFailure) {
+            throw Exception(debitRes.failureOrNull?.message);
+          }
+
+          // Credit Cash/Bank account
+          final creditRes = await _ledgerRepo.postEntry(
+            accountId: bankOrCashLedger.id,
+            entryDate: expense.expenseDate,
+            description:
+                'Expense recorded $expenseNumber: ${expense.notes ?? ""}',
+            debit: 0.0,
+            credit: expense.amount,
+            referenceId: expense.id,
+            referenceType: 'EXPENSE',
+            createdBy: expense.createdBy,
+          );
+          if (creditRes.isFailure) {
+            throw Exception(creditRes.failureOrNull?.message);
+          }
+        }
       });
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -79,7 +139,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _dao.softDeleteExpense(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

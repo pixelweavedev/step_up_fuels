@@ -23,8 +23,10 @@ import 'package:step_up_fuels/features/inventory/data/tables/storage_locations_t
 import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
 import 'package:step_up_fuels/features/invoices/data/tables/invoice_items_table.dart';
 import 'package:step_up_fuels/features/invoices/data/tables/invoices_table.dart';
+import 'package:step_up_fuels/features/ledger/data/daos/ledger_dao.dart';
 import 'package:step_up_fuels/features/ledger/data/tables/ledger_accounts_table.dart';
 import 'package:step_up_fuels/features/ledger/data/tables/ledger_entries_table.dart';
+import 'package:step_up_fuels/features/payments/data/daos/payments_dao.dart';
 import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
 import 'package:step_up_fuels/features/products/data/tables/products_table.dart';
 import 'package:step_up_fuels/features/purchases/data/daos/purchases_dao.dart';
@@ -86,7 +88,7 @@ class AppSettings extends Table {
     Users,
     Documents,
   ],
-  daos: [InvoicesDao, PurchasesDao, ExpensesDao],
+  daos: [InvoicesDao, PurchasesDao, ExpensesDao, PaymentsDao, LedgerDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

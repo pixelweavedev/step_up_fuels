@@ -42,6 +42,12 @@ import 'package:step_up_fuels/features/invoices/application/usecases/save_invoic
 import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
 import 'package:step_up_fuels/features/invoices/data/repositories/invoice_repository_impl.dart';
 import 'package:step_up_fuels/features/invoices/domain/repositories/invoice_repository.dart';
+import 'package:step_up_fuels/features/ledger/data/daos/ledger_dao.dart';
+import 'package:step_up_fuels/features/ledger/data/repositories/ledger_repository_impl.dart';
+import 'package:step_up_fuels/features/ledger/domain/repositories/ledger_repository.dart';
+import 'package:step_up_fuels/features/payments/data/daos/payments_dao.dart';
+import 'package:step_up_fuels/features/payments/data/repositories/payment_repository_impl.dart';
+import 'package:step_up_fuels/features/payments/domain/repositories/payment_repository.dart';
 import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
 import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
 import 'package:step_up_fuels/features/products/application/usecases/save_product_usecase.dart';
@@ -85,6 +91,11 @@ Future<void> configureDependencies() async {
   // ── Database ───────────────────────────────────────────────────────────────
   sl.registerSingleton<AppDatabase>(AppDatabase());
   AppLogger.info('AppDatabase registered');
+
+  // ── Ledger Base ────────────────────────────────────────────────────────────
+  final ledgerDao = LedgerDao(sl<AppDatabase>());
+  sl.registerSingleton<LedgerDao>(ledgerDao);
+  sl.registerSingleton<LedgerRepository>(LedgerRepositoryImpl(sl<LedgerDao>()));
 
   // ── Phase 2: Customer Dependencies ─────────────────────────────────────────
   final customersDao = CustomersDao(sl<AppDatabase>());
@@ -201,7 +212,7 @@ Future<void> configureDependencies() async {
   final invoicesDao = InvoicesDao(sl<AppDatabase>());
   sl.registerSingleton<InvoicesDao>(invoicesDao);
   sl.registerSingleton<InvoiceRepository>(
-    InvoiceRepositoryImpl(sl<InvoicesDao>()),
+    InvoiceRepositoryImpl(sl<InvoicesDao>(), sl<LedgerRepository>()),
   );
   sl.registerSingleton<GetInvoicesUseCase>(
     GetInvoicesUseCase(sl<InvoiceRepository>()),
@@ -223,7 +234,7 @@ Future<void> configureDependencies() async {
   final purchasesDao = PurchasesDao(sl<AppDatabase>());
   sl.registerSingleton<PurchasesDao>(purchasesDao);
   sl.registerSingleton<PurchaseRepository>(
-    PurchaseRepositoryImpl(sl<PurchasesDao>()),
+    PurchaseRepositoryImpl(sl<PurchasesDao>(), sl<LedgerRepository>()),
   );
   sl.registerSingleton<GetSuppliersUseCase>(
     GetSuppliersUseCase(sl<PurchaseRepository>()),
@@ -245,7 +256,7 @@ Future<void> configureDependencies() async {
   final expensesDao = ExpensesDao(sl<AppDatabase>());
   sl.registerSingleton<ExpensesDao>(expensesDao);
   sl.registerSingleton<ExpenseRepository>(
-    ExpenseRepositoryImpl(sl<ExpensesDao>()),
+    ExpenseRepositoryImpl(sl<ExpensesDao>(), sl<LedgerRepository>()),
   );
   sl.registerSingleton<GetExpensesUseCase>(
     GetExpensesUseCase(sl<ExpenseRepository>()),
@@ -258,8 +269,15 @@ Future<void> configureDependencies() async {
   );
 
   // ── Phase 7: Payment + Ledger Dependencies ─────────────────────────────────
-  // sl.registerSingleton<LedgerService>(LedgerServiceImpl(sl()));
-  // sl.registerSingleton<PaymentService>(PaymentServiceImpl(sl(), sl()));
+  final paymentsDao = PaymentsDao(sl<AppDatabase>());
+  sl.registerSingleton<PaymentsDao>(paymentsDao);
+  sl.registerSingleton<PaymentRepository>(
+    PaymentRepositoryImpl(
+      sl<PaymentsDao>(),
+      sl<LedgerRepository>(),
+      sl<InvoiceRepository>(),
+    ),
+  );
 
   AppLogger.info('All dependencies configured successfully');
 }

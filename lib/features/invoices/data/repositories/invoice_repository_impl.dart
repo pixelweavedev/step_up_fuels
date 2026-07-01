@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+import 'package:step_up_fuels/app/database/app_database.dart';
 import 'package:step_up_fuels/core/errors/failure.dart';
 import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/features/invoices/data/daos/invoices_dao.dart';
@@ -5,10 +7,13 @@ import 'package:step_up_fuels/features/invoices/data/models/invoice_mapper.dart'
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice_item.dart';
 import 'package:step_up_fuels/features/invoices/domain/repositories/invoice_repository.dart';
+import 'package:step_up_fuels/features/ledger/domain/repositories/ledger_repository.dart';
+import 'package:uuid/uuid.dart';
 
 class InvoiceRepositoryImpl implements InvoiceRepository {
-  InvoiceRepositoryImpl(this._dao);
+  InvoiceRepositoryImpl(this._dao, this._ledgerRepo);
   final InvoicesDao _dao;
+  final LedgerRepository _ledgerRepo;
 
   @override
   Future<Result<List<Invoice>>> getAll({
@@ -124,7 +129,88 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
               ).toCompanion(),
         );
 
-        // 5. Read the updated row back for return
+        // 5. Post double-entry Ledger Entries and Inventory Movement
+        final customerRow = await (db.select(db.customers)
+              ..where((t) => t.id.equals(row.customerId)))
+            .getSingleOrNull();
+        if (customerRow == null) throw Exception('Customer not found');
+
+        // Resolve Ledger Accounts
+        final customerLedgerRes = await _ledgerRepo.getOrCreateCustomerAccount(
+          customerRow.id,
+          customerRow.name,
+          customerRow.customerCode,
+        );
+        final customerLedger = customerLedgerRes.dataOrThrow;
+
+        final salesLedgerRes = await _ledgerRepo.getOrCreateSystemAccount(
+          'ACT-SALES',
+          'Sales Account',
+          'SALES',
+        );
+        final salesLedger = salesLedgerRes.dataOrThrow;
+
+        // Debit Customer Ledger Account
+        final debitRes = await _ledgerRepo.postEntry(
+          accountId: customerLedger.id,
+          entryDate: row.invoiceDate,
+          description: 'Sales Invoice Posted: $invoiceNumber',
+          debit: row.totalAmount,
+          credit: 0.0,
+          referenceId: row.id,
+          referenceType: 'INVOICE',
+          createdBy: row.createdBy,
+        );
+        if (debitRes.isFailure) throw Exception(debitRes.failureOrNull?.message);
+
+        // Credit Sales Ledger Account
+        final creditRes = await _ledgerRepo.postEntry(
+          accountId: salesLedger.id,
+          entryDate: row.invoiceDate,
+          description: 'Sales Invoice Posted: $invoiceNumber',
+          debit: 0.0,
+          credit: row.totalAmount,
+          referenceId: row.id,
+          referenceType: 'INVOICE',
+          createdBy: row.createdBy,
+        );
+        if (creditRes.isFailure) throw Exception(creditRes.failureOrNull?.message);
+
+        // Record Inventory Movement (DELIVERY_OUT)
+        final mainLoc = await (db.select(db.storageLocations)
+              ..where((t) => t.type.equals('MAIN_STORAGE')))
+            .getSingleOrNull();
+        final mainLocId = mainLoc?.id ?? 'main-storage-terminal';
+
+        final items = await _dao.getItemsByInvoiceId(invoiceId);
+        for (final item in items) {
+          final movementCompanion = InventoryMovementsCompanion(
+            id: Value(const Uuid().v4()),
+            productId: Value(item.productId),
+            sourceLocationId: Value(mainLocId),
+            destinationLocationId: const Value(null),
+            type: const Value('DELIVERY_OUT'),
+            quantity: Value(item.quantity),
+            referenceId: Value(invoiceId),
+            referenceType: const Value('INVOICE'),
+            movementDate: Value(row.invoiceDate),
+            notes: Value('Sales Invoice: $invoiceNumber to ${customerRow.name}'),
+            createdAt: Value(DateTime.now()),
+            createdBy: Value(row.createdBy),
+          );
+          await db.into(db.inventoryMovements).insert(movementCompanion);
+        }
+
+        // Update Customer current balance
+        final newCustomerBalance = customerRow.currentBalance + row.totalAmount;
+        await (db.update(db.customers)..where((t) => t.id.equals(customerRow.id))).write(
+          CustomersCompanion(
+            currentBalance: Value(newCustomerBalance),
+            lastInvoiceDate: Value(row.invoiceDate),
+          ),
+        );
+
+        // Read the updated row back for return
         final updated = await _dao.getInvoiceById(invoiceId);
         posted = updated!.toDomain();
       });
@@ -137,23 +223,109 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   @override
   Future<Result<void>> cancel(String invoiceId, String reason) async {
     try {
-      final row = await _dao.getInvoiceById(invoiceId);
-      if (row == null) {
-        return const Result.failure(DatabaseFailure(message: 'Invoice not found'));
-      }
-      final current = InvoiceStatus.fromString(row.status);
-      if (!row.toDomain().isCancellable) {
-        return Result.failure(
-          DatabaseFailure(message: 'Cannot cancel invoice in status: ${current.displayName}'),
-        );
-      }
+      final db = _dao.attachedDatabase;
+      await db.transaction(() async {
+        final row = await _dao.getInvoiceById(invoiceId);
+        if (row == null) throw Exception('Invoice not found');
 
-      await _dao.updateInvoiceStatus(
-        invoiceId,
-        'CANCELLED',
-        cancelledReason: reason,
-        cancelledAt: DateTime.now(),
-      );
+        final current = InvoiceStatus.fromString(row.status);
+        if (!row.toDomain().isCancellable) {
+          throw Exception('Cannot cancel invoice in status: ${current.displayName}');
+        }
+
+        // Only do ledger and inventory reversals if the invoice was POSTED/PARTIALLY_PAID/PAID
+        final wasPosted = current == InvoiceStatus.posted ||
+            current == InvoiceStatus.partiallyPaid ||
+            current == InvoiceStatus.paid;
+
+        if (wasPosted) {
+          // 1. Resolve Ledger Accounts
+          final customerRow = await (db.select(db.customers)
+                ..where((t) => t.id.equals(row.customerId)))
+              .getSingleOrNull();
+          if (customerRow == null) throw Exception('Customer not found');
+
+          final customerLedgerRes = await _ledgerRepo.getOrCreateCustomerAccount(
+            customerRow.id,
+            customerRow.name,
+            customerRow.customerCode,
+          );
+          final customerLedger = customerLedgerRes.dataOrThrow;
+
+          final salesLedgerRes = await _ledgerRepo.getOrCreateSystemAccount(
+            'ACT-SALES',
+            'Sales Account',
+            'SALES',
+          );
+          final salesLedger = salesLedgerRes.dataOrThrow;
+
+          // 2. Revert Ledger (Double-Entry Bookkeeping)
+          // Credit Customer Ledger Account
+          final creditRes = await _ledgerRepo.postEntry(
+            accountId: customerLedger.id,
+            entryDate: DateTime.now(),
+            description: 'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
+            debit: 0.0,
+            credit: row.totalAmount,
+            referenceId: row.id,
+            referenceType: 'INVOICE',
+            createdBy: 'system',
+          );
+          if (creditRes.isFailure) throw Exception(creditRes.failureOrNull?.message);
+
+          // Debit Sales Ledger Account
+          final debitRes = await _ledgerRepo.postEntry(
+            accountId: salesLedger.id,
+            entryDate: DateTime.now(),
+            description: 'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
+            debit: row.totalAmount,
+            credit: 0.0,
+            referenceId: row.id,
+            referenceType: 'INVOICE',
+            createdBy: 'system',
+          );
+          if (debitRes.isFailure) throw Exception(debitRes.failureOrNull?.message);
+
+          // 3. Revert Inventory Movements
+          final mainLoc = await (db.select(db.storageLocations)
+                ..where((t) => t.type.equals('MAIN_STORAGE')))
+              .getSingleOrNull();
+          final mainLocId = mainLoc?.id ?? 'main-storage-terminal';
+
+          final items = await _dao.getItemsByInvoiceId(invoiceId);
+          for (final item in items) {
+            final movementCompanion = InventoryMovementsCompanion(
+              id: Value(const Uuid().v4()),
+              productId: Value(item.productId),
+              sourceLocationId: const Value(null),
+              destinationLocationId: Value(mainLocId),
+              type: const Value('DELIVERY_RETURN'),
+              quantity: Value(item.quantity),
+              referenceId: Value(invoiceId),
+              referenceType: const Value('INVOICE'),
+              movementDate: Value(DateTime.now()),
+              notes: Value('Cancelled Sales Invoice: ${row.invoiceNumber}'),
+              createdAt: Value(DateTime.now()),
+              createdBy: const Value('system'),
+            );
+            await db.into(db.inventoryMovements).insert(movementCompanion);
+          }
+
+          // 4. Revert Customer Current Balance
+          final newBalance = customerRow.currentBalance - row.totalAmount;
+          await (db.update(db.customers)..where((t) => t.id.equals(customerRow.id))).write(
+            CustomersCompanion(currentBalance: Value(newBalance)),
+          );
+        }
+
+        // 5. Update Status to Cancelled
+        await _dao.updateInvoiceStatus(
+          invoiceId,
+          'CANCELLED',
+          cancelledReason: reason,
+          cancelledAt: DateTime.now(),
+        );
+      });
       return const Result.success(null);
     } catch (e, st) {
       return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));

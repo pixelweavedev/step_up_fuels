@@ -7,6 +7,8 @@ import 'package:step_up_fuels/features/dashboard/presentation/screens/dashboard_
 import 'package:step_up_fuels/features/drivers/presentation/screens/drivers_screen.dart';
 import 'package:step_up_fuels/features/inventory/presentation/screens/inventory_screen.dart';
 import 'package:step_up_fuels/features/invoices/presentation/screens/invoices_screen.dart';
+import 'package:step_up_fuels/features/ledger/presentation/screens/ledger_screen.dart';
+import 'package:step_up_fuels/features/payments/presentation/screens/payments_screen.dart';
 import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
 import 'package:step_up_fuels/features/purchases/presentation/screens/purchases_screen.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';

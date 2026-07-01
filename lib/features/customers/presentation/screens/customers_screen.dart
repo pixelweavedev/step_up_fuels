@@ -1643,39 +1643,7 @@ class _CustomerDetailScaffoldState
 
 
 
-/// Payments module — Phase 6 implementation target.
-class PaymentsScreen extends StatelessWidget {
-  const PaymentsScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Payments',
-      description:
-          'Record customer payments. Links to invoices. '
-          'Tracks outstanding amounts and payment modes.',
-      icon: Icons.payments_rounded,
-      phase: 'Phase 6',
-    );
-  }
-}
-
-/// Ledger module — Phase 6 implementation target.
-class LedgerScreen extends StatelessWidget {
-  const LedgerScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Ledger',
-      description:
-          'Double-entry ledger auto-generated from invoices and payments. '
-          'View customer statements and running balances.',
-      icon: Icons.account_balance_rounded,
-      phase: 'Phase 6',
-    );
-  }
-}
 
 /// Reports module — Phase 7 implementation target.
 class ReportsScreen extends StatelessWidget {
