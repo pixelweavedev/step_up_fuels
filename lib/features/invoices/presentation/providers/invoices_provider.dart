@@ -121,3 +121,21 @@ final invoiceDetailProvider = FutureProvider.family<
     );
   },
 );
+
+/// Provider to fetch invoices for a specific customer - fixes Bug 3
+final invoicesForCustomerProvider = FutureProvider.family<List<Invoice>, String>(
+  (ref, customerId) async {
+    final getInvoices = sl<GetInvoicesUseCase>();
+    final result = await getInvoices(
+      customerId: customerId,
+      status: null,
+      searchQuery: null,
+      fromDate: null,
+      toDate: null,
+    );
+    return result.when(
+      success: (list) => list,
+      failure: (f) => throw Exception(f.userMessage),
+    );
+  },
+);

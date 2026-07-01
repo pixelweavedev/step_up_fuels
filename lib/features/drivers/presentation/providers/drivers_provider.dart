@@ -9,11 +9,39 @@ import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment
 
 final driverSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final driverStatusFilterProvider = StateProvider<bool?>((ref) => true); // true = active only
+final driverStatusFilterProvider = StateProvider<bool?>(
+  (ref) => true,
+); // true = active only
 
-final driversListProvider = AsyncNotifierProvider<DriversListNotifier, List<Driver>>(
-  DriversListNotifier.new,
-);
+final driversListProvider =
+    AsyncNotifierProvider<DriversListNotifier, List<Driver>>(
+      DriversListNotifier.new,
+    );
+
+/// Provider to fetch a specific driver by ID - fixes Bug 1 driver name lookup
+final driverByIdProvider = FutureProvider.family<Driver, String>((
+  ref,
+  driverId,
+) async {
+  final drivers = await ref.watch(driversListProvider.future);
+  final driver = drivers.firstWhere(
+    (d) => d.id == driverId,
+    orElse: () => Driver(
+      id: '',
+      name: 'Unknown Driver',
+      licenseNumber: '',
+      licenseExpiry: DateTime.now(),
+      phone: '',
+      status: DriverStatus.inactive,
+      createdBy: '',
+      createdAt: DateTime.now(),
+      updatedBy: '',
+      updatedAt: DateTime.now(),
+      version: 1,
+    ),
+  );
+  return driver;
+});
 
 class DriversListNotifier extends AsyncNotifier<List<Driver>> {
   @override
@@ -42,7 +70,11 @@ class DriversListNotifier extends AsyncNotifier<List<Driver>> {
         }
         if (statusFilter != null) {
           if (statusFilter == true) {
-            filtered = filtered.where((d) => d.status == DriverStatus.active && d.deletedAt == null).toList();
+            filtered = filtered
+                .where(
+                  (d) => d.status == DriverStatus.active && d.deletedAt == null,
+                )
+                .toList();
           } else {
             filtered = filtered.where((d) => d.deletedAt != null).toList();
           }
@@ -92,21 +124,24 @@ final selectedDriverProvider = Provider<AsyncValue<Driver>>((ref) {
 });
 
 // Family provider to load assignments for a driver
-final driverAssignmentsProvider = FutureProvider.family<List<DriverAssignment>, String>(
-  (ref, driverId) async {
-    final getAssignments = sl<GetAssignmentsUseCase>();
-    final result = await getAssignments(driverId: driverId);
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final driverAssignmentsProvider =
+    FutureProvider.family<List<DriverAssignment>, String>((
+      ref,
+      driverId,
+    ) async {
+      final getAssignments = sl<GetAssignmentsUseCase>();
+      final result = await getAssignments(driverId: driverId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 // Notifier for executing assignments
-final executeDriverAssignmentProvider = AsyncNotifierProvider<DriverAssignmentNotifier, void>(
-  DriverAssignmentNotifier.new,
-);
+final executeDriverAssignmentProvider =
+    AsyncNotifierProvider<DriverAssignmentNotifier, void>(
+      DriverAssignmentNotifier.new,
+    );
 
 class DriverAssignmentNotifier extends AsyncNotifier<void> {
   @override

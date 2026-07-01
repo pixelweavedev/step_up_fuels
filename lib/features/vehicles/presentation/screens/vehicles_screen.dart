@@ -112,7 +112,9 @@ class _VehicleMasterList extends ConsumerWidget {
                 value: statusFilter == null || statusFilter == false,
                 activeThumbColor: AppColors.brandAmber,
                 onChanged: (val) {
-                  ref.read(vehicleStatusFilterProvider.notifier).state = val ? null : true;
+                  ref.read(vehicleStatusFilterProvider.notifier).state = val
+                      ? null
+                      : true;
                 },
               ),
             ],
@@ -140,12 +142,16 @@ class _VehicleMasterList extends ConsumerWidget {
               // Auto-select first vehicle if none is selected
               if (selectedId == null && list.isNotEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ref.read(selectedVehicleIdProvider.notifier).state = list.first.id;
+                  ref.read(selectedVehicleIdProvider.notifier).state =
+                      list.first.id;
                 });
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: list.length,
                 itemBuilder: (context, index) {
                   final vehicle = list[index];
@@ -156,20 +162,23 @@ class _VehicleMasterList extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: InkWell(
                       onTap: () {
-                        ref.read(selectedVehicleIdProvider.notifier).state = vehicle.id;
+                        ref.read(selectedVehicleIdProvider.notifier).state =
+                            vehicle.id;
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.darkSurface : AppColors.darkCard,
+                          color: isSelected
+                              ? AppColors.darkSurface
+                              : AppColors.darkCard,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.brandAmber
                                 : (isDeleted
-                                    ? AppColors.error.withValues(alpha: 0.3)
-                                    : AppColors.darkBorder),
+                                      ? AppColors.error.withValues(alpha: 0.3)
+                                      : AppColors.darkBorder),
                             width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
@@ -188,11 +197,19 @@ class _VehicleMasterList extends ConsumerWidget {
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: vehicle.status == VehicleStatus.active
-                                        ? AppColors.success.withValues(alpha: 0.15)
-                                        : AppColors.error.withValues(alpha: 0.15),
+                                    color:
+                                        vehicle.status == VehicleStatus.active
+                                        ? AppColors.success.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : AppColors.error.withValues(
+                                            alpha: 0.15,
+                                          ),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
@@ -200,7 +217,8 @@ class _VehicleMasterList extends ConsumerWidget {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: vehicle.status == VehicleStatus.active
+                                      color:
+                                          vehicle.status == VehicleStatus.active
                                           ? AppColors.success
                                           : AppColors.error,
                                     ),
@@ -211,7 +229,10 @@ class _VehicleMasterList extends ConsumerWidget {
                             const SizedBox(height: 8),
                             Text(
                               vehicle.model,
-                              style: const TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.darkTextSecondary,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Row(
@@ -219,7 +240,10 @@ class _VehicleMasterList extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Capacity: ${vehicle.capacity} LTRS',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.darkTextTertiary),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.darkTextTertiary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -232,7 +256,9 @@ class _VehicleMasterList extends ConsumerWidget {
               );
             },
             error: (err, st) => Center(child: Text('Error: $err')),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
           ),
         ),
       ],
@@ -251,7 +277,8 @@ class _VehicleDetailView extends ConsumerWidget {
         child: EmptyStateWidget(
           icon: Icons.local_shipping_outlined,
           title: 'Select a Bowser',
-          subtitle: 'Choose a delivery vehicle from the list to view live stock and maintenance logs.',
+          subtitle:
+              'Choose a delivery vehicle from the list to view live stock and maintenance logs.',
         ),
       );
     }
@@ -261,7 +288,9 @@ class _VehicleDetailView extends ConsumerWidget {
     return vehicleAsync.when(
       data: (vehicle) => _VehicleDetailCard(vehicle: vehicle),
       error: (err, st) => Center(child: Text('Error: $err')),
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
     );
   }
 }
@@ -274,7 +303,8 @@ class _VehicleDetailCard extends ConsumerStatefulWidget {
   ConsumerState<_VehicleDetailCard> createState() => _VehicleDetailCardState();
 }
 
-class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with SingleTickerProviderStateMixin {
+class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -311,7 +341,10 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                   color: AppColors.brandAmber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.local_shipping_rounded, color: AppColors.brandAmber),
+                child: const Icon(
+                  Icons.local_shipping_rounded,
+                  color: AppColors.brandAmber,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -329,14 +362,20 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                     const SizedBox(height: 4),
                     Text(
                       'Model: ${vehicle.model} • Capacity: ${vehicle.capacity} L',
-                      style: const TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (vehicle.deletedAt == null) ...[
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: AppColors.darkTextPrimary),
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.darkTextPrimary,
+                  ),
                   onPressed: () {
                     showDialog<void>(
                       context: context,
@@ -361,7 +400,10 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                     if (prods.isEmpty) return const SizedBox();
                     final firstProd = prods.first;
                     final stockAsync = ref.watch(
-                      stockBalanceProvider((locationId: vehicle.id, productId: firstProd.id)),
+                      stockBalanceProvider((
+                        locationId: vehicle.id,
+                        productId: firstProd.id,
+                      )),
                     );
                     return Container(
                       padding: const EdgeInsets.all(16),
@@ -372,13 +414,22 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.gas_meter_outlined, color: AppColors.brandAmber, size: 30),
+                          const Icon(
+                            Icons.gas_meter_outlined,
+                            color: AppColors.brandAmber,
+                            size: 30,
+                          ),
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('LIVE BOWSER FUEL STOCK',
-                                  style: TextStyle(fontSize: 10, color: AppColors.darkTextTertiary)),
+                              const Text(
+                                'LIVE BOWSER FUEL STOCK',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.darkTextTertiary,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               stockAsync.when(
                                 data: (stock) => Text(
@@ -389,10 +440,21 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                                     color: AppColors.brandAmber,
                                   ),
                                 ),
-                                error: (_, __) => const Text('N/A',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.error)),
+                                error: (_, __) => const Text(
+                                  'N/A',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.error,
+                                  ),
+                                ),
                                 loading: () => const SizedBox(
-                                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -412,7 +474,13 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                   data: (assignments) {
                     final activeAssignment = assignments.firstWhere(
                       (a) => a.isActive,
-                      orElse: () => DriverAssignment(id: '', driverId: '', vehicleId: '', assignedAt: DateTime.now(), isActive: false),
+                      orElse: () => DriverAssignment(
+                        id: '',
+                        driverId: '',
+                        vehicleId: '',
+                        assignedAt: DateTime.now(),
+                        isActive: false,
+                      ),
                     );
 
                     return driversAsync.when(
@@ -443,13 +511,22 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.badge_outlined, color: AppColors.brandAmber, size: 30),
+                              const Icon(
+                                Icons.badge_outlined,
+                                color: AppColors.brandAmber,
+                                size: 30,
+                              ),
                               const SizedBox(width: 16),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('CURRENT ASSIGNED DRIVER',
-                                      style: TextStyle(fontSize: 10, color: AppColors.darkTextTertiary)),
+                                  const Text(
+                                    'CURRENT ASSIGNED DRIVER',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.darkTextTertiary,
+                                    ),
+                                  ),
                                   const SizedBox(height: 4),
                                   Text(
                                     driver.name,
@@ -462,7 +539,10 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard> with Sin
                                   if (driver.phone.isNotEmpty)
                                     Text(
                                       'Mob: ${driver.phone}',
-                                      style: const TextStyle(fontSize: 11, color: AppColors.darkTextSecondary),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.darkTextSecondary,
+                                      ),
                                     ),
                                 ],
                               ),
@@ -528,7 +608,11 @@ class _ServiceRecordsTab extends ConsumerWidget {
           children: [
             const Text(
               'Maintenance & Expense History',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkTextPrimary,
+              ),
             ),
             PrimaryButton(
               label: 'Add Record',
@@ -536,7 +620,8 @@ class _ServiceRecordsTab extends ConsumerWidget {
               onPressed: () {
                 showDialog<void>(
                   context: context,
-                  builder: (context) => ServiceRecordFormDialog(vehicleId: vehicleId),
+                  builder: (context) =>
+                      ServiceRecordFormDialog(vehicleId: vehicleId),
                 );
               },
             ),
@@ -548,8 +633,13 @@ class _ServiceRecordsTab extends ConsumerWidget {
             data: (list) {
               if (list.isEmpty) {
                 return const Center(
-                  child: Text('No maintenance logs recorded.',
-                      style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13)),
+                  child: Text(
+                    'No maintenance logs recorded.',
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                 );
               }
 
@@ -572,20 +662,35 @@ class _ServiceRecordsTab extends ConsumerWidget {
                           color: AppColors.brandAmber.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.build_outlined, color: AppColors.brandAmber, size: 18),
+                        child: const Icon(
+                          Icons.build_outlined,
+                          color: AppColors.brandAmber,
+                          size: 18,
+                        ),
                       ),
                       title: Text(
                         '${rec.serviceType.displayName} • ₹${rec.cost.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkTextPrimary,
+                        ),
                       ),
                       subtitle: Text(
                         'Center: ${rec.serviceCenter}\nDetails: ${rec.details}',
-                        style: const TextStyle(fontSize: 11, color: AppColors.darkTextSecondary, height: 1.3),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.darkTextSecondary,
+                          height: 1.3,
+                        ),
                       ),
                       isThreeLine: true,
                       trailing: Text(
                         AppDateUtils.toDisplay(rec.serviceDate),
-                        style: const TextStyle(fontSize: 11, color: AppColors.darkTextTertiary),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.darkTextTertiary,
+                        ),
                       ),
                     ),
                   );
@@ -593,7 +698,9 @@ class _ServiceRecordsTab extends ConsumerWidget {
               );
             },
             error: (err, st) => Center(child: Text('Error: $err')),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
           ),
         ),
       ],
@@ -608,40 +715,29 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final assignmentsAsync = ref.watch(vehicleAssignmentsProvider(vehicleId));
-    final driversAsync = ref.watch(driversListProvider);
 
     return assignmentsAsync.when(
       data: (assignments) {
         if (assignments.isEmpty) {
           return const Center(
-            child: Text('No drivers have been assigned to this vehicle yet.',
-                style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13)),
+            child: Text(
+              'No drivers have been assigned to this vehicle yet.',
+              style: TextStyle(
+                color: AppColors.darkTextSecondary,
+                fontSize: 13,
+              ),
+            ),
           );
         }
 
-        return driversAsync.when(
-          data: (driversList) {
-            return ListView.builder(
-              itemCount: assignments.length,
-              itemBuilder: (context, index) {
-                final asg = assignments[index];
-                final driver = driversList.firstWhere(
-                  (d) => d.id == asg.driverId,
-                  orElse: () => Driver(
-                    id: '',
-                    name: 'Unknown Driver',
-                    licenseNumber: '',
-                    licenseExpiry: DateTime.now(),
-                    phone: '',
-                    status: DriverStatus.inactive,
-                    createdBy: '',
-                    createdAt: DateTime.now(),
-                    updatedBy: '',
-                    updatedAt: DateTime.now(),
-                    version: 1,
-                  ),
-                );
+        return ListView.builder(
+          itemCount: assignments.length,
+          itemBuilder: (context, index) {
+            final asg = assignments[index];
+            final driverAsync = ref.watch(driverByIdProvider(asg.driverId));
 
+            return driverAsync.when(
+              data: (driver) {
                 return Card(
                   color: AppColors.darkCard,
                   margin: const EdgeInsets.only(bottom: 10),
@@ -654,28 +750,51 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: (asg.isActive ? AppColors.success : AppColors.darkTextTertiary).withValues(alpha: 0.15),
+                        color:
+                            (asg.isActive
+                                    ? AppColors.success
+                                    : AppColors.darkTextTertiary)
+                                .withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        asg.isActive ? Icons.check_circle_outline_rounded : Icons.history_rounded,
-                        color: asg.isActive ? AppColors.success : AppColors.darkTextTertiary,
+                        asg.isActive
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.history_rounded,
+                        color: asg.isActive
+                            ? AppColors.success
+                            : AppColors.darkTextTertiary,
                         size: 18,
                       ),
                     ),
                     title: Text(
                       driver.name,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
                     ),
                     subtitle: Text(
                       'Assigned: ${AppDateUtils.toDisplay(asg.assignedAt)}\n${asg.releasedAt != null ? 'Released: ${AppDateUtils.toDisplay(asg.releasedAt!)}' : 'Currently Active'}',
-                      style: const TextStyle(fontSize: 11, color: AppColors.darkTextSecondary, height: 1.3),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.darkTextSecondary,
+                        height: 1.3,
+                      ),
                     ),
                     isThreeLine: asg.releasedAt != null,
                     trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: (asg.isActive ? AppColors.success : AppColors.darkTextTertiary).withValues(alpha: 0.15),
+                        color:
+                            (asg.isActive
+                                    ? AppColors.success
+                                    : AppColors.darkTextTertiary)
+                                .withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -683,21 +802,37 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
-                          color: asg.isActive ? AppColors.success : AppColors.darkTextSecondary,
+                          color: asg.isActive
+                              ? AppColors.success
+                              : AppColors.darkTextSecondary,
                         ),
                       ),
                     ),
                   ),
                 );
               },
+              error: (err, _) => Card(
+                color: AppColors.darkCard,
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  title: Text(
+                    'Error loading driver: $err',
+                    style: const TextStyle(color: AppColors.error),
+                  ),
+                ),
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.only(bottom: 10),
+                child: CircularProgressIndicator(),
+              ),
             );
           },
-          error: (err, st) => Center(child: Text('Error: $err')),
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
         );
       },
       error: (err, st) => Center(child: Text('Error: $err')),
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
     );
   }
 }
@@ -724,7 +859,9 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
     final v = widget.vehicle;
     _regController = TextEditingController(text: v?.registrationNumber ?? '');
     _modelController = TextEditingController(text: v?.model ?? '');
-    _capacityController = TextEditingController(text: v?.capacity.toString() ?? '');
+    _capacityController = TextEditingController(
+      text: v?.capacity.toString() ?? '',
+    );
     _notesController = TextEditingController(text: v?.notes ?? '');
     _status = v?.status ?? VehicleStatus.active;
   }
@@ -784,7 +921,8 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
                   hint: 'e.g. 6000',
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null) return 'Must be a valid number';
+                    if (double.tryParse(v) == null)
+                      return 'Must be a valid number';
                     return null;
                   },
                 ),
@@ -794,7 +932,10 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
                   dropdownColor: AppColors.darkSurface,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: VehicleStatus.values.map((s) {
-                    return DropdownMenuItem(value: s, child: Text(s.displayName));
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(s.displayName),
+                    );
                   }).toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _status = val);
@@ -812,30 +953,42 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     PrimaryButton(
                       label: 'Save',
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) return;
-                        final capacity = double.parse(_capacityController.text.trim());
+                        final capacity = double.parse(
+                          _capacityController.text.trim(),
+                        );
 
                         final vehicle = Vehicle(
                           id: widget.vehicle?.id ?? const Uuid().v4(),
-                          registrationNumber: _regController.text.trim().toUpperCase(),
+                          registrationNumber: _regController.text
+                              .trim()
+                              .toUpperCase(),
                           model: _modelController.text.trim(),
                           capacity: capacity,
                           status: _status,
-                          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+                          notes: _notesController.text.trim().isEmpty
+                              ? null
+                              : _notesController.text.trim(),
                           createdBy: widget.vehicle?.createdBy ?? 'system',
-                          createdAt: widget.vehicle?.createdAt ?? DateTime.now(),
+                          createdAt:
+                              widget.vehicle?.createdAt ?? DateTime.now(),
                           updatedBy: 'system',
                           updatedAt: DateTime.now(),
                           version: widget.vehicle?.version ?? 1,
                         );
 
-                        await ref.read(vehiclesListProvider.notifier).saveVehicle(vehicle);
+                        await ref
+                            .read(vehiclesListProvider.notifier)
+                            .saveVehicle(vehicle);
                         if (context.mounted) Navigator.pop(context);
                       },
                     ),
@@ -855,10 +1008,12 @@ class ServiceRecordFormDialog extends ConsumerStatefulWidget {
   final String vehicleId;
 
   @override
-  ConsumerState<ServiceRecordFormDialog> createState() => _ServiceRecordFormDialogState();
+  ConsumerState<ServiceRecordFormDialog> createState() =>
+      _ServiceRecordFormDialogState();
 }
 
-class _ServiceRecordFormDialogState extends ConsumerState<ServiceRecordFormDialog> {
+class _ServiceRecordFormDialogState
+    extends ConsumerState<ServiceRecordFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _costController;
   late TextEditingController _centerController;
@@ -911,7 +1066,10 @@ class _ServiceRecordFormDialogState extends ConsumerState<ServiceRecordFormDialo
                   dropdownColor: AppColors.darkSurface,
                   decoration: const InputDecoration(labelText: 'Service Type'),
                   items: VehicleServiceType.values.map((t) {
-                    return DropdownMenuItem(value: t, child: Text(t.displayName));
+                    return DropdownMenuItem(
+                      value: t,
+                      child: Text(t.displayName),
+                    );
                   }).toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _type = val);
@@ -924,7 +1082,8 @@ class _ServiceRecordFormDialogState extends ConsumerState<ServiceRecordFormDialo
                   hint: 'e.g. 4500',
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null) return 'Must be a valid decimal';
+                    if (double.tryParse(v) == null)
+                      return 'Must be a valid decimal';
                     return null;
                   },
                 ),
@@ -948,7 +1107,10 @@ class _ServiceRecordFormDialogState extends ConsumerState<ServiceRecordFormDialo
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     PrimaryButton(
@@ -972,7 +1134,9 @@ class _ServiceRecordFormDialogState extends ConsumerState<ServiceRecordFormDialo
                           version: 1,
                         );
 
-                        await ref.read(saveServiceRecordProvider.notifier).saveRecord(record);
+                        await ref
+                            .read(saveServiceRecordProvider.notifier)
+                            .saveRecord(record);
                         if (context.mounted) Navigator.pop(context);
                       },
                     ),

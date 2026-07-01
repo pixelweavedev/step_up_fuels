@@ -11,6 +11,8 @@ import 'package:step_up_fuels/features/customers/presentation/providers/customer
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_contact_form_dialog.dart';
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_form_dialog.dart';
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_site_form_dialog.dart';
+import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
+import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
@@ -1182,14 +1184,155 @@ class _CustomerDetailScaffoldState
   }
 
   Widget _buildInvoicesTab() {
-    return const Center(
-      child: EmptyStateWidget(
-        icon: Icons.receipt_long_rounded,
-        title: 'GST Invoice History',
-        subtitle:
-            'Invoice generation and history will be implemented in Phase 4.',
+    final customer = widget.customer;
+    final invoicesAsync = ref.watch(invoicesForCustomerProvider(customer.id));
+
+    return invoicesAsync.when(
+      data: (invoices) {
+        if (invoices.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.receipt_long_rounded,
+                  size: 48,
+                  color: AppColors.darkTextTertiary,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'No invoices issued',
+                  style: TextStyle(
+                    color: AppColors.darkTextSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Once sales are recorded for this customer, invoices will appear here.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextTertiary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: invoices.length,
+          itemBuilder: (context, index) {
+            final invoice = invoices[index];
+            return Card(
+              color: AppColors.darkCard,
+              margin: const EdgeInsets.only(bottom: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: AppColors.darkBorder),
+              ),
+              child: ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _getInvoiceStatusColor(
+                      invoice.status,
+                    ).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.receipt_long_rounded,
+                    color: _getInvoiceStatusColor(invoice.status),
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  invoice.invoiceNumber,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  'Date: ${AppDateUtils.toDisplay(invoice.invoiceDate)} • Due: ${AppDateUtils.toDisplay(invoice.dueDate)}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '₹${NumberUtils.formatCurrency(invoice.totalAmount)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getInvoiceStatusColor(
+                          invoice.status,
+                        ).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        invoice.status.displayName,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: _getInvoiceStatusColor(invoice.status),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (err, _) => Center(
+        child: Text(
+          'Error loading invoices: $err',
+          style: const TextStyle(color: AppColors.error),
+        ),
       ),
     );
+  }
+
+  Color _getInvoiceStatusColor(InvoiceStatus status) {
+    switch (status) {
+      case InvoiceStatus.draft:
+        return AppColors.brandNavyLight;
+      case InvoiceStatus.verified:
+        return AppColors.info;
+      case InvoiceStatus.posted:
+        return AppColors.brandAmber;
+      case InvoiceStatus.partiallyPaid:
+        return AppColors.warning;
+      case InvoiceStatus.paid:
+        return AppColors.success;
+      case InvoiceStatus.overdue:
+        return AppColors.error;
+      case InvoiceStatus.cancelled:
+        return AppColors.darkTextSecondary;
+    }
   }
 
   Widget _buildPaymentsTab() {
@@ -1635,17 +1778,6 @@ class _CustomerDetailScaffoldState
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /// Settings module — Phase 9 implementation target.
 class SettingsScreen extends StatelessWidget {
