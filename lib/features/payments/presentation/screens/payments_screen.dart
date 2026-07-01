@@ -1,10 +1,7 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
-import 'package:step_up_fuels/core/utils/date_utils.dart';
-import 'package:step_up_fuels/core/utils/number_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';

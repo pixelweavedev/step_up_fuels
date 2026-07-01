@@ -1645,22 +1645,7 @@ class _CustomerDetailScaffoldState
 
 
 
-/// Reports module — Phase 7 implementation target.
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _ModulePlaceholder(
-      moduleName: 'Reports',
-      description:
-          'Sales report, GSTR-1 export, stock report, '
-          'payment aging, and customer ledger reports.',
-      icon: Icons.bar_chart_rounded,
-      phase: 'Phase 7',
-    );
-  }
-}
 
 /// Settings module — Phase 9 implementation target.
 class SettingsScreen extends StatelessWidget {

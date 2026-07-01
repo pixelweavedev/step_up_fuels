@@ -69,6 +69,10 @@ import 'package:step_up_fuels/features/vehicles/application/usecases/save_vehicl
 import 'package:step_up_fuels/features/vehicles/data/daos/vehicles_dao.dart';
 import 'package:step_up_fuels/features/vehicles/data/repositories/vehicle_repository_impl.dart';
 import 'package:step_up_fuels/features/vehicles/domain/repositories/vehicle_repository.dart';
+import 'package:step_up_fuels/features/reports/domain/services/reporting_service.dart';
+import 'package:step_up_fuels/features/reports/data/services/reporting_service_impl.dart';
+import 'package:step_up_fuels/features/dashboard/domain/services/dashboard_service.dart';
+import 'package:step_up_fuels/features/dashboard/data/services/dashboard_service_impl.dart';
 
 /// Global service locator instance.
 final GetIt sl = GetIt.instance;
@@ -278,6 +282,10 @@ Future<void> configureDependencies() async {
       sl<InvoiceRepository>(),
     ),
   );
+
+  // ── Phase 8: Reports & Dashboard Dependencies ──────────────────────────────
+  sl.registerSingleton<ReportingService>(ReportingServiceImpl(sl<AppDatabase>()));
+  sl.registerSingleton<DashboardService>(DashboardServiceImpl(sl<AppDatabase>()));
 
   AppLogger.info('All dependencies configured successfully');
 }
