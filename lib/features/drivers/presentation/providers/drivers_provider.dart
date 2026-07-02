@@ -6,6 +6,8 @@ import 'package:step_up_fuels/features/drivers/application/usecases/get_drivers_
 import 'package:step_up_fuels/features/drivers/application/usecases/save_driver_usecase.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
+import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
+import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 
 final driverSearchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -23,12 +25,10 @@ final driverByIdProvider = FutureProvider.family<Driver, String>((
   ref,
   driverId,
 ) async {
-  final drivers = await ref.watch(driversListProvider.future);
-  final driver = drivers.firstWhere(
-    (d) => d.id == driverId,
-    orElse: () => Driver(
+  if (driverId.isEmpty) {
+    return Driver(
       id: '',
-      name: 'Unknown Driver',
+      name: 'Not Assigned',
       licenseNumber: '',
       licenseExpiry: DateTime.now(),
       phone: '',
@@ -38,9 +38,14 @@ final driverByIdProvider = FutureProvider.family<Driver, String>((
       updatedBy: '',
       updatedAt: DateTime.now(),
       version: 1,
-    ),
+    );
+  }
+  final repo = sl<DriverRepository>();
+  final result = await repo.getById(driverId);
+  return result.when(
+    success: (driver) => driver,
+    failure: (f) => throw Exception(f.userMessage),
   );
-  return driver;
 });
 
 class DriversListNotifier extends AsyncNotifier<List<Driver>> {
@@ -92,6 +97,8 @@ class DriversListNotifier extends AsyncNotifier<List<Driver>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ref.invalidate(driverByIdProvider(driver.id));
+        ref.invalidate(vehiclesListProvider);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -154,9 +161,10 @@ class DriverAssignmentNotifier extends AsyncNotifier<void> {
     await result.when(
       success: (_) {
         state = const AsyncValue.data(null);
-        ref.invalidate(driverAssignmentsProvider(assignment.driverId));
-        // Invalidate list of drivers or vehicles to update active driver info
+        ref.invalidate(driverAssignmentsProvider);
+        ref.invalidate(vehicleAssignmentsProvider);
         ref.invalidate(driversListProvider);
+        ref.invalidate(vehiclesListProvider);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);

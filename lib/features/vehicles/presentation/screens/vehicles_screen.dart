@@ -245,6 +245,52 @@ class _VehicleMasterList extends ConsumerWidget {
                                     color: AppColors.darkTextTertiary,
                                   ),
                                 ),
+                                Consumer(
+                                  builder: (context, ref, child) {
+                                    final assignmentsAsync = ref.watch(vehicleAssignmentsProvider(vehicle.id));
+                                    return assignmentsAsync.when(
+                                      data: (assignments) {
+                                        final activeAssignment = assignments.firstWhere(
+                                          (a) => a.isActive,
+                                          orElse: () => DriverAssignment(
+                                            id: '',
+                                            driverId: '',
+                                            vehicleId: '',
+                                            assignedAt: DateTime.now(),
+                                            isActive: false,
+                                          ),
+                                        );
+
+                                        if (!activeAssignment.isActive) {
+                                          return const Text(
+                                            'Unassigned',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.darkTextTertiary,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          );
+                                        }
+
+                                        final driverAsync = ref.watch(driverByIdProvider(activeAssignment.driverId));
+                                        return driverAsync.when(
+                                          data: (driver) => Text(
+                                            driver.name,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.brandAmber,
+                                            ),
+                                          ),
+                                          error: (_, __) => const SizedBox(),
+                                          loading: () => const SizedBox(),
+                                        );
+                                      },
+                                      error: (_, __) => const SizedBox(),
+                                      loading: () => const SizedBox(),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ],
@@ -324,7 +370,6 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
     final vehicle = widget.vehicle;
     final productsAsync = ref.watch(productsListProvider);
     final assignmentsAsync = ref.watch(vehicleAssignmentsProvider(vehicle.id));
-    final driversAsync = ref.watch(driversListProvider);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -483,25 +528,52 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                       ),
                     );
 
-                    return driversAsync.when(
-                      data: (driversList) {
-                        final driver = driversList.firstWhere(
-                          (d) => d.id == activeAssignment.driverId,
-                          orElse: () => Driver(
-                            id: '',
-                            name: 'Not Assigned',
-                            licenseNumber: '',
-                            licenseExpiry: DateTime.now(),
-                            phone: '',
-                            status: DriverStatus.inactive,
-                            createdBy: '',
-                            createdAt: DateTime.now(),
-                            updatedBy: '',
-                            updatedAt: DateTime.now(),
-                            version: 1,
-                          ),
-                        );
+                    if (!activeAssignment.isActive) {
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.darkCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.darkBorder),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.badge_outlined,
+                              color: AppColors.darkTextTertiary,
+                              size: 30,
+                            ),
+                            SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'CURRENT ASSIGNED DRIVER',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.darkTextTertiary,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Not Assigned',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
+                    final driverAsync = ref.watch(driverByIdProvider(activeAssignment.driverId));
+
+                    return driverAsync.when(
+                      data: (driver) {
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -551,7 +623,12 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                         );
                       },
                       error: (_, __) => const SizedBox(),
-                      loading: () => const SizedBox(),
+                      loading: () => const SizedBox(
+                        height: 60,
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppColors.brandAmber),
+                        ),
+                      ),
                     );
                   },
                   error: (_, __) => const SizedBox(),
