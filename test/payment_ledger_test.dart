@@ -268,6 +268,7 @@ void main() {
           paymentMode: 'BANK_TRANSFER',
           referenceNumber: 'TXN-999',
           bankName: 'HDFC Bank',
+          status: PaymentStatus.posted,
           createdBy: 'test',
           createdAt: DateTime.now(),
           updatedBy: 'test',
@@ -574,6 +575,152 @@ void main() {
         );
         expect(bankEntries.dataOrThrow.length, 1);
         expect(bankEntries.dataOrThrow.first.creditAmount, 2500.0);
+      },
+    );
+
+    test(
+      'should handle payment allocation, capping, and auditable reversal',
+      () async {
+        // 1. Setup Customer and Invoices
+        final customer = Customer(
+          id: 'cust-2',
+          customerCode: 'C-002',
+          name: 'Reliance Logistics',
+          type: CustomerType.company,
+          isActive: true,
+          creditLimit: 500000,
+          creditDays: 30,
+          securityDeposit: 0,
+          defaultGstRate: 0.18,
+          emailInvoice: false,
+          whatsappInvoice: false,
+          requirePo: false,
+          requireDc: false,
+          requireSignature: false,
+          gstApplicable: true,
+          eInvoiceRequired: false,
+          eWayBillRequired: false,
+          openingBalance: 0.0,
+          currentBalance: 0.0,
+          createdBy: 'test',
+          createdAt: DateTime.now(),
+          updatedBy: 'test',
+          updatedAt: DateTime.now(),
+          version: 1,
+        );
+        await customerRepository.save(customer);
+
+        final invoice1 = Invoice(
+          id: 'inv-test-1',
+          invoiceNumber: 'DRAFT',
+          customerId: 'cust-2',
+          invoiceDate: DateTime.now(),
+          dueDate: DateTime.now().add(const Duration(days: 30)),
+          supplyType: 'B2B',
+          placeOfSupply: '27',
+          isInterstate: false,
+          subtotal: 5000.0,
+          cgstAmount: 0.0,
+          sgstAmount: 0.0,
+          igstAmount: 0.0,
+          totalAmount: 5000.0,
+          outstanding: 5000.0,
+          amountPaid: 0.0,
+          status: InvoiceStatus.draft,
+          createdBy: 'test',
+          createdAt: DateTime.now(),
+          updatedBy: 'test',
+          updatedAt: DateTime.now(),
+          version: 1,
+        );
+        await invoiceRepository.save(invoice1, []);
+        final post1Res = await invoiceRepository.post(invoice1.id);
+        expect(post1Res.isSuccess, isTrue);
+
+        final invoice2 = Invoice(
+          id: 'inv-test-2',
+          invoiceNumber: 'DRAFT',
+          customerId: 'cust-2',
+          invoiceDate: DateTime.now().add(const Duration(days: 1)),
+          dueDate: DateTime.now().add(const Duration(days: 31)),
+          supplyType: 'B2B',
+          placeOfSupply: '27',
+          isInterstate: false,
+          subtotal: 3000.0,
+          cgstAmount: 0.0,
+          sgstAmount: 0.0,
+          igstAmount: 0.0,
+          totalAmount: 3000.0,
+          outstanding: 3000.0,
+          amountPaid: 0.0,
+          status: InvoiceStatus.draft,
+          createdBy: 'test',
+          createdAt: DateTime.now(),
+          updatedBy: 'test',
+          updatedAt: DateTime.now(),
+          version: 1,
+        );
+        await invoiceRepository.save(invoice2, []);
+        final post2Res = await invoiceRepository.post(invoice2.id);
+        expect(post2Res.isSuccess, isTrue);
+
+        // Verify Customer balance is sum of outstanding = 8000
+        final custAfterInvoices = await customerRepository.getById('cust-2');
+        expect(custAfterInvoices.dataOrThrow.currentBalance, 8000.0);
+
+        // 2. Receive a payment of 6000 (autoAllocate = true, FIFO)
+        // Should pay 5000 to INV-101 (fully paid) and 1000 to INV-102 (partially paid)
+        final payment = Payment(
+          id: 'pmt-test-1',
+          paymentNumber: 'PENDING',
+          customerId: 'cust-2',
+          amount: 6000.0,
+          paymentDate: DateTime.now(),
+          paymentMode: 'BANK_TRANSFER',
+          status: PaymentStatus.posted,
+          createdBy: 'test',
+          createdAt: DateTime.now(),
+          updatedBy: 'test',
+          updatedAt: DateTime.now(),
+          version: 1,
+        );
+
+        final payRes = await paymentRepository.receivePayment(payment, autoAllocate: true);
+        expect(payRes.isSuccess, isTrue);
+
+        // Check invoice balances
+        final inv1AfterPay = await invoiceRepository.getById('inv-test-1');
+        expect(inv1AfterPay.dataOrThrow.outstanding, 0.0);
+        expect(inv1AfterPay.dataOrThrow.amountPaid, 5000.0);
+        expect(inv1AfterPay.dataOrThrow.status, InvoiceStatus.paid);
+
+        final inv2AfterPay = await invoiceRepository.getById('inv-test-2');
+        expect(inv2AfterPay.dataOrThrow.outstanding, 2000.0);
+        expect(inv2AfterPay.dataOrThrow.amountPaid, 1000.0);
+        expect(inv2AfterPay.dataOrThrow.status, InvoiceStatus.partiallyPaid);
+
+        // Check customer outstanding = 2000
+        final custAfterPay = await customerRepository.getById('cust-2');
+        expect(custAfterPay.dataOrThrow.currentBalance, 2000.0);
+
+        // 3. Auditable Reversal
+        final revRes = await paymentRepository.reversePayment('pmt-test-1');
+        expect(revRes.isSuccess, isTrue);
+
+        // Check invoice balances are rolled back
+        final inv1AfterRev = await invoiceRepository.getById('inv-test-1');
+        expect(inv1AfterRev.dataOrThrow.outstanding, 5000.0);
+        expect(inv1AfterRev.dataOrThrow.amountPaid, 0.0);
+        expect(inv1AfterRev.dataOrThrow.status, InvoiceStatus.posted);
+
+        final inv2AfterRev = await invoiceRepository.getById('inv-test-2');
+        expect(inv2AfterRev.dataOrThrow.outstanding, 3000.0);
+        expect(inv2AfterRev.dataOrThrow.amountPaid, 0.0);
+        expect(inv2AfterRev.dataOrThrow.status, InvoiceStatus.posted);
+
+        // Check customer outstanding is back to 8000
+        final custAfterRev = await customerRepository.getById('cust-2');
+        expect(custAfterRev.dataOrThrow.currentBalance, 8000.0);
       },
     );
   });

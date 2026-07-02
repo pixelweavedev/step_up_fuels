@@ -7,6 +7,7 @@ import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_
 import 'package:step_up_fuels/features/ledger/presentation/providers/ledger_provider.dart';
 import 'package:step_up_fuels/features/purchases/presentation/providers/purchases_provider.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
+import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 
 /// Centralized cross-feature provider invalidation.
 ///
@@ -26,6 +27,7 @@ class ProviderInvalidator {
     ref.invalidate(ledgerAccountsListProvider);
     ref.invalidate(ledgerEntriesProvider);
     ref.invalidate(invoicesForCustomerProvider);
+    ref.invalidate(customersListProvider);
     ref.invalidate(dashboardStatsProvider);
     // Reports
     ref.invalidate(customerWiseSalesProvider);
@@ -59,6 +61,8 @@ class ProviderInvalidator {
     ref.invalidate(invoicesListProvider);
     ref.invalidate(invoiceDetailProvider);
     ref.invalidate(invoicesForCustomerProvider);
+    ref.invalidate(paymentAllocationsForInvoiceProvider);
+    ref.invalidate(paymentsForCustomerProvider);
     ref.invalidate(ledgerAccountsListProvider);
     ref.invalidate(ledgerEntriesProvider);
     ref.invalidate(customersListProvider);

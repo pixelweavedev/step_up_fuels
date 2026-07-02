@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
+import 'package:step_up_fuels/features/payments/domain/entities/payment_allocation.dart';
 import 'package:step_up_fuels/features/payments/domain/repositories/payment_repository.dart';
 
 // ── Filters ───────────────────────────────────────────────────────────────────
@@ -54,6 +55,22 @@ class PaymentsListNotifier extends AsyncNotifier<List<Payment>> {
       },
     );
   }
+
+  Future<void> reversePayment(String paymentId) async {
+    state = const AsyncValue.loading();
+    final repo = sl<PaymentRepository>();
+    final result = await repo.reversePayment(paymentId);
+    await result.when(
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onPaymentChanged(ref);
+      },
+      failure: (f) {
+        state = AsyncValue.error(f.userMessage, StackTrace.current);
+        throw Exception(f.userMessage);
+      },
+    );
+  }
 }
 
 // ── Selected Payment ──────────────────────────────────────────────────────────
@@ -77,4 +94,54 @@ final selectedPaymentProvider = Provider<AsyncValue<Payment>>((ref) {
     loading: () => const AsyncValue.loading(),
     error: (e, st) => AsyncValue.error(e, st),
   );
+});
+
+// ── Family Providers ──────────────────────────────────────────────────────────
+
+/// Family provider for fetching all payments for a specific customer.
+final paymentsForCustomerProvider = FutureProvider.family<List<Payment>, String>(
+  (ref, customerId) async {
+    final repo = sl<PaymentRepository>();
+    final result = await repo.getAll(customerId: customerId);
+    return result.when(
+      success: (list) => list,
+      failure: (f) => throw Exception(f.userMessage),
+    );
+  },
+);
+
+/// Family provider for fetching active payment allocations for a specific invoice.
+final paymentAllocationsForInvoiceProvider = FutureProvider.family<List<PaymentAllocation>, String>(
+  (ref, invoiceId) async {
+    final repo = sl<PaymentRepository>();
+    final result = await repo.getAllAllocations(invoiceId: invoiceId, status: 'ACTIVE');
+    return result.when(
+      success: (list) => list,
+      failure: (f) => throw Exception(f.userMessage),
+    );
+  },
+);
+
+/// Provider exposing the PaymentRepository dependency.
+final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
+  return sl<PaymentRepository>();
+});
+
+/// Provider for applying existing advance payments to invoices.
+final applyAdvanceProvider = Provider((ref) {
+  return (String customerId, String paymentId, String invoiceId, double amount) async {
+    final repo = ref.read(paymentRepositoryProvider);
+    final result = await repo.applyAdvance(
+      customerId: customerId,
+      paymentId: paymentId,
+      invoiceId: invoiceId,
+      amount: amount,
+    );
+    await result.when(
+      success: (_) async {
+        ProviderInvalidator.onPaymentChanged(ref);
+      },
+      failure: (f) => throw Exception(f.userMessage),
+    );
+  };
 });

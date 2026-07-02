@@ -13,6 +13,9 @@ import 'package:step_up_fuels/features/customers/presentation/widgets/customer_f
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_site_form_dialog.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
+import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
+import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
+import 'package:intl/intl.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
@@ -333,8 +336,8 @@ class _CustomerMasterList extends ConsumerWidget {
                                 ),
                                 Text(
                                   NumberUtils.formatCurrency(
-                                    0.0,
-                                  ), // Mocked to ₹0.00 in Phase 2
+                                    customer.currentBalance,
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -665,6 +668,7 @@ class _CustomerDetailScaffoldState
               Expanded(
                 child: Column(
                   children: [
+                    _buildKpiSummaryCards(),
                     TabBar(
                       controller: _tabController,
                       indicatorColor: AppColors.brandAmber,
@@ -1336,12 +1340,142 @@ class _CustomerDetailScaffoldState
   }
 
   Widget _buildPaymentsTab() {
-    return const Center(
-      child: EmptyStateWidget(
-        icon: Icons.payments_rounded,
-        title: 'Customer Payments & Receipts',
-        subtitle:
-            'Payment tracking and outstanding ledger balances will be implemented in Phase 6.',
+    final customer = widget.customer;
+    final paymentsAsync = ref.watch(paymentsForCustomerProvider(customer.id));
+
+    return paymentsAsync.when(
+      data: (payments) {
+        if (payments.isEmpty) {
+          return const Center(
+            child: EmptyStateWidget(
+              icon: Icons.payments_rounded,
+              title: 'No Payments Found',
+              subtitle: 'No customer payments or receipts have been recorded yet.',
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(24),
+          itemCount: payments.length,
+          itemBuilder: (context, index) {
+            final pmt = payments[index];
+            final isReversed = pmt.status == PaymentStatus.reversed;
+            return Card(
+              color: AppColors.darkCard,
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(
+                  color: isReversed
+                      ? AppColors.error.withValues(alpha: 0.3)
+                      : AppColors.darkBorder,
+                ),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      pmt.paymentNumber,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isReversed
+                            ? AppColors.darkTextTertiary
+                            : AppColors.darkTextPrimary,
+                        decoration: isReversed ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                    Text(
+                      '₹${NumberUtils.formatCurrency(pmt.amount).replaceAll('₹', '')}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: isReversed ? AppColors.darkTextTertiary : AppColors.brandAmber,
+                        decoration: isReversed ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Mode: ${pmt.paymentMode} | Ref: ${pmt.referenceNumber ?? "N/A"}',
+                            style: const TextStyle(
+                              color: AppColors.darkTextSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (pmt.notes != null && pmt.notes!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Note: ${pmt.notes}',
+                              style: const TextStyle(
+                                color: AppColors.darkTextTertiary,
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            DateFormat('dd MMM yyyy').format(pmt.paymentDate),
+                            style: const TextStyle(
+                              color: AppColors.darkTextTertiary,
+                              fontSize: 11,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isReversed
+                                  ? AppColors.error.withValues(alpha: 0.15)
+                                  : AppColors.success.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              pmt.status.displayName,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: isReversed ? AppColors.error : AppColors.success,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (err, _) => Center(
+        child: Text(
+          'Error loading payments: $err',
+          style: const TextStyle(color: AppColors.error),
+        ),
       ),
     );
   }
@@ -1777,6 +1911,94 @@ class _CustomerDetailScaffoldState
       ).showSnackBar(SnackBar(content: Text(f.userMessage))),
     );
   }
+
+  Widget _buildKpiSummaryCards() {
+    final customer = widget.customer;
+    final invoicesAsync = ref.watch(invoicesForCustomerProvider(customer.id));
+    final paymentsAsync = ref.watch(paymentsForCustomerProvider(customer.id));
+
+    return invoicesAsync.when(
+      data: (invoices) {
+        return paymentsAsync.when(
+          data: (payments) {
+            final activeInvoices = invoices.where((inv) =>
+                inv.status != InvoiceStatus.draft &&
+                inv.status != InvoiceStatus.cancelled);
+            
+            final totalInvoiced = activeInvoices.fold<double>(
+              0.0,
+              (sum, inv) => sum + inv.totalAmount,
+            );
+
+            final totalPaidOnInvoices = activeInvoices.fold<double>(
+              0.0,
+              (sum, inv) => sum + inv.amountPaid,
+            );
+
+            final totalOutstanding = activeInvoices.fold<double>(
+              0.0,
+              (sum, inv) => sum + inv.outstanding,
+            );
+
+            final totalPayments = payments
+                .where((p) => p.status == PaymentStatus.posted)
+                .fold<double>(0.0, (sum, p) => sum + p.amount);
+
+            final advanceBalance = totalPayments > totalPaidOnInvoices
+                ? totalPayments - totalPaidOnInvoices
+                : 0.0;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _KpiCard(
+                      title: 'Total Invoiced',
+                      value: '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
+                      icon: Icons.receipt_long_rounded,
+                      color: AppColors.info,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _KpiCard(
+                      title: 'Total Paid',
+                      value: '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
+                      icon: Icons.check_circle_rounded,
+                      color: AppColors.success,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _KpiCard(
+                      title: 'Outstanding',
+                      value: '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
+                      icon: Icons.warning_amber_rounded,
+                      color: totalOutstanding > 0 ? AppColors.error : AppColors.success,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _KpiCard(
+                      title: 'Advance Balance',
+                      value: '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
+                      icon: Icons.account_balance_wallet_rounded,
+                      color: AppColors.brandAmber,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: () => const SizedBox(height: 100),
+          error: (_, __) => const SizedBox(),
+        );
+      },
+      loading: () => const SizedBox(height: 100),
+      error: (_, __) => const SizedBox(),
+    );
+  }
 }
 
 /// Settings module — Phase 9 implementation target.
@@ -1859,6 +2081,69 @@ class _ModulePlaceholder extends StatelessWidget {
               icon: icon,
               title: '$moduleName — Coming in $phase',
               subtitle: description,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KpiCard extends StatelessWidget {
+  const _KpiCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.darkBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

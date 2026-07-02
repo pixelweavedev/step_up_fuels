@@ -462,6 +462,77 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                     'Allocated Invoice ID',
                     payment.invoiceId ?? 'Auto-Allocated / Advance Account',
                   ),
+                  _buildDetailRow(
+                    'Status',
+                    payment.status.displayName,
+                    valueColor: payment.status == PaymentStatus.reversed
+                        ? AppColors.error
+                        : AppColors.success,
+                  ),
+                  if (payment.status == PaymentStatus.posted) ...[
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                        foregroundColor: AppColors.error,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.undo_rounded),
+                      label: const Text(
+                        'Reverse Payment (Audit Rollback)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: AppColors.darkCard,
+                            title: const Text('Reverse Payment Receipt', style: TextStyle(color: AppColors.darkTextPrimary)),
+                            content: const Text(
+                              'Are you sure you want to reverse this payment? This will mark the receipt as REVERSED, reverse all invoice allocations, update customer outstanding, and post reversing ledger entries. This action cannot be undone.',
+                              style: TextStyle(color: AppColors.darkTextSecondary),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Reverse', style: TextStyle(color: AppColors.darkTextPrimary)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          final messenger = ScaffoldMessenger.of(context);
+                          try {
+                            await ref
+                                .read(paymentsListProvider.notifier)
+                                .reversePayment(payment.id);
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Payment reversed successfully!'),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                          } catch (e) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to reverse payment: $e'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -517,7 +588,16 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
 }
 
 class RecordPaymentDialog extends ConsumerStatefulWidget {
-  const RecordPaymentDialog({super.key});
+  const RecordPaymentDialog({
+    super.key,
+    this.preSelectedCustomerId,
+    this.preSelectedInvoiceId,
+    this.preFilledAmount,
+  });
+
+  final String? preSelectedCustomerId;
+  final String? preSelectedInvoiceId;
+  final double? preFilledAmount;
 
   @override
   ConsumerState<RecordPaymentDialog> createState() =>
@@ -537,6 +617,19 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
   DateTime _paymentDate = DateTime.now();
   bool _autoAllocate = true;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCustomerId = widget.preSelectedCustomerId;
+    _selectedInvoiceId = widget.preSelectedInvoiceId;
+    if (widget.preSelectedInvoiceId != null) {
+      _autoAllocate = false;
+    }
+    if (widget.preFilledAmount != null) {
+      _amountCtrl.text = widget.preFilledAmount!.toStringAsFixed(2);
+    }
+  }
 
   @override
   void dispose() {
@@ -701,6 +794,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _amountCtrl,
+                            onChanged: (val) => setState(() {}),
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -1046,9 +1140,40 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                     onChanged: (val) {
                       setState(() {
                         _selectedInvoiceId = val;
+                        if (val != null) {
+                          final selectedInv = customerInvoices.firstWhere((inv) => inv.id == val);
+                          _amountCtrl.text = selectedInv.outstanding.toStringAsFixed(2);
+                        }
                       });
                     },
                   ),
+                  if (_selectedInvoiceId != null && _amountCtrl.text.isNotEmpty) ...[
+                    Builder(
+                      builder: (context) {
+                        try {
+                          final selectedInv = customerInvoices.firstWhere(
+                            (inv) => inv.id == _selectedInvoiceId,
+                          );
+                          final amt = double.tryParse(_amountCtrl.text) ?? 0.0;
+                          if (amt > selectedInv.outstanding) {
+                            final diff = amt - selectedInv.outstanding;
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                'Note: ₹${selectedInv.outstanding.toStringAsFixed(2)} will be applied to this invoice. The remaining ₹${diff.toStringAsFixed(2)} will be saved as Customer Advance.',
+                                style: const TextStyle(
+                                  color: AppColors.brandAmber,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (_) {}
+                        return const SizedBox();
+                      },
+                    ),
+                  ],
                 ],
                 const SizedBox(height: 16),
 
@@ -1135,6 +1260,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
         referenceNumber: _refCtrl.text.isNotEmpty ? _refCtrl.text : null,
         bankName: _bankCtrl.text.isNotEmpty ? _bankCtrl.text : null,
         notes: _notesCtrl.text.isNotEmpty ? _notesCtrl.text : null,
+        status: PaymentStatus.posted,
         createdBy: 'system',
         createdAt: DateTime.now(),
         updatedBy: 'system',

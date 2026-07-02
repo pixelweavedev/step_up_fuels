@@ -15,6 +15,7 @@ class Payments extends Table {
   TextColumn get referenceNumber => text().nullable()(); // Txn ID, UTR
   TextColumn get bankName => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('POSTED'))(); // DRAFT, POSTED, REVERSED, CANCELLED
 
   // Audits
   TextColumn get createdBy => text().withDefault(const Constant('system'))();

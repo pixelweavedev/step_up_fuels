@@ -1,5 +1,53 @@
 import 'package:equatable/equatable.dart';
 
+enum PaymentStatus {
+  draft,
+  posted,
+  reversed,
+  cancelled;
+
+  String get displayName {
+    switch (this) {
+      case PaymentStatus.draft:
+        return 'Draft';
+      case PaymentStatus.posted:
+        return 'Posted';
+      case PaymentStatus.reversed:
+        return 'Reversed';
+      case PaymentStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
+
+  static PaymentStatus fromString(String value) {
+    switch (value.toUpperCase()) {
+      case 'DRAFT':
+        return PaymentStatus.draft;
+      case 'POSTED':
+        return PaymentStatus.posted;
+      case 'REVERSED':
+        return PaymentStatus.reversed;
+      case 'CANCELLED':
+        return PaymentStatus.cancelled;
+      default:
+        return PaymentStatus.posted;
+    }
+  }
+
+  String toDbString() {
+    switch (this) {
+      case PaymentStatus.draft:
+        return 'DRAFT';
+      case PaymentStatus.posted:
+        return 'POSTED';
+      case PaymentStatus.reversed:
+        return 'REVERSED';
+      case PaymentStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
+}
+
 /// Represents a payment received from a customer.
 class Payment extends Equatable {
   const Payment({
@@ -13,6 +61,7 @@ class Payment extends Equatable {
     this.referenceNumber,
     this.bankName,
     this.notes,
+    required this.status,
     required this.createdBy,
     required this.createdAt,
     required this.updatedBy,
@@ -32,6 +81,7 @@ class Payment extends Equatable {
   final String? referenceNumber; // Bank transaction ID, Cheque number, UTR
   final String? bankName;
   final String? notes;
+  final PaymentStatus status;
 
   // Auditing & SaaS Scope
   final String createdBy;
@@ -53,6 +103,7 @@ class Payment extends Equatable {
     String? referenceNumber,
     String? bankName,
     String? notes,
+    PaymentStatus? status,
     String? createdBy,
     DateTime? createdAt,
     String? updatedBy,
@@ -72,6 +123,7 @@ class Payment extends Equatable {
       referenceNumber: referenceNumber ?? this.referenceNumber,
       bankName: bankName ?? this.bankName,
       notes: notes ?? this.notes,
+      status: status ?? this.status,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
       updatedBy: updatedBy ?? this.updatedBy,
@@ -94,6 +146,7 @@ class Payment extends Equatable {
         referenceNumber,
         bankName,
         notes,
+        status,
         createdBy,
         createdAt,
         updatedBy,

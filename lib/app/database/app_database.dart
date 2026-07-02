@@ -28,6 +28,7 @@ import 'package:step_up_fuels/features/ledger/data/tables/ledger_accounts_table.
 import 'package:step_up_fuels/features/ledger/data/tables/ledger_entries_table.dart';
 import 'package:step_up_fuels/features/payments/data/daos/payments_dao.dart';
 import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
+import 'package:step_up_fuels/features/payments/data/tables/payment_allocations_table.dart';
 import 'package:step_up_fuels/features/products/data/tables/products_table.dart';
 import 'package:step_up_fuels/features/purchases/data/daos/purchases_dao.dart';
 import 'package:step_up_fuels/features/purchases/data/tables/purchase_items_table.dart';
@@ -83,6 +84,7 @@ class AppSettings extends Table {
     FuelPurchaseItems,
     Expenses,
     Payments,
+    PaymentAllocations,
     LedgerAccounts,
     LedgerEntries,
     Users,
@@ -95,7 +97,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -137,6 +139,10 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5) {
         await m.addColumn(fuelPurchases, fuelPurchases.destinationLocationId);
+      }
+      if (from < 6) {
+        await _createTableIfNotExists(m, paymentAllocations);
+        await m.addColumn(payments, payments.status);
       }
     },
   );

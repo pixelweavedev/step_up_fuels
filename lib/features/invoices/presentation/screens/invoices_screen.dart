@@ -9,8 +9,14 @@ import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice_item.dart';
 import 'package:step_up_fuels/features/invoices/domain/services/gst_calculation_service.dart';
 import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
+import 'package:step_up_fuels/features/invoices/domain/services/pdf_invoice_generator.dart';
+import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
+import 'package:step_up_fuels/features/payments/presentation/screens/payments_screen.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
+import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
+import 'package:step_up_fuels/features/payments/domain/entities/payment_allocation.dart';
 import 'package:uuid/uuid.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
@@ -603,6 +609,89 @@ class _DetailContent extends ConsumerWidget {
                 ),
               const SizedBox(width: 8),
               IconButton(
+                icon: const Icon(Icons.print_outlined, color: AppColors.darkTextPrimary),
+                onPressed: () async {
+                  final customers = ref.read(customersListProvider).value ?? [];
+                  final customer = customers.firstWhere(
+                    (c) => c.id == inv.customerId,
+                    orElse: () => Customer(
+                      id: inv.customerId,
+                      customerCode: '',
+                      name: 'Unknown Customer',
+                      type: CustomerType.individual,
+                      isActive: true,
+                      creditLimit: 0,
+                      creditDays: 0,
+                      securityDeposit: 0,
+                      defaultGstRate: 0,
+                      emailInvoice: false,
+                      whatsappInvoice: false,
+                      requirePo: false,
+                      requireDc: false,
+                      requireSignature: false,
+                      gstApplicable: false,
+                      eInvoiceRequired: false,
+                      eWayBillRequired: false,
+                      openingBalance: 0,
+                      currentBalance: 0,
+                      createdBy: '',
+                      createdAt: DateTime.now(),
+                      updatedBy: '',
+                      updatedAt: DateTime.now(),
+                      version: 1,
+                    ),
+                  );
+                  await PdfInvoiceGenerator.printInvoice(
+                    invoice: inv,
+                    items: items,
+                    customer: customer,
+                  );
+                },
+                tooltip: 'Print Invoice',
+              ),
+              IconButton(
+                icon: const Icon(Icons.download_rounded, color: AppColors.darkTextPrimary),
+                onPressed: () async {
+                  final customers = ref.read(customersListProvider).value ?? [];
+                  final customer = customers.firstWhere(
+                    (c) => c.id == inv.customerId,
+                    orElse: () => Customer(
+                      id: inv.customerId,
+                      customerCode: '',
+                      name: 'Unknown Customer',
+                      type: CustomerType.individual,
+                      isActive: true,
+                      creditLimit: 0,
+                      creditDays: 0,
+                      securityDeposit: 0,
+                      defaultGstRate: 0,
+                      emailInvoice: false,
+                      whatsappInvoice: false,
+                      requirePo: false,
+                      requireDc: false,
+                      requireSignature: false,
+                      gstApplicable: false,
+                      eInvoiceRequired: false,
+                      eWayBillRequired: false,
+                      openingBalance: 0,
+                      currentBalance: 0,
+                      createdBy: '',
+                      createdAt: DateTime.now(),
+                      updatedBy: '',
+                      updatedAt: DateTime.now(),
+                      version: 1,
+                    ),
+                  );
+                  await PdfInvoiceGenerator.downloadInvoice(
+                    invoice: inv,
+                    items: items,
+                    customer: customer,
+                  );
+                },
+                tooltip: 'Download PDF',
+              ),
+              const SizedBox(width: 8),
+              IconButton(
                 onPressed: onClose,
                 icon: const Icon(Icons.close_rounded,
                     color: AppColors.darkTextSecondary),
@@ -685,6 +774,254 @@ class _DetailContent extends ConsumerWidget {
                     valueColor: inv.outstanding > 0
                         ? AppColors.statusOverdue
                         : AppColors.success),
+
+                if (inv.outstanding > 0 &&
+                    (inv.status == InvoiceStatus.posted ||
+                        inv.status == InvoiceStatus.partiallyPaid ||
+                        inv.status == InvoiceStatus.overdue)) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.brandAmber,
+                          foregroundColor: AppColors.darkBackground,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.payment_rounded, size: 16),
+                        label: const Text(
+                          'Record Payment',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => RecordPaymentDialog(
+                              preSelectedCustomerId: inv.customerId,
+                              preSelectedInvoiceId: inv.id,
+                              preFilledAmount: inv.outstanding,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.brandAmber,
+                          side: const BorderSide(color: AppColors.brandAmber),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.done_all_rounded, size: 16),
+                        label: const Text(
+                          'Receive Full Payment',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              backgroundColor: AppColors.darkCard,
+                              title: const Text('Receive Full Payment', style: TextStyle(color: AppColors.darkTextPrimary)),
+                              content: Text('Are you sure you want to record full receipt of ₹${_fmt(inv.outstanding)} for this invoice?', style: const TextStyle(color: AppColors.darkTextSecondary)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.brandAmber),
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Confirm', style: TextStyle(color: AppColors.darkBackground)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            final payment = Payment(
+                              id: const Uuid().v4(),
+                              paymentNumber: 'PENDING',
+                              customerId: inv.customerId,
+                              invoiceId: inv.id,
+                              amount: inv.outstanding,
+                              paymentDate: DateTime.now(),
+                              paymentMode: 'BANK_TRANSFER',
+                              notes: 'Full payment received directly from Invoice screen.',
+                              status: PaymentStatus.posted,
+                              createdBy: 'system',
+                              createdAt: DateTime.now(),
+                              updatedBy: 'system',
+                              updatedAt: DateTime.now(),
+                              version: 1,
+                            );
+                            try {
+                              await ref
+                                  .read(paymentsListProvider.notifier)
+                                  .receivePayment(payment, autoAllocate: false);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Full payment receipt saved successfully!'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                                ref.invalidate(invoiceDetailProvider(inv.id));
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to save receipt: $e'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 24),
+                const _SectionHeader('Payment History'),
+                const SizedBox(height: 10),
+                ref.watch(paymentAllocationsForInvoiceProvider(inv.id)).when(
+                  data: (allocs) {
+                    if (allocs.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No payments recorded yet for this invoice.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.darkTextSecondary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      );
+                    }
+                    final allPayments = ref.watch(paymentsListProvider).value ?? [];
+                    return Column(
+                      children: allocs.map((alloc) {
+                        final pmt = allPayments.firstWhere(
+                          (p) => p.id == alloc.paymentId,
+                          orElse: () => Payment(
+                            id: '',
+                            paymentNumber: 'Unknown PMT',
+                            customerId: '',
+                            amount: 0,
+                            paymentDate: DateTime.now(),
+                            paymentMode: '',
+                            status: PaymentStatus.posted,
+                            createdBy: '',
+                            createdAt: DateTime.now(),
+                            updatedBy: '',
+                            updatedAt: DateTime.now(),
+                            version: 1,
+                          ),
+                        );
+                        return Card(
+                          color: AppColors.darkSurface,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(color: AppColors.darkBorder),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle_outline_rounded,
+                                  color: AppColors.success,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        pmt.paymentNumber,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.darkTextPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Date: ${DateFormat('dd MMM yyyy').format(pmt.paymentDate)} • Mode: ${pmt.paymentMode}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.darkTextSecondary,
+                                        ),
+                                      ),
+                                      if (pmt.notes != null && pmt.notes!.isNotEmpty) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Note: ${pmt.notes}',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.darkTextTertiary,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '₹${_fmt(alloc.allocatedAmount)}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkTextPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      alloc.type.displayName,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: alloc.type == AllocationType.advance
+                                            ? AppColors.brandAmber
+                                            : AppColors.darkTextSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brandAmber),
+                  ),
+                  error: (e, _) => Text(
+                    'Error loading history: $e',
+                    style: const TextStyle(color: AppColors.error, fontSize: 11),
+                  ),
+                ),
 
                 const SizedBox(height: 20),
                 // Line items

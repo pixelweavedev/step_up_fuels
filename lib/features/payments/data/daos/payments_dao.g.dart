@@ -8,4 +8,6 @@ mixin _$PaymentsDaoMixin on DatabaseAccessor<AppDatabase> {
   $CustomerSitesTable get customerSites => attachedDatabase.customerSites;
   $InvoicesTable get invoices => attachedDatabase.invoices;
   $PaymentsTable get payments => attachedDatabase.payments;
+  $PaymentAllocationsTable get paymentAllocations =>
+      attachedDatabase.paymentAllocations;
 }

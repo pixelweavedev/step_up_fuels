@@ -1,10 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:step_up_fuels/app/database/app_database.dart';
 import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
+import 'package:step_up_fuels/features/payments/data/tables/payment_allocations_table.dart';
 
 part 'payments_dao.g.dart';
 
-@DriftAccessor(tables: [Payments])
+@DriftAccessor(tables: [Payments, PaymentAllocations])
 class PaymentsDao extends DatabaseAccessor<AppDatabase> with _$PaymentsDaoMixin {
   PaymentsDao(super.db);
 
@@ -35,6 +36,51 @@ class PaymentsDao extends DatabaseAccessor<AppDatabase> with _$PaymentsDaoMixin 
   Future<void> savePayment(PaymentsCompanion companion) async {
     await into(payments).insertOnConflictUpdate(companion);
   }
+
+  // ─── Payment Allocations ───────────────────────────────────────────────────
+
+  Future<List<PaymentAllocationRow>> getAllAllocations({
+    String? paymentId,
+    String? invoiceId,
+    String? status,
+  }) async {
+    final query = select(paymentAllocations);
+    query.where((t) {
+      Expression<bool> expr = const Constant(true);
+      if (paymentId != null) expr = expr & t.paymentId.equals(paymentId);
+      if (invoiceId != null) expr = expr & t.invoiceId.equals(invoiceId);
+      if (status != null) expr = expr & t.status.equals(status);
+      return expr;
+    });
+    query.orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
+    return query.get();
+  }
+
+  Future<void> saveAllocation(PaymentAllocationsCompanion companion) async {
+    await into(paymentAllocations).insertOnConflictUpdate(companion);
+  }
+
+  Future<void> updatePaymentStatus(String paymentId, String status) async {
+    await (update(payments)..where((t) => t.id.equals(paymentId))).write(
+      PaymentsCompanion(
+        status: Value(status),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> reverseAllocationsForPayment(String paymentId) async {
+    await (update(paymentAllocations)
+          ..where((t) => t.paymentId.equals(paymentId) & t.status.equals('ACTIVE')))
+        .write(
+      PaymentAllocationsCompanion(
+        status: const Value('REVERSED'),
+        reversedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  // ─── Counter ───────────────────────────────────────────────────────────────
 
   Future<int> readAndIncrementCounter() async {
     final row = await (select(db.appSettings)

@@ -201,11 +201,20 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           await db.into(db.inventoryMovements).insert(movementCompanion);
         }
 
-        // Update Customer current balance
-        final newCustomerBalance = customerRow.currentBalance + row.totalAmount;
+        // Update Customer current balance dynamically
+        final activeInvoices = await (db.select(db.invoices)
+              ..where((t) =>
+                  t.customerId.equals(customerRow.id) &
+                  t.deletedAt.isNull() &
+                  (t.status.equals('POSTED') |
+                      t.status.equals('PARTIALLY_PAID') |
+                      t.status.equals('OVERDUE'))))
+            .get();
+        final totalOutstanding = activeInvoices.fold<double>(0.0, (sum, inv) => sum + inv.outstanding);
+
         await (db.update(db.customers)..where((t) => t.id.equals(customerRow.id))).write(
           CustomersCompanion(
-            currentBalance: Value(newCustomerBalance),
+            currentBalance: Value(totalOutstanding),
             lastInvoiceDate: Value(row.invoiceDate),
           ),
         );
@@ -311,11 +320,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
             await db.into(db.inventoryMovements).insert(movementCompanion);
           }
 
-          // 4. Revert Customer Current Balance
-          final newBalance = customerRow.currentBalance - row.totalAmount;
-          await (db.update(db.customers)..where((t) => t.id.equals(customerRow.id))).write(
-            CustomersCompanion(currentBalance: Value(newBalance)),
-          );
         }
 
         // 5. Update Status to Cancelled
@@ -324,6 +328,23 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           'CANCELLED',
           cancelledReason: reason,
           cancelledAt: DateTime.now(),
+        );
+
+        // 6. Recalculate customer current balance dynamically (excluding this cancelled invoice)
+        final activeInvoices = await (db.select(db.invoices)
+              ..where((t) =>
+                  t.customerId.equals(row.customerId) &
+                  t.deletedAt.isNull() &
+                  (t.status.equals('POSTED') |
+                      t.status.equals('PARTIALLY_PAID') |
+                      t.status.equals('OVERDUE'))))
+            .get();
+        final totalOutstanding = activeInvoices.fold<double>(0.0, (sum, inv) => sum + inv.outstanding);
+
+        await (db.update(db.customers)..where((t) => t.id.equals(row.customerId))).write(
+          CustomersCompanion(
+            currentBalance: Value(totalOutstanding),
+          ),
         );
       });
       return const Result.success(null);
