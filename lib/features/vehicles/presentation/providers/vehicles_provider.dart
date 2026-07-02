@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
@@ -121,6 +122,7 @@ class SaveServiceRecordNotifier extends AsyncNotifier<void> {
       success: (_) {
         state = const AsyncValue.data(null);
         ref.invalidate(vehicleServiceRecordsProvider(record.vehicleId));
+        ProviderInvalidator.onServiceRecordChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);

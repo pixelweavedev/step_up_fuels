@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/expenses/application/usecases/delete_expense_usecase.dart';
 import 'package:step_up_fuels/features/expenses/application/usecases/get_expenses_usecase.dart';
@@ -61,7 +62,10 @@ class ExpensesListNotifier extends AsyncNotifier<List<Expense>> {
     final useCase = sl<SaveExpenseUseCase>();
     final result = await useCase(expense);
     await result.when(
-      success: (_) async => ref.invalidateSelf(),
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onExpenseChanged(ref);
+      },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
         throw Exception(f.userMessage);
@@ -74,7 +78,10 @@ class ExpensesListNotifier extends AsyncNotifier<List<Expense>> {
     final useCase = sl<DeleteExpenseUseCase>();
     final result = await useCase(id);
     await result.when(
-      success: (_) async => ref.invalidateSelf(),
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onExpenseChanged(ref);
+      },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
         throw Exception(f.userMessage);

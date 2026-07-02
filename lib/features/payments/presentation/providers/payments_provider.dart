@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/domain/repositories/payment_repository.dart';
@@ -43,7 +44,10 @@ class PaymentsListNotifier extends AsyncNotifier<List<Payment>> {
     final repo = sl<PaymentRepository>();
     final result = await repo.receivePayment(payment, autoAllocate: autoAllocate);
     await result.when(
-      success: (_) async => ref.invalidateSelf(),
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onPaymentChanged(ref);
+      },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
         throw Exception(f.userMessage);

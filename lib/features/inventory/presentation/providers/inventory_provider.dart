@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_current_stock_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_movements_usecase.dart';
@@ -102,6 +103,7 @@ class StockAdjustmentNotifier extends AsyncNotifier<void> {
         state = const AsyncValue.data(null);
         ref.invalidate(stockBalanceProvider);
         ref.invalidate(locationMovementsProvider);
+        ProviderInvalidator.onInventoryChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);

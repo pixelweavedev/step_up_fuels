@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/cancel_invoice_usecase.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/get_invoice_detail_usecase.dart';
@@ -52,7 +53,10 @@ class InvoicesListNotifier extends AsyncNotifier<List<Invoice>> {
     final useCase = sl<SaveInvoiceUseCase>();
     final result = await useCase(invoice, items);
     await result.when(
-      success: (_) async => ref.invalidateSelf(),
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onInvoiceChanged(ref);
+      },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
         throw Exception(f.userMessage);
@@ -67,6 +71,7 @@ class InvoicesListNotifier extends AsyncNotifier<List<Invoice>> {
     return result.when(
       success: (posted) {
         ref.invalidateSelf();
+        ProviderInvalidator.onInvoiceChanged(ref);
         return posted;
       },
       failure: (f) {
@@ -80,7 +85,10 @@ class InvoicesListNotifier extends AsyncNotifier<List<Invoice>> {
     final useCase = sl<CancelInvoiceUseCase>();
     final result = await useCase(invoiceId, reason);
     await result.when(
-      success: (_) async => ref.invalidateSelf(),
+      success: (_) async {
+        ref.invalidateSelf();
+        ProviderInvalidator.onInvoiceChanged(ref);
+      },
       failure: (f) => throw Exception(f.userMessage),
     );
   }

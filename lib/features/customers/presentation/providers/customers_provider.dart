@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/customers/application/usecases/create_customer_usecase.dart';
 import 'package:step_up_fuels/features/customers/application/usecases/get_customers_usecase.dart';
@@ -83,6 +84,7 @@ class CustomersListNotifier extends AsyncNotifier<List<Customer>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onCustomerChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -99,6 +101,7 @@ class CustomersListNotifier extends AsyncNotifier<List<Customer>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onCustomerChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -115,6 +118,7 @@ class CustomersListNotifier extends AsyncNotifier<List<Customer>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onCustomerChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -131,6 +135,7 @@ class CustomersListNotifier extends AsyncNotifier<List<Customer>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onCustomerChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);

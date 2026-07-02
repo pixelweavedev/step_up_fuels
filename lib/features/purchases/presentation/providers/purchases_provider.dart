@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchase_detail_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchases_usecase.dart';
@@ -93,8 +94,7 @@ class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
-        // Also invalidate the inventory providers since stock balance has changed
-        ref.invalidate(databaseProvider);
+        ProviderInvalidator.onPurchaseChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -121,7 +121,7 @@ class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
       success: (_) async {
         ref.invalidateSelf();
         ref.invalidate(purchaseDetailProvider(purchaseId));
-        ref.invalidate(databaseProvider);
+        ProviderInvalidator.onPurchaseChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);

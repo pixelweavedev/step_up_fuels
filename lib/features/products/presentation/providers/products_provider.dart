@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
 import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
@@ -55,6 +56,7 @@ class ProductsListNotifier extends AsyncNotifier<List<Product>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onProductChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
@@ -70,6 +72,7 @@ class ProductsListNotifier extends AsyncNotifier<List<Product>> {
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
+        ProviderInvalidator.onProductChanged(ref);
       },
       failure: (f) {
         state = AsyncValue.error(f.userMessage, StackTrace.current);
