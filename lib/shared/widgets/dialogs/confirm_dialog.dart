@@ -37,7 +37,7 @@ class ConfirmDialog extends StatelessWidget {
       backgroundColor: AppColors.darkCard,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: BorderSide(color: AppColors.darkBorder),
       ),
       child: SizedBox(
         width: 420,
@@ -61,7 +61,7 @@ class ConfirmDialog extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.darkTextPrimary,
@@ -72,7 +72,7 @@ class ConfirmDialog extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   color: AppColors.darkTextSecondary,
                   height: 1.5,

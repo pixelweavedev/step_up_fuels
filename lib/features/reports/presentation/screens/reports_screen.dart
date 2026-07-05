@@ -24,7 +24,7 @@ class ReportsScreen extends ConsumerWidget {
           // Left sidebar for reports menu
           Container(
             width: 280,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: const _ReportsSidebar(),
@@ -35,7 +35,7 @@ class ReportsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 _buildFilterHeader(context, ref),
-                const Divider(color: AppColors.darkBorder, height: 1),
+                Divider(color: AppColors.darkBorder, height: 1),
                 Expanded(child: _buildReportContent(selectedType)),
               ],
             ),
@@ -62,7 +62,7 @@ class ReportsScreen extends ConsumerWidget {
         lastDate: DateTime(2101),
         builder: (context, child) => Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.brandAmber,
               onPrimary: AppColors.brandNavy,
               surface: AppColors.darkSurface,
@@ -88,7 +88,7 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               Text(
                 _getReportTitle(selectedType),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkTextPrimary,
@@ -97,7 +97,7 @@ class ReportsScreen extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 _getReportSubtitle(selectedType),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.darkTextSecondary,
                   fontSize: 13,
                 ),
@@ -115,10 +115,10 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                   label: Text(
                     '${DateFormat('dd MMM yyyy').format(fromDate)} - ${DateFormat('dd MMM yyyy').format(toDate)}',
-                    style: const TextStyle(color: AppColors.darkTextPrimary),
+                    style: TextStyle(color: AppColors.darkTextPrimary),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.darkBorder),
+                    side: BorderSide(color: AppColors.darkBorder),
                   ),
                   onPressed: selectDateRange,
                 ),
@@ -448,8 +448,8 @@ class _ReportsSidebar extends ConsumerWidget {
 
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -461,7 +461,7 @@ class _ReportsSidebar extends ConsumerWidget {
                   color: AppColors.darkTextPrimary,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'Operational & financial reports',
                 style: TextStyle(
@@ -472,7 +472,7 @@ class _ReportsSidebar extends ConsumerWidget {
             ],
           ),
         ),
-        const Divider(color: AppColors.darkBorder, height: 1),
+        Divider(color: AppColors.darkBorder, height: 1),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -655,41 +655,31 @@ class _SalesReportView extends ConsumerWidget {
                     DataCell(
                       Text(
                         e.key,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '${e.value.totalLitres.toStringAsFixed(0)} L',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${e.value.taxableAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${e.value.cgstAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${e.value.sgstAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
@@ -810,41 +800,31 @@ class _PurchaseReportView extends ConsumerWidget {
                     DataCell(
                       Text(
                         p.supplierName,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         p.supplierInvoiceNo,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         DateFormat('dd/MM/yyyy').format(p.purchaseDate),
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${p.subtotal.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${(p.cgstAmount + p.sgstAmount + p.igstAmount).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
@@ -941,25 +921,19 @@ class _StockReportView extends ConsumerWidget {
                     DataCell(
                       Text(
                         s.locationName,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         s.locationType,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         s.productName,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
@@ -1040,9 +1014,7 @@ class _ExpenseReportView extends ConsumerWidget {
                     DataCell(
                       Text(
                         e.key.replaceAll('_', ' '),
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
@@ -1099,7 +1071,7 @@ class _ProfitLossReportView extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Profit & Loss Summary',
                       style: TextStyle(
                         fontSize: 18,
@@ -1113,19 +1085,19 @@ class _ProfitLossReportView extends ConsumerWidget {
                       pl.revenue,
                       isPositive: true,
                     ),
-                    const Divider(color: AppColors.darkBorder),
+                    Divider(color: AppColors.darkBorder),
                     _buildPlRow(
                       'Cost of Fuel Sold (COGS)',
                       pl.costOfFuelSold,
                       isPositive: false,
                     ),
-                    const Divider(color: AppColors.darkBorder),
+                    Divider(color: AppColors.darkBorder),
                     _buildPlRow(
                       'Operating Expenses',
                       pl.operatingExpenses,
                       isPositive: false,
                     ),
-                    const Divider(color: AppColors.darkBorder, thickness: 1.5),
+                    Divider(color: AppColors.darkBorder, thickness: 1.5),
                     const SizedBox(height: 8),
                     _buildPlRow(
                       'Estimated Net Profit',
@@ -1212,11 +1184,11 @@ class _GstReportView extends ConsumerWidget {
           length: 2,
           child: Column(
             children: [
-              const TabBar(
+              TabBar(
                 indicatorColor: AppColors.brandAmber,
                 labelColor: AppColors.brandAmber,
                 unselectedLabelColor: AppColors.darkTextSecondary,
-                tabs: [
+                tabs: const [
                   Tab(text: 'B2B Invoices (GSTR-1)'),
                   Tab(text: 'HSN Summary (GSTR-1)'),
                 ],
@@ -1226,7 +1198,7 @@ class _GstReportView extends ConsumerWidget {
                   children: [
                     // B2B Invoices Tab
                     report.b2bInvoices.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'No registered B2B invoice returns',
                               style: TextStyle(
@@ -1312,7 +1284,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           b.customerGstin ?? 'URP',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1320,7 +1292,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           b.invoiceNumber,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1330,7 +1302,7 @@ class _GstReportView extends ConsumerWidget {
                                           DateFormat(
                                             'dd/MM/yyyy',
                                           ).format(b.invoiceDate),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1338,7 +1310,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${b.taxableValue.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1346,7 +1318,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${b.cgstAmount.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1354,7 +1326,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${b.sgstAmount.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1377,7 +1349,7 @@ class _GstReportView extends ConsumerWidget {
 
                     // HSN Summary Tab
                     report.hsnSummary.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'No HSN summaries found',
                               style: TextStyle(
@@ -1472,7 +1444,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           h.hsnCode,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1480,7 +1452,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           h.description,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1488,7 +1460,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           h.unit,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1496,7 +1468,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           h.totalQuantity.toStringAsFixed(0),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1504,7 +1476,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${h.taxableValue.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1512,7 +1484,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${h.cgstAmount.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1520,7 +1492,7 @@ class _GstReportView extends ConsumerWidget {
                                       DataCell(
                                         Text(
                                           '₹${h.sgstAmount.toStringAsFixed(2)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1652,41 +1624,31 @@ class _OutstandingReportView extends ConsumerWidget {
                     DataCell(
                       Text(
                         o.customerName,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${o.current.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${o.tier1.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${o.tier2.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(
                       Text(
                         '₹${o.tier3.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                     DataCell(

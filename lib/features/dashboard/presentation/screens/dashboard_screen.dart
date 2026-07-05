@@ -95,7 +95,7 @@ class DashboardScreen extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -106,7 +106,7 @@ class DashboardScreen extends ConsumerWidget {
                 color: AppColors.darkTextPrimary,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               'Real-time business performance & logistics insights',
               style: TextStyle(
@@ -120,7 +120,7 @@ class DashboardScreen extends ConsumerWidget {
           icon: const Icon(Icons.refresh_rounded, color: AppColors.brandAmber),
           style: IconButton.styleFrom(
             backgroundColor: AppColors.darkSurface,
-            side: const BorderSide(color: AppColors.darkBorder),
+            side: BorderSide(color: AppColors.darkBorder),
           ),
           onPressed: () => ref.read(dashboardStatsProvider.notifier).refresh(),
         ),
@@ -163,7 +163,7 @@ class DashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 4.0),
               child: Text(
                 '• ${a.locationName} is running low on ${a.productName}. Current: ${a.currentStock.toStringAsFixed(0)} Ltrs (Threshold: ${a.threshold.toStringAsFixed(0)} Ltrs)',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.darkTextPrimary,
                   fontSize: 13,
                 ),
@@ -177,8 +177,8 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildKpiGrid(DashboardStats stats) {
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 48) / 4;
+      builder: (context, raints) {
+        final cardWidth = (raints.maxWidth - 48) / 4;
         return Wrap(
           spacing: 16,
           runSpacing: 16,
@@ -238,14 +238,14 @@ class DashboardScreen extends ConsumerWidget {
       color: AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: BorderSide(color: AppColors.darkBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Sales Trend (MTD)',
               style: TextStyle(
                 fontSize: 16,
@@ -282,7 +282,7 @@ class DashboardScreen extends ConsumerWidget {
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 days[val.toInt()],
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.darkTextSecondary,
                                   fontSize: 10,
                                 ),
@@ -323,14 +323,14 @@ class DashboardScreen extends ConsumerWidget {
       color: AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: BorderSide(color: AppColors.darkBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Recent Deliveries & Invoices',
               style: TextStyle(
                 fontSize: 16,
@@ -340,8 +340,8 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             if (invoices.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: Center(
                   child: Text(
                     'No invoices recorded recently',
@@ -355,7 +355,7 @@ class DashboardScreen extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: invoices.length,
                 separatorBuilder: (context, index) =>
-                    const Divider(color: AppColors.darkBorder),
+                    Divider(color: AppColors.darkBorder),
                 itemBuilder: (context, index) {
                   final Invoice inv = invoices[index];
                   return ListTile(
@@ -370,7 +370,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     title: Text(
                       inv.invoiceNumber,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
                         fontSize: 14,
@@ -378,7 +378,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     subtitle: Text(
                       DateFormat('dd MMM yyyy').format(inv.invoiceDate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.darkTextTertiary,
                         fontSize: 12,
                       ),
@@ -440,14 +440,14 @@ class DashboardScreen extends ConsumerWidget {
       color: AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: BorderSide(color: AppColors.darkBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Expense Breakdown (MTD)',
               style: TextStyle(
                 fontSize: 16,
@@ -459,7 +459,7 @@ class DashboardScreen extends ConsumerWidget {
             expenseAsync.when(
               data: (map) {
                 if (map.isEmpty) {
-                  return const SizedBox(
+                  return SizedBox(
                     height: 180,
                     child: Center(
                       child: Text(
@@ -535,7 +535,7 @@ class DashboardScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       cat.replaceAll('_', ' '),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppColors.darkTextSecondary,
                                         fontSize: 11,
                                       ),
@@ -580,14 +580,14 @@ class DashboardScreen extends ConsumerWidget {
       color: AppColors.darkSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.darkBorder),
+        side: BorderSide(color: AppColors.darkBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Bowser Fuel Status',
               style: TextStyle(
                 fontSize: 16,
@@ -597,8 +597,8 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             if (bowsers.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Center(
                   child: Text(
                     'No active fuel bowser storage',
@@ -621,7 +621,7 @@ class DashboardScreen extends ConsumerWidget {
                         children: [
                           Text(
                             entry.key,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.darkTextSecondary,
                               fontSize: 13,

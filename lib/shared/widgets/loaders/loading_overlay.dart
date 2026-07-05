@@ -24,7 +24,10 @@ class LoadingOverlay extends StatelessWidget {
             color: AppColors.scrim,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 20,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.darkCard,
                   borderRadius: BorderRadius.circular(12),
@@ -34,14 +37,15 @@ class LoadingOverlay extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.brandAmber),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.brandAmber,
+                      ),
                     ),
                     if (message != null) ...[
                       const SizedBox(height: 16),
                       Text(
                         message!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           color: AppColors.darkTextSecondary,
                         ),

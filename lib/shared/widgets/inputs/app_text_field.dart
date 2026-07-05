@@ -81,10 +81,7 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       onEditingComplete: onEditingComplete,
       onFieldSubmitted: onFieldSubmitted,
-      style: const TextStyle(
-        fontSize: 14,
-        color: AppColors.darkTextPrimary,
-      ),
+      style: TextStyle(fontSize: 14, color: AppColors.darkTextPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

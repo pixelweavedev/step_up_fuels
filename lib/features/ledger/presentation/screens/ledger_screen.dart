@@ -21,7 +21,7 @@ class LedgerScreen extends ConsumerWidget {
           // Left side: Master list of Ledger Accounts
           Container(
             width: 380,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: const _LedgerAccountsMasterList(),
@@ -71,8 +71,8 @@ class _LedgerAccountsMasterListState
     return Column(
       children: [
         // Header
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -84,7 +84,7 @@ class _LedgerAccountsMasterListState
                   color: AppColors.darkTextPrimary,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'General ledger accounts summary',
                 style: TextStyle(
@@ -127,14 +127,14 @@ class _LedgerAccountsMasterListState
           ),
         ),
 
-        const Divider(color: AppColors.darkBorder, height: 1),
+        Divider(color: AppColors.darkBorder, height: 1),
 
         // Accounts list
         Expanded(
           child: accountsAsync.when(
             data: (list) {
               if (list.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     'No accounts found',
                     style: TextStyle(color: AppColors.darkTextTertiary),
@@ -145,7 +145,7 @@ class _LedgerAccountsMasterListState
                 itemCount: list.length,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 separatorBuilder: (context, index) =>
-                    const Divider(color: AppColors.darkBorder, height: 1),
+                    Divider(color: AppColors.darkBorder, height: 1),
                 itemBuilder: (context, index) {
                   final acc = list[index];
                   final isSelected = acc.id == selectedId;
@@ -205,7 +205,7 @@ class _LedgerAccountsMasterListState
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
                         acc.accountCode,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextTertiary,
                           fontSize: 12,
                         ),
@@ -293,7 +293,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
       lastDate: DateTime(2101),
       builder: (context, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: AppColors.brandAmber,
             onPrimary: AppColors.brandNavy,
             surface: AppColors.darkSurface,
@@ -320,7 +320,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
       lastDate: DateTime(2101),
       builder: (context, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: AppColors.brandAmber,
             onPrimary: AppColors.brandNavy,
             surface: AppColors.darkSurface,
@@ -357,7 +357,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                     children: [
                       Text(
                         account.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkTextPrimary,
@@ -366,7 +366,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Code: ${account.accountCode} | Type: ${account.accountType}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextSecondary,
                           fontSize: 13,
                         ),
@@ -386,19 +386,19 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                           fromDate == null
                               ? 'From Date'
                               : DateFormat('dd/MM/yyyy').format(fromDate),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.darkTextPrimary,
                             fontSize: 12,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.darkBorder),
+                          side: BorderSide(color: AppColors.darkBorder),
                         ),
                         onPressed: () =>
                             _selectDateFrom(context, ref, fromDate),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'to',
                         style: TextStyle(color: AppColors.darkTextSecondary),
                       ),
@@ -413,13 +413,13 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                           toDate == null
                               ? 'To Date'
                               : DateFormat('dd/MM/yyyy').format(toDate),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.darkTextPrimary,
                             fontSize: 12,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.darkBorder),
+                          side: BorderSide(color: AppColors.darkBorder),
                         ),
                         onPressed: () => _selectDateTo(context, ref, toDate),
                       ),
@@ -453,7 +453,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
               ),
             ),
 
-            const Divider(color: AppColors.darkBorder, height: 1),
+            Divider(color: AppColors.darkBorder, height: 1),
 
             // Entries Statement Table
             Expanded(
@@ -510,7 +510,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                           vertical: 12,
                         ),
                         color: AppColors.darkSurface,
-                        child: const Row(
+                        child: Row(
                           children: [
                             Expanded(
                               flex: 2,
@@ -577,7 +577,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                       // Entries lines
                       Expanded(
                         child: entries.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Text(
                                   'No ledger entries recorded in this period.',
                                   style: TextStyle(
@@ -587,11 +587,10 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                               )
                             : ListView.separated(
                                 itemCount: entries.length,
-                                separatorBuilder: (context, index) =>
-                                    const Divider(
-                                      color: AppColors.darkBorder,
-                                      height: 1,
-                                    ),
+                                separatorBuilder: (context, index) => Divider(
+                                  color: AppColors.darkBorder,
+                                  height: 1,
+                                ),
                                 itemBuilder: (context, index) {
                                   final entry = entries[index];
 
@@ -608,7 +607,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                             DateFormat(
                                               'dd/MM/yyyy',
                                             ).format(entry.entryDate),
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color:
                                                   AppColors.darkTextSecondary,
                                               fontSize: 13,
@@ -623,7 +622,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                             children: [
                                               Text(
                                                 entry.description,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   color:
                                                       AppColors.darkTextPrimary,
                                                   fontSize: 13,
@@ -635,7 +634,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                                 const SizedBox(height: 2),
                                                 Text(
                                                   'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     color: AppColors
                                                         .darkTextTertiary,
                                                     fontSize: 11,
@@ -677,7 +676,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                           flex: 2,
                                           child: Text(
                                             '₹${entry.runningBalance.toStringAsFixed(2)}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: AppColors.darkTextPrimary,
                                               fontSize: 13,
                                               fontWeight: FontWeight.w600,
@@ -725,7 +724,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
             color: AppColors.darkTextTertiary,

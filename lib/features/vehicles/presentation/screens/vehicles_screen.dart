@@ -26,7 +26,7 @@ class VehiclesScreen extends ConsumerWidget {
           // Left: Vehicle list sidebar
           Container(
             width: 380,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: const _VehicleMasterList(),
@@ -59,7 +59,7 @@ class _VehicleMasterList extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Bowsers / Fleet',
                     style: TextStyle(
                       fontSize: 18,
@@ -100,7 +100,7 @@ class _VehicleMasterList extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Show Inactive/Deleted:',
                 style: TextStyle(
                   fontSize: 12,
@@ -119,7 +119,7 @@ class _VehicleMasterList extends ConsumerWidget {
             ],
           ),
         ),
-        const Divider(color: AppColors.darkBorder),
+        Divider(color: AppColors.darkBorder),
 
         // Vehicles cards list
         Expanded(
@@ -189,7 +189,7 @@ class _VehicleMasterList extends ConsumerWidget {
                               children: [
                                 Text(
                                   vehicle.registrationNumber,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.darkTextPrimary,
@@ -228,7 +228,7 @@ class _VehicleMasterList extends ConsumerWidget {
                             const SizedBox(height: 8),
                             Text(
                               vehicle.model,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.darkTextSecondary,
                               ),
@@ -239,7 +239,7 @@ class _VehicleMasterList extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Capacity: ${vehicle.capacity} LTRS',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.darkTextTertiary,
                                   ),
@@ -264,7 +264,7 @@ class _VehicleMasterList extends ConsumerWidget {
                                             );
 
                                         if (!activeAssignment.isActive) {
-                                          return const Text(
+                                          return Text(
                                             'Unassigned',
                                             style: TextStyle(
                                               fontSize: 11,
@@ -404,7 +404,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                   children: [
                     Text(
                       vehicle.registrationNumber,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
@@ -413,7 +413,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                     const SizedBox(height: 4),
                     Text(
                       'Model: ${vehicle.model} • Capacity: ${vehicle.capacity} L',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -423,7 +423,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
               ),
               if (vehicle.deletedAt == null) ...[
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit_outlined,
                     color: AppColors.darkTextPrimary,
                   ),
@@ -438,7 +438,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
             ],
           ),
           const SizedBox(height: 24),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           const SizedBox(height: 16),
 
           // Info Widgets (Live stock & Active Driver)
@@ -474,7 +474,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'LIVE BOWSER FUEL STOCK',
                                 style: TextStyle(
                                   fontSize: 10,
@@ -542,14 +542,14 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppColors.darkBorder),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
                             Icon(
                               Icons.badge_outlined,
                               color: AppColors.darkTextTertiary,
                               size: 30,
                             ),
-                            SizedBox(width: 16),
+                            const SizedBox(width: 16),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -560,7 +560,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                                     color: AppColors.darkTextTertiary,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
                                   'Not Assigned',
                                   style: TextStyle(
@@ -600,7 +600,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'CURRENT ASSIGNED DRIVER',
                                     style: TextStyle(
                                       fontSize: 10,
@@ -610,7 +610,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                                   const SizedBox(height: 4),
                                   Text(
                                     driver.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.darkTextPrimary,
@@ -619,7 +619,7 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                                   if (driver.phone.isNotEmpty)
                                     Text(
                                       'Mob: ${driver.phone}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 11,
                                         color: AppColors.darkTextSecondary,
                                       ),
@@ -693,7 +693,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Maintenance & Expense History',
               style: TextStyle(
                 fontSize: 14,
@@ -719,7 +719,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
           child: recordsAsync.when(
             data: (list) {
               if (list.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     'No maintenance logs recorded.',
                     style: TextStyle(
@@ -739,7 +739,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: AppColors.darkBorder),
+                      side: BorderSide(color: AppColors.darkBorder),
                     ),
                     child: ListTile(
                       leading: Container(
@@ -757,7 +757,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
                       ),
                       title: Text(
                         '${rec.serviceType.displayName} • ₹${rec.cost.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkTextPrimary,
@@ -765,7 +765,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
                       ),
                       subtitle: Text(
                         'Center: ${rec.serviceCenter}\nDetails: ${rec.details}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.darkTextSecondary,
                           height: 1.3,
@@ -774,7 +774,7 @@ class _ServiceRecordsTab extends ConsumerWidget {
                       isThreeLine: true,
                       trailing: Text(
                         AppDateUtils.toDisplay(rec.serviceDate),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.darkTextTertiary,
                         ),
@@ -806,7 +806,7 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
     return assignmentsAsync.when(
       data: (assignments) {
         if (assignments.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No drivers have been assigned to this vehicle yet.',
               style: TextStyle(
@@ -830,7 +830,7 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: AppColors.darkBorder),
+                    side: BorderSide(color: AppColors.darkBorder),
                   ),
                   child: ListTile(
                     leading: Container(
@@ -856,7 +856,7 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                     ),
                     title: Text(
                       driver.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
@@ -864,7 +864,7 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
                     ),
                     subtitle: Text(
                       'Assigned: ${AppDateUtils.toDisplay(asg.assignedAt)}\n${asg.releasedAt != null ? 'Released: ${AppDateUtils.toDisplay(asg.releasedAt!)}' : 'Currently Active'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppColors.darkTextSecondary,
                         height: 1.3,
@@ -981,7 +981,7 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
               children: [
                 Text(
                   isEdit ? 'Edit Vehicle Info' : 'Register Vehicle',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1041,7 +1041,7 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(color: AppColors.darkTextSecondary),
                       ),
@@ -1140,7 +1140,7 @@ class _ServiceRecordFormDialogState
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Record Vehicle Maintenance',
                   style: TextStyle(
                     color: AppColors.darkTextPrimary,
@@ -1196,7 +1196,7 @@ class _ServiceRecordFormDialogState
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(color: AppColors.darkTextSecondary),
                       ),

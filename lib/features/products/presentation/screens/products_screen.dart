@@ -21,7 +21,7 @@ class ProductsScreen extends ConsumerWidget {
           // Left side: Product master list (380px wide)
           Container(
             width: 380,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: const _ProductMasterList(),
@@ -54,7 +54,7 @@ class _ProductMasterList extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Products',
                     style: TextStyle(
                       fontSize: 20,
@@ -95,7 +95,7 @@ class _ProductMasterList extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Show Inactive/Deleted:',
                 style: TextStyle(
                   fontSize: 12,
@@ -106,13 +106,15 @@ class _ProductMasterList extends ConsumerWidget {
                 value: statusFilter == null || statusFilter == false,
                 activeThumbColor: AppColors.brandAmber,
                 onChanged: (val) {
-                  ref.read(productStatusFilterProvider.notifier).state = val ? null : true;
+                  ref.read(productStatusFilterProvider.notifier).state = val
+                      ? null
+                      : true;
                 },
               ),
             ],
           ),
         ),
-        const Divider(color: AppColors.darkBorder),
+        Divider(color: AppColors.darkBorder),
 
         // Product Cards List
         Expanded(
@@ -131,7 +133,10 @@ class _ProductMasterList extends ConsumerWidget {
                 );
               }
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: list.length,
                 itemBuilder: (context, index) {
                   final product = list[index];
@@ -142,20 +147,23 @@ class _ProductMasterList extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: InkWell(
                       onTap: () {
-                        ref.read(selectedProductIdProvider.notifier).state = product.id;
+                        ref.read(selectedProductIdProvider.notifier).state =
+                            product.id;
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.darkSurface : AppColors.darkCard,
+                          color: isSelected
+                              ? AppColors.darkSurface
+                              : AppColors.darkCard,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.brandAmber
                                 : (isDeleted
-                                    ? AppColors.error.withValues(alpha: 0.3)
-                                    : AppColors.darkBorder),
+                                      ? AppColors.error.withValues(alpha: 0.3)
+                                      : AppColors.darkBorder),
                             width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
@@ -166,7 +174,10 @@ class _ProductMasterList extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.brandNavyLight,
                                     borderRadius: BorderRadius.circular(6),
@@ -182,7 +193,7 @@ class _ProductMasterList extends ConsumerWidget {
                                 ),
                                 Text(
                                   'GST: ${(product.gstRate * 100).toInt()}%',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.darkTextSecondary,
                                   ),
@@ -194,7 +205,7 @@ class _ProductMasterList extends ConsumerWidget {
                               product.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.darkTextPrimary,
@@ -206,7 +217,7 @@ class _ProductMasterList extends ConsumerWidget {
                               children: [
                                 Text(
                                   'HSN: ${product.hsnCode}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.darkTextTertiary,
                                   ),
@@ -214,7 +225,7 @@ class _ProductMasterList extends ConsumerWidget {
                                 if (product.currentSellingPrice != null)
                                   Text(
                                     '₹${product.currentSellingPrice!.toStringAsFixed(2)} / ${product.unitOfMeasure}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.darkTextPrimary,
@@ -257,7 +268,8 @@ class _ProductDetailView extends ConsumerWidget {
         child: EmptyStateWidget(
           icon: Icons.inventory_2_rounded,
           title: 'Select a Product',
-          subtitle: 'Choose a product from the left list to view HSN, tax rates, and details.',
+          subtitle:
+              'Choose a product from the left list to view HSN, tax rates, and details.',
         ),
       );
     }
@@ -297,7 +309,10 @@ class _ProductDetailCard extends ConsumerWidget {
                   color: AppColors.brandAmber.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.inventory_2_rounded, color: AppColors.brandAmber),
+                child: const Icon(
+                  Icons.inventory_2_rounded,
+                  color: AppColors.brandAmber,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -306,7 +321,7 @@ class _ProductDetailCard extends ConsumerWidget {
                   children: [
                     Text(
                       product.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
@@ -315,7 +330,7 @@ class _ProductDetailCard extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Code: ${product.productCode} • Unit: ${product.unitOfMeasure}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -327,35 +342,45 @@ class _ProductDetailCard extends ConsumerWidget {
                 children: [
                   if (!isDeleted) ...[
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, color: AppColors.darkTextPrimary),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.darkTextPrimary,
+                      ),
                       onPressed: () {
                         showDialog<void>(
                           context: context,
-                          builder: (context) => ProductFormDialog(product: product),
+                          builder: (context) =>
+                              ProductFormDialog(product: product),
                         );
                       },
                     ),
                     const SizedBox(width: 10),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                      icon: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: AppColors.error,
+                      ),
                       onPressed: () async {
                         final confirm = await showConfirmDialog(
                           context: context,
                           title: 'Soft-Delete Product',
-                          message: 'Are you sure you want to delete this product? Transactions using this product will remain intact.',
+                          message:
+                              'Are you sure you want to delete this product? Transactions using this product will remain intact.',
                         );
                         if (confirm == true) {
-                          await ref.read(productsListProvider.notifier).deleteProduct(product.id);
+                          await ref
+                              .read(productsListProvider.notifier)
+                              .deleteProduct(product.id);
                         }
                       },
                     ),
-                  ]
+                  ],
                 ],
               ),
             ],
           ),
           const SizedBox(height: 24),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           const SizedBox(height: 24),
 
           // Details Grid
@@ -367,10 +392,26 @@ class _ProductDetailCard extends ConsumerWidget {
               childAspectRatio: 2.5,
               children: [
                 _buildInfoTile('HSN Code', product.hsnCode, Icons.tag),
-                _buildInfoTile('GST Rate', '${(product.gstRate * 100).toInt()}%', Icons.percent),
-                _buildInfoTile('CGST Rate', '${(product.cgstRate * 100).toInt()}%', Icons.arrow_downward),
-                _buildInfoTile('SGST Rate', '${(product.sgstRate * 100).toInt()}%', Icons.arrow_downward),
-                _buildInfoTile('IGST Rate', '${(product.igstRate * 100).toInt()}%', Icons.arrow_upward),
+                _buildInfoTile(
+                  'GST Rate',
+                  '${(product.gstRate * 100).toInt()}%',
+                  Icons.percent,
+                ),
+                _buildInfoTile(
+                  'CGST Rate',
+                  '${(product.cgstRate * 100).toInt()}%',
+                  Icons.arrow_downward,
+                ),
+                _buildInfoTile(
+                  'SGST Rate',
+                  '${(product.sgstRate * 100).toInt()}%',
+                  Icons.arrow_downward,
+                ),
+                _buildInfoTile(
+                  'IGST Rate',
+                  '${(product.igstRate * 100).toInt()}%',
+                  Icons.arrow_upward,
+                ),
                 _buildInfoTile(
                   'Current Selling Price',
                   product.currentSellingPrice != null
@@ -404,12 +445,15 @@ class _ProductDetailCard extends ConsumerWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 12, color: AppColors.darkTextTertiary),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.darkTextTertiary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkTextPrimary,
@@ -475,7 +519,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
               children: [
                 Text(
                   isEdit ? 'Edit Product' : 'Add Product',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -512,10 +556,18 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                 DropdownButtonFormField<String>(
                   initialValue: _unit,
                   dropdownColor: AppColors.darkSurface,
-                  decoration: const InputDecoration(labelText: 'Unit of Measure'),
+                  decoration: const InputDecoration(
+                    labelText: 'Unit of Measure',
+                  ),
                   items: const [
-                    DropdownMenuItem(value: 'LTRS', child: Text('Litres (LTRS)')),
-                    DropdownMenuItem(value: 'KL', child: Text('Kilolitres (KL)')),
+                    DropdownMenuItem(
+                      value: 'LTRS',
+                      child: Text('Litres (LTRS)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'KL',
+                      child: Text('Kilolitres (KL)'),
+                    ),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => _unit = val);
@@ -529,8 +581,14 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                   items: const [
                     DropdownMenuItem(value: 0.0, child: Text('Exempt (0%)')),
                     DropdownMenuItem(value: 0.05, child: Text('Standard (5%)')),
-                    DropdownMenuItem(value: 0.12, child: Text('Standard (12%)')),
-                    DropdownMenuItem(value: 0.18, child: Text('Standard (18%)')),
+                    DropdownMenuItem(
+                      value: 0.12,
+                      child: Text('Standard (12%)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 0.18,
+                      child: Text('Standard (18%)'),
+                    ),
                     DropdownMenuItem(value: 0.28, child: Text('Luxury (28%)')),
                   ],
                   onChanged: (val) {
@@ -549,7 +607,10 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     PrimaryButton(
@@ -561,7 +622,10 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                           id: widget.product?.id ?? const Uuid().v4(),
                           productCode: _codeController.text.trim(),
                           name: _nameController.text.trim(),
-                          description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+                          description:
+                              _descriptionController.text.trim().isEmpty
+                              ? null
+                              : _descriptionController.text.trim(),
                           hsnCode: _hsnController.text.trim(),
                           unitOfMeasure: _unit,
                           gstRate: _gstRate,
@@ -571,13 +635,16 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                           currentSellingPrice: price,
                           isActive: widget.product?.isActive ?? true,
                           createdBy: widget.product?.createdBy ?? 'system',
-                          createdAt: widget.product?.createdAt ?? DateTime.now(),
+                          createdAt:
+                              widget.product?.createdAt ?? DateTime.now(),
                           updatedBy: 'system',
                           updatedAt: DateTime.now(),
                           version: widget.product?.version ?? 1,
                         );
 
-                        await ref.read(productsListProvider.notifier).saveProduct(product);
+                        await ref
+                            .read(productsListProvider.notifier)
+                            .saveProduct(product);
                         if (context.mounted) Navigator.pop(context);
                       },
                     ),

@@ -32,16 +32,12 @@ class EmptyStateWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: AppColors.darkBorder),
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: AppColors.darkTextTertiary,
-              ),
+              child: Icon(icon, size: 32, color: AppColors.darkTextTertiary),
             ),
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.darkTextPrimary,
@@ -52,17 +48,14 @@ class EmptyStateWidget extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.darkTextSecondary,
                   height: 1.5,
                 ),
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: 24),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 24), action!],
           ],
         ),
       ),
@@ -72,11 +65,7 @@ class EmptyStateWidget extends StatelessWidget {
 
 /// Error state widget shown when a data fetch fails.
 class ErrorStateWidget extends StatelessWidget {
-  const ErrorStateWidget({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorStateWidget({super.key, required this.message, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;
@@ -98,7 +87,7 @@ class ErrorStateWidget extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 color: AppColors.darkTextSecondary,
                 height: 1.5,

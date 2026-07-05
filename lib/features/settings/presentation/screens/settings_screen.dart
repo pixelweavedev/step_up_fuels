@@ -242,24 +242,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.darkSurface,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.error),
-            SizedBox(width: 8),
+            const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            const SizedBox(width: 8),
             Text(
               'Confirm Database Restore',
               style: TextStyle(color: AppColors.darkTextPrimary),
             ),
           ],
         ),
-        content: const Text(
+        content: Text(
           'Warning: Restoring the database will overwrite all current system data. This action is irreversible. Do you want to continue?',
           style: TextStyle(color: AppColors.darkTextSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
+            child: Text(
               'Cancel',
               style: TextStyle(color: AppColors.darkTextSecondary),
             ),
@@ -681,9 +681,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Default Paper Size',
-                      labelStyle: const TextStyle(
-                        color: AppColors.darkTextSecondary,
-                      ),
+                      labelStyle: TextStyle(color: AppColors.darkTextSecondary),
                       filled: true,
                       fillColor: AppColors.darkSurface,
                       border: OutlineInputBorder(
@@ -714,7 +712,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Page Margins (in Pixels/Points)',
               style: TextStyle(
                 fontSize: 15,
@@ -814,7 +812,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: AppColors.darkBorder),
+              side: BorderSide(color: AppColors.darkBorder),
             ),
             child: const ThemeModeTile(),
           ),
@@ -840,7 +838,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: AppColors.darkBorder),
+              side: BorderSide(color: AppColors.darkBorder),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -856,7 +854,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Exports a standalone SQLite database backup file that can be restored on any terminal.',
                     style: TextStyle(
                       color: AppColors.darkTextSecondary,
@@ -892,7 +890,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: AppColors.darkBorder),
+              side: BorderSide(color: AppColors.darkBorder),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -908,7 +906,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Restores the database state from a backup file. All current customer balances, inventory counts, and sales logs will be replaced.',
                     style: TextStyle(
                       color: AppColors.darkTextSecondary,
@@ -957,7 +955,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        labelStyle: TextStyle(color: AppColors.darkTextSecondary),
         filled: true,
         fillColor: readOnly
             ? AppColors.darkSurface.withValues(alpha: 0.5)
@@ -965,7 +963,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.darkBorder),
+          borderSide: BorderSide(color: AppColors.darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

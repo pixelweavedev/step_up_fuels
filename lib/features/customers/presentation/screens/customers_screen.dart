@@ -35,7 +35,7 @@ class CustomersScreen extends ConsumerWidget {
           // Left side: Master list (380px wide)
           Container(
             width: 380,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: const _CustomerMasterList(),
@@ -69,7 +69,7 @@ class _CustomerMasterList extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Customers',
                     style: TextStyle(
                       fontSize: 20,
@@ -113,7 +113,7 @@ class _CustomerMasterList extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Type:',
                     style: TextStyle(
                       fontSize: 12,
@@ -153,7 +153,7 @@ class _CustomerMasterList extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Show Soft-Deleted:',
                     style: TextStyle(
                       fontSize: 12,
@@ -173,7 +173,7 @@ class _CustomerMasterList extends ConsumerWidget {
             ],
           ),
         ),
-        const Divider(color: AppColors.darkBorder),
+        Divider(color: AppColors.darkBorder),
 
         // Customer Cards List
         Expanded(
@@ -211,142 +211,137 @@ class _CustomerMasterList extends ConsumerWidget {
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.darkSurface
+                              ? (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.darkSurface
+                                    : const Color(0xFFF3F4F6))
                               : AppColors.darkCard,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isSelected
-                                ? AppColors.brandAmber
-                                : (isDeleted
-                                      ? AppColors.error.withValues(alpha: 0.3)
-                                      : AppColors.darkBorder),
-                            width: isSelected ? 1.5 : 1.0,
+                            color: isDeleted
+                                ? AppColors.error.withValues(alpha: 0.3)
+                                : AppColors.darkBorder,
                           ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.brandNavyLight,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    customer.customerCode.isEmpty
-                                        ? 'CUST-TBD'
-                                        : customer.customerCode,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.brandAmber,
-                                    ),
-                                  ),
-                                ),
-                                if (isDeleted)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.error.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'Deleted',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.error,
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          color: customer.isActive
-                                              ? AppColors.success
-                                              : AppColors.darkTextTertiary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        customer.type.displayName,
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: AppColors.darkTextSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              customer.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.darkTextPrimary,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isSelected ? 0.08 : 0.02,
                               ),
-                            ),
-                            if (customer.tradeName != null &&
-                                customer.tradeName!.isNotEmpty) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                customer.tradeName!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.darkTextSecondary,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Outstanding:',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.darkTextTertiary,
-                                  ),
-                                ),
-                                Text(
-                                  NumberUtils.formatCurrency(
-                                    customer.currentBalance,
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.darkTextPrimary,
-                                  ),
-                                ),
-                              ],
+                              blurRadius: isSelected ? 8 : 4,
+                              offset: const Offset(0, 2),
                             ),
                           ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Selected Indicator Strip
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  width: 4,
+                                  color: isSelected
+                                      ? AppColors.brandAmber
+                                      : Colors.transparent,
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                customer.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      Theme.of(
+                                                            context,
+                                                          ).brightness ==
+                                                          Brightness.dark
+                                                      ? AppColors
+                                                            .darkTextPrimary
+                                                      : AppColors
+                                                            .lightTextPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            // Status Dot
+                                            Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: isDeleted
+                                                    ? AppColors.error
+                                                    : (customer.isActive
+                                                          ? AppColors.success
+                                                          : AppColors
+                                                                .darkTextTertiary),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              customer.customerCode.isEmpty
+                                                  ? 'CUST-TBD'
+                                                  : customer.customerCode,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color:
+                                                    Theme.of(
+                                                          context,
+                                                        ).brightness ==
+                                                        Brightness.dark
+                                                    ? AppColors.darkTextTertiary
+                                                    : AppColors
+                                                          .lightTextTertiary,
+                                              ),
+                                            ),
+                                            Text(
+                                              NumberUtils.formatCurrency(
+                                                customer.currentBalance,
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color:
+                                                    Theme.of(
+                                                          context,
+                                                        ).brightness ==
+                                                        Brightness.dark
+                                                    ? AppColors.darkTextPrimary
+                                                    : AppColors
+                                                          .lightTextPrimary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -441,7 +436,7 @@ class _CustomerDetailScaffoldState
         // Detail Header
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.darkSurface,
             border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
           ),
@@ -472,7 +467,7 @@ class _CustomerDetailScaffoldState
                       children: [
                         Text(
                           customer.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: AppColors.darkTextPrimary,
@@ -508,7 +503,7 @@ class _CustomerDetailScaffoldState
                     const SizedBox(height: 4),
                     Text(
                       'Customer Code: ${customer.customerCode.isEmpty ? 'CUST-TBD' : customer.customerCode} • Type: ${customer.type.displayName}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -582,7 +577,7 @@ class _CustomerDetailScaffoldState
               Container(
                 width: 300,
                 padding: const EdgeInsets.all(24),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   border: Border(
                     right: BorderSide(color: AppColors.darkBorder),
                   ),
@@ -590,7 +585,7 @@ class _CustomerDetailScaffoldState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Overview Details',
                       style: TextStyle(
                         fontSize: 14,
@@ -629,7 +624,7 @@ class _CustomerDetailScaffoldState
                       Icons.calendar_month_outlined,
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Internal Notes',
                       style: TextStyle(
                         fontSize: 12,
@@ -651,7 +646,7 @@ class _CustomerDetailScaffoldState
                           child: Text(
                             customer.notes ??
                                 'No internal notes saved for this customer.',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.darkTextSecondary,
                               height: 1.5,
@@ -722,7 +717,7 @@ class _CustomerDetailScaffoldState
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   color: AppColors.darkTextTertiary,
                 ),
@@ -730,7 +725,7 @@ class _CustomerDetailScaffoldState
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: AppColors.darkTextPrimary,
                   fontWeight: FontWeight.w500,
@@ -755,7 +750,7 @@ class _CustomerDetailScaffoldState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Delivery Locations',
                 style: TextStyle(
                   fontSize: 15,
@@ -827,7 +822,7 @@ class _CustomerDetailScaffoldState
                                     children: [
                                       Text(
                                         site.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.darkTextPrimary,
@@ -878,7 +873,7 @@ class _CustomerDetailScaffoldState
                                         ]
                                         .where((x) => x != null && x.isNotEmpty)
                                         .join(', '),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.darkTextSecondary,
                                       height: 1.4,
@@ -889,7 +884,7 @@ class _CustomerDetailScaffoldState
                             ),
                             if (customer.deletedAt == null) ...[
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.edit_outlined,
                                   size: 18,
                                   color: AppColors.darkTextSecondary,
@@ -963,7 +958,7 @@ class _CustomerDetailScaffoldState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Contact Persons',
                 style: TextStyle(
                   fontSize: 15,
@@ -1035,7 +1030,7 @@ class _CustomerDetailScaffoldState
                                     children: [
                                       Text(
                                         contact.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.darkTextPrimary,
@@ -1076,7 +1071,7 @@ class _CustomerDetailScaffoldState
                                     const SizedBox(height: 4),
                                     Text(
                                       contact.designation!,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         color: AppColors.darkTextSecondary,
                                       ),
@@ -1087,7 +1082,7 @@ class _CustomerDetailScaffoldState
                                     children: [
                                       if (contact.phone != null &&
                                           contact.phone!.isNotEmpty) ...[
-                                        const Icon(
+                                        Icon(
                                           Icons.phone_iphone_rounded,
                                           size: 14,
                                           color: AppColors.darkTextTertiary,
@@ -1095,7 +1090,7 @@ class _CustomerDetailScaffoldState
                                         const SizedBox(width: 6),
                                         Text(
                                           contact.phone!,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             color: AppColors.darkTextPrimary,
                                           ),
@@ -1104,7 +1099,7 @@ class _CustomerDetailScaffoldState
                                       ],
                                       if (contact.email != null &&
                                           contact.email!.isNotEmpty) ...[
-                                        const Icon(
+                                        Icon(
                                           Icons.alternate_email_rounded,
                                           size: 14,
                                           color: AppColors.darkTextTertiary,
@@ -1112,7 +1107,7 @@ class _CustomerDetailScaffoldState
                                         const SizedBox(width: 6),
                                         Text(
                                           contact.email!,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             color: AppColors.darkTextPrimary,
                                           ),
@@ -1125,7 +1120,7 @@ class _CustomerDetailScaffoldState
                             ),
                             if (customer.deletedAt == null) ...[
                               IconButton(
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.edit_outlined,
                                   size: 18,
                                   color: AppColors.darkTextSecondary,
@@ -1194,7 +1189,7 @@ class _CustomerDetailScaffoldState
     return invoicesAsync.when(
       data: (invoices) {
         if (invoices.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1203,7 +1198,7 @@ class _CustomerDetailScaffoldState
                   size: 48,
                   color: AppColors.darkTextTertiary,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   'No invoices issued',
                   style: TextStyle(
@@ -1211,7 +1206,7 @@ class _CustomerDetailScaffoldState
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Once sales are recorded for this customer, invoices will appear here.',
                   style: TextStyle(
@@ -1235,7 +1230,7 @@ class _CustomerDetailScaffoldState
               margin: const EdgeInsets.only(bottom: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(color: AppColors.darkBorder),
+                side: BorderSide(color: AppColors.darkBorder),
               ),
               child: ListTile(
                 leading: Container(
@@ -1255,7 +1250,7 @@ class _CustomerDetailScaffoldState
                 ),
                 title: Text(
                   invoice.invoiceNumber,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkTextPrimary,
@@ -1263,7 +1258,7 @@ class _CustomerDetailScaffoldState
                 ),
                 subtitle: Text(
                   'Date: ${AppDateUtils.toDisplay(invoice.invoiceDate)} • Due: ${AppDateUtils.toDisplay(invoice.dueDate)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppColors.darkTextSecondary,
                   ),
@@ -1274,7 +1269,7 @@ class _CustomerDetailScaffoldState
                   children: [
                     Text(
                       '₹${NumberUtils.formatCurrency(invoice.totalAmount)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
@@ -1416,7 +1411,7 @@ class _CustomerDetailScaffoldState
                         children: [
                           Text(
                             'Mode: ${pmt.paymentMode} | Ref: ${pmt.referenceNumber ?? "N/A"}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.darkTextSecondary,
                               fontSize: 12,
                             ),
@@ -1425,7 +1420,7 @@ class _CustomerDetailScaffoldState
                             const SizedBox(height: 4),
                             Text(
                               'Note: ${pmt.notes}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.darkTextTertiary,
                                 fontSize: 11,
                                 fontStyle: FontStyle.italic,
@@ -1439,7 +1434,7 @@ class _CustomerDetailScaffoldState
                         children: [
                           Text(
                             DateFormat('dd MMM yyyy').format(pmt.paymentDate),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.darkTextTertiary,
                               fontSize: 11,
                             ),
@@ -1501,7 +1496,7 @@ class _CustomerDetailScaffoldState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Customer Documents & Attachments',
                 style: TextStyle(
                   fontSize: 15,
@@ -1520,7 +1515,7 @@ class _CustomerDetailScaffoldState
             child: docsAsync.when(
               data: (list) {
                 if (list.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No compliance or contract documents uploaded.',
                       style: TextStyle(
@@ -1533,7 +1528,7 @@ class _CustomerDetailScaffoldState
                 return ListView.separated(
                   itemCount: list.length,
                   separatorBuilder: (_, __) =>
-                      const Divider(color: AppColors.darkBorder),
+                      Divider(color: AppColors.darkBorder),
                   itemBuilder: (context, index) {
                     final doc = list[index];
                     return ListTile(
@@ -1544,7 +1539,7 @@ class _CustomerDetailScaffoldState
                       ),
                       title: Text(
                         doc.documentType.displayName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -1552,7 +1547,7 @@ class _CustomerDetailScaffoldState
                       ),
                       subtitle: Text(
                         doc.fileUrl,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextSecondary,
                           fontSize: 11,
                         ),
@@ -1609,7 +1604,7 @@ class _CustomerDetailScaffoldState
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Upload Document Details',
                         style: TextStyle(
                           color: AppColors.darkTextPrimary,
@@ -1648,7 +1643,7 @@ class _CustomerDetailScaffoldState
                         children: [
                           TextButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
                               style: TextStyle(
                                 color: AppColors.darkTextSecondary,
@@ -1718,7 +1713,7 @@ class _CustomerDetailScaffoldState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'General Remarks & Notes',
             style: TextStyle(
               fontSize: 15,
@@ -1737,7 +1732,7 @@ class _CustomerDetailScaffoldState
             ),
             child: Text(
               customer.notes ?? 'No general remarks saved for this customer.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.darkTextSecondary,
               ),
@@ -1747,7 +1742,7 @@ class _CustomerDetailScaffoldState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Notes Log & Instructions History',
                 style: TextStyle(
                   fontSize: 14,
@@ -1770,7 +1765,7 @@ class _CustomerDetailScaffoldState
             child: notesAsync.when(
               data: (list) {
                 if (list.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No log entries recorded.',
                       style: TextStyle(
@@ -1783,21 +1778,21 @@ class _CustomerDetailScaffoldState
                 return ListView.separated(
                   itemCount: list.length,
                   separatorBuilder: (_, __) =>
-                      const Divider(color: AppColors.darkBorder),
+                      Divider(color: AppColors.darkBorder),
                   itemBuilder: (context, index) {
                     final item = list[index];
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         item.notes,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextPrimary,
                           fontSize: 13,
                         ),
                       ),
                       subtitle: Text(
                         'Logged by ${item.createdBy} on ${AppDateUtils.toDisplay(item.createdAt)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextSecondary,
                           fontSize: 11,
                         ),
@@ -1847,7 +1842,7 @@ class _CustomerDetailScaffoldState
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Add Note Log Entry',
                   style: TextStyle(
                     color: AppColors.darkTextPrimary,
@@ -1868,7 +1863,7 @@ class _CustomerDetailScaffoldState
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(color: AppColors.darkTextSecondary),
                       ),
@@ -2062,7 +2057,7 @@ class _ModulePlaceholder extends StatelessWidget {
             children: [
               Text(
                 moduleName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: AppColors.darkTextPrimary,
@@ -2121,47 +2116,65 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.darkCard,
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.darkBorder),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  title,
-                  style: const TextStyle(
+                  title.toUpperCase(),
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.darkTextSecondary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.6,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.darkTextPrimary,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 12),
+          Icon(
+            icon,
+            color: isDark
+                ? AppColors.darkTextTertiary
+                : AppColors.lightTextTertiary,
+            size: 22,
           ),
         ],
       ),

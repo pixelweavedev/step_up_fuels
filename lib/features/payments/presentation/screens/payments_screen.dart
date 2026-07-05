@@ -105,7 +105,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
               sizeFactor: _panelSlide,
               child: Container(
                 width: 480,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.darkSurface,
                   border: Border(left: BorderSide(color: AppColors.darkBorder)),
                 ),
@@ -123,7 +123,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -134,7 +134,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                   color: AppColors.darkTextPrimary,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 'Record and track customer receipts & allocations',
                 style: TextStyle(
@@ -184,14 +184,14 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
             child: customersAsync.when(
               data: (list) => DropdownButton<String?>(
                 value: customerFilter,
-                hint: const Text(
+                hint: Text(
                   'All Customers',
                   style: TextStyle(color: AppColors.darkTextSecondary),
                 ),
                 dropdownColor: AppColors.darkSurface,
                 underline: const SizedBox(),
                 items: [
-                  const DropdownMenuItem<String?>(
+                  DropdownMenuItem<String?>(
                     child: Text(
                       'All Customers',
                       style: TextStyle(color: AppColors.darkTextPrimary),
@@ -202,9 +202,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                       value: c.id,
                       child: Text(
                         c.name,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
                   ),
@@ -297,7 +295,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
               children: [
                 Text(
                   payment.paymentNumber,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                     color: AppColors.darkTextPrimary,
@@ -323,7 +321,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                     children: [
                       Text(
                         customerName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextSecondary,
                           fontSize: 13,
                         ),
@@ -331,7 +329,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                       const SizedBox(height: 4),
                       Text(
                         'Mode: ${payment.paymentMode} | Ref: ${payment.referenceNumber ?? "N/A"}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextTertiary,
                           fontSize: 12,
                         ),
@@ -340,7 +338,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                   ),
                   Text(
                     DateFormat('dd MMM yyyy').format(payment.paymentDate),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.darkTextTertiary,
                       fontSize: 12,
                     ),
@@ -404,7 +402,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                     children: [
                       Text(
                         payment.paymentNumber,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkTextPrimary,
@@ -413,7 +411,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                       const SizedBox(height: 4),
                       Text(
                         'Recorded on ${DateFormat('dd MMM yyyy, hh:mm a').format(payment.createdAt)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextTertiary,
                           fontSize: 12,
                         ),
@@ -421,7 +419,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close_rounded,
                       color: AppColors.darkTextSecondary,
                     ),
@@ -430,7 +428,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                 ],
               ),
             ),
-            const Divider(color: AppColors.darkBorder),
+            Divider(color: AppColors.darkBorder),
 
             // Detail Fields
             Expanded(
@@ -491,10 +489,17 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                           context: context,
                           builder: (ctx) => AlertDialog(
                             backgroundColor: AppColors.darkCard,
-                            title: const Text('Reverse Payment Receipt', style: TextStyle(color: AppColors.darkTextPrimary)),
-                            content: const Text(
+                            title: Text(
+                              'Reverse Payment Receipt',
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                            ),
+                            content: Text(
                               'Are you sure you want to reverse this payment? This will mark the receipt as REVERSED, reverse all invoice allocations, update customer outstanding, and post reversing ledger entries. This action cannot be undone.',
-                              style: TextStyle(color: AppColors.darkTextSecondary),
+                              style: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                              ),
                             ),
                             actions: [
                               TextButton(
@@ -502,9 +507,16 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
                                 child: const Text('Cancel'),
                               ),
                               ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.error,
+                                ),
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Reverse', style: TextStyle(color: AppColors.darkTextPrimary)),
+                                child: Text(
+                                  'Reverse',
+                                  style: TextStyle(
+                                    color: AppColors.darkTextPrimary,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -559,7 +571,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.darkTextTertiary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -649,7 +661,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.brandAmber,
               onPrimary: AppColors.brandNavy,
               surface: AppColors.darkSurface,
@@ -698,7 +710,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Record Customer Receipt',
                       style: TextStyle(
                         fontSize: 20,
@@ -707,7 +719,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -718,7 +730,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 const SizedBox(height: 16),
 
                 // Customer Selector
-                const Text(
+                Text(
                   'Customer',
                   style: TextStyle(
                     color: AppColors.darkTextSecondary,
@@ -736,7 +748,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       vertical: 12,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.darkBorder),
+                      borderSide: BorderSide(color: AppColors.darkBorder),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -758,9 +770,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                           value: c.id,
                           child: Text(
                             c.name,
-                            style: const TextStyle(
-                              color: AppColors.darkTextPrimary,
-                            ),
+                            style: TextStyle(color: AppColors.darkTextPrimary),
                           ),
                         ),
                       )
@@ -783,7 +793,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Amount Received (₹)',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -798,12 +808,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            style: const TextStyle(
-                              color: AppColors.darkTextPrimary,
-                            ),
+                            style: TextStyle(color: AppColors.darkTextPrimary),
                             decoration: InputDecoration(
                               hintText: '0.00',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 color: AppColors.darkTextTertiary,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -811,7 +819,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                                 vertical: 12,
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: AppColors.darkBorder,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
@@ -852,7 +860,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Payment Date',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -880,7 +888,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                                     DateFormat(
                                       'dd/MM/yyyy',
                                     ).format(_paymentDate),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.darkTextPrimary,
                                     ),
                                   ),
@@ -900,7 +908,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 const SizedBox(height: 16),
 
                 // Payment Mode Selector
-                const Text(
+                Text(
                   'Payment Mode',
                   style: TextStyle(
                     color: AppColors.darkTextSecondary,
@@ -918,7 +926,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       vertical: 12,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.darkBorder),
+                      borderSide: BorderSide(color: AppColors.darkBorder),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -926,7 +934,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'CASH',
                       child: Text(
@@ -971,7 +979,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Reference / UTR No.',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -982,12 +990,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _refCtrl,
-                            style: const TextStyle(
-                              color: AppColors.darkTextPrimary,
-                            ),
+                            style: TextStyle(color: AppColors.darkTextPrimary),
                             decoration: InputDecoration(
                               hintText: 'Txn ID / Cheque no.',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 color: AppColors.darkTextTertiary,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -995,7 +1001,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                                 vertical: 12,
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: AppColors.darkBorder,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
@@ -1016,7 +1022,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Depositing Bank',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -1027,12 +1033,10 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _bankCtrl,
-                            style: const TextStyle(
-                              color: AppColors.darkTextPrimary,
-                            ),
+                            style: TextStyle(color: AppColors.darkTextPrimary),
                             decoration: InputDecoration(
                               hintText: 'e.g. HDFC Bank',
-                              hintStyle: const TextStyle(
+                              hintStyle: TextStyle(
                                 color: AppColors.darkTextTertiary,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -1040,7 +1044,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                                 vertical: 12,
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: AppColors.darkBorder,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
@@ -1075,7 +1079,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                         });
                       },
                     ),
-                    const Text(
+                    Text(
                       'Auto-allocate to oldest outstanding invoices',
                       style: TextStyle(
                         color: AppColors.darkTextPrimary,
@@ -1088,7 +1092,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 // Specific Invoice dropdown if auto-allocate is false
                 if (!_autoAllocate) ...[
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Apply to Invoice',
                     style: TextStyle(
                       color: AppColors.darkTextSecondary,
@@ -1106,9 +1110,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                         vertical: 12,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: AppColors.darkBorder,
-                        ),
+                        borderSide: BorderSide(color: AppColors.darkBorder),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -1119,7 +1121,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       ),
                     ),
                     items: [
-                      const DropdownMenuItem<String?>(
+                      DropdownMenuItem<String?>(
                         child: Text(
                           'Leave as Advance Payment',
                           style: TextStyle(color: AppColors.darkTextPrimary),
@@ -1130,9 +1132,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                           value: inv.id,
                           child: Text(
                             '${inv.invoiceNumber} (O/S: ₹${inv.outstanding.toStringAsFixed(2)})',
-                            style: const TextStyle(
-                              color: AppColors.darkTextPrimary,
-                            ),
+                            style: TextStyle(color: AppColors.darkTextPrimary),
                           ),
                         ),
                       ),
@@ -1141,13 +1141,17 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       setState(() {
                         _selectedInvoiceId = val;
                         if (val != null) {
-                          final selectedInv = customerInvoices.firstWhere((inv) => inv.id == val);
-                          _amountCtrl.text = selectedInv.outstanding.toStringAsFixed(2);
+                          final selectedInv = customerInvoices.firstWhere(
+                            (inv) => inv.id == val,
+                          );
+                          _amountCtrl.text = selectedInv.outstanding
+                              .toStringAsFixed(2);
                         }
                       });
                     },
                   ),
-                  if (_selectedInvoiceId != null && _amountCtrl.text.isNotEmpty) ...[
+                  if (_selectedInvoiceId != null &&
+                      _amountCtrl.text.isNotEmpty) ...[
                     Builder(
                       builder: (context) {
                         try {
@@ -1178,7 +1182,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 const SizedBox(height: 16),
 
                 // Notes
-                const Text(
+                Text(
                   'Notes / Remarks',
                   style: TextStyle(
                     color: AppColors.darkTextSecondary,
@@ -1190,18 +1194,16 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                 TextFormField(
                   controller: _notesCtrl,
                   maxLines: 2,
-                  style: const TextStyle(color: AppColors.darkTextPrimary),
+                  style: TextStyle(color: AppColors.darkTextPrimary),
                   decoration: InputDecoration(
                     hintText: 'Enter notes...',
-                    hintStyle: const TextStyle(
-                      color: AppColors.darkTextTertiary,
-                    ),
+                    hintStyle: TextStyle(color: AppColors.darkTextTertiary),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.darkBorder),
+                      borderSide: BorderSide(color: AppColors.darkBorder),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -1217,7 +1219,7 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      child: const Text(
+                      child: Text(
                         'Cancel',
                         style: TextStyle(color: AppColors.darkTextSecondary),
                       ),

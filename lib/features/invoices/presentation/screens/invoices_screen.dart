@@ -33,7 +33,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
   late final AnimationController _panelAnim;
   late final Animation<double> _panelSlide;
   bool _showDetail = false;
-  final _uuid = const Uuid();
+  static const _uuid = Uuid();
 
   @override
   void initState() {
@@ -112,7 +112,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
               sizeFactor: _panelSlide,
               child: Container(
                 width: 520,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.darkCard,
                   border: Border(left: BorderSide(color: AppColors.darkBorder)),
                 ),
@@ -159,7 +159,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
             ),
           ),
           const SizedBox(width: 16),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -292,11 +292,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
                 controller: _searchCtrl,
                 onChanged: (v) =>
                     ref.read(invoiceSearchQueryProvider.notifier).state = v,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.darkTextPrimary,
                   fontSize: 14,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Search by invoice number or customer…',
                   hintStyle: TextStyle(
                     color: AppColors.darkTextTertiary,
@@ -308,7 +308,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
                     size: 20,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 12,
                   ),
@@ -351,7 +351,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
     showDialog(
       context: context,
       barrierColor: AppColors.scrim,
-      builder: (_) => _CreateInvoiceDialog(uuid: _uuid),
+      builder: (_) => const _CreateInvoiceDialog(uuid: _uuid),
     );
   }
 }
@@ -375,11 +375,8 @@ class _StatusFilterDropdown extends ConsumerWidget {
         child: DropdownButton<InvoiceStatus?>(
           value: current,
           dropdownColor: AppColors.darkCard,
-          style: const TextStyle(
-            color: AppColors.darkTextPrimary,
-            fontSize: 13,
-          ),
-          hint: const Text(
+          style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
+          hint: Text(
             'All Statuses',
             style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
           ),
@@ -472,7 +469,7 @@ class _InvoiceListTile extends ConsumerWidget {
                       children: [
                         Text(
                           invoice.invoiceNumber,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkTextPrimary,
@@ -485,7 +482,7 @@ class _InvoiceListTile extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Customer: ${invoice.customerId}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -494,7 +491,7 @@ class _InvoiceListTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}  •  Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppColors.darkTextTertiary,
                       ),
@@ -509,7 +506,7 @@ class _InvoiceListTile extends ConsumerWidget {
                 children: [
                   Text(
                     '₹${_fmt(invoice.totalAmount)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkTextPrimary,
@@ -581,7 +578,7 @@ class _DetailContent extends ConsumerWidget {
         // Header bar
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
           ),
           child: Row(
@@ -591,7 +588,7 @@ class _DetailContent extends ConsumerWidget {
                 children: [
                   Text(
                     inv.invoiceNumber,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkTextPrimary,
@@ -645,7 +642,7 @@ class _DetailContent extends ConsumerWidget {
                 ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.print_outlined,
                   color: AppColors.darkTextPrimary,
                 ),
@@ -689,7 +686,7 @@ class _DetailContent extends ConsumerWidget {
                 tooltip: 'Print Invoice',
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.download_rounded,
                   color: AppColors.darkTextPrimary,
                 ),
@@ -735,7 +732,7 @@ class _DetailContent extends ConsumerWidget {
               const SizedBox(width: 8),
               IconButton(
                 onPressed: onClose,
-                icon: const Icon(
+                icon: Icon(
                   Icons.close_rounded,
                   color: AppColors.darkTextSecondary,
                 ),
@@ -899,7 +896,7 @@ class _DetailContent extends ConsumerWidget {
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: AppColors.darkCard,
-                              title: const Text(
+                              title: Text(
                                 'Receive Full Payment',
                                 style: TextStyle(
                                   color: AppColors.darkTextPrimary,
@@ -907,7 +904,7 @@ class _DetailContent extends ConsumerWidget {
                               ),
                               content: Text(
                                 'Are you sure you want to record full receipt of ₹${_fmt(inv.outstanding)} for this invoice?',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.darkTextSecondary,
                                 ),
                               ),
@@ -921,7 +918,7 @@ class _DetailContent extends ConsumerWidget {
                                     backgroundColor: AppColors.brandAmber,
                                   ),
                                   onPressed: () => Navigator.pop(ctx, true),
-                                  child: const Text(
+                                  child: Text(
                                     'Confirm',
                                     style: TextStyle(
                                       color: AppColors.darkBackground,
@@ -989,8 +986,8 @@ class _DetailContent extends ConsumerWidget {
                     .when(
                       data: (allocs) {
                         if (allocs.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(
                               'No payments recorded yet for this invoice.',
                               style: TextStyle(
@@ -1027,9 +1024,7 @@ class _DetailContent extends ConsumerWidget {
                               margin: const EdgeInsets.only(bottom: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                side: const BorderSide(
-                                  color: AppColors.darkBorder,
-                                ),
+                                side: BorderSide(color: AppColors.darkBorder),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -1051,7 +1046,7 @@ class _DetailContent extends ConsumerWidget {
                                         children: [
                                           Text(
                                             pmt.paymentNumber,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.darkTextPrimary,
@@ -1060,7 +1055,7 @@ class _DetailContent extends ConsumerWidget {
                                           const SizedBox(height: 2),
                                           Text(
                                             'Date: ${DateFormat('dd MMM yyyy').format(pmt.paymentDate)} • Mode: ${pmt.paymentMode}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 10,
                                               color:
                                                   AppColors.darkTextSecondary,
@@ -1071,7 +1066,7 @@ class _DetailContent extends ConsumerWidget {
                                             const SizedBox(height: 4),
                                             Text(
                                               'Note: ${pmt.notes}',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 10,
                                                 color:
                                                     AppColors.darkTextTertiary,
@@ -1088,7 +1083,7 @@ class _DetailContent extends ConsumerWidget {
                                       children: [
                                         Text(
                                           '₹${_fmt(alloc.allocatedAmount)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.darkTextPrimary,
@@ -1149,7 +1144,7 @@ class _DetailContent extends ConsumerWidget {
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.darkCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Cancel Invoice',
           style: TextStyle(color: AppColors.darkTextPrimary),
         ),
@@ -1159,21 +1154,21 @@ class _DetailContent extends ConsumerWidget {
           children: [
             Text(
               'Enter a reason for cancelling ${inv.invoiceNumber}',
-              style: const TextStyle(color: AppColors.darkTextSecondary),
+              style: TextStyle(color: AppColors.darkTextSecondary),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: reasonCtrl,
-              style: const TextStyle(color: AppColors.darkTextPrimary),
+              style: TextStyle(color: AppColors.darkTextPrimary),
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: 'Reason for cancellation…',
-                hintStyle: const TextStyle(color: AppColors.darkTextTertiary),
+                hintStyle: TextStyle(color: AppColors.darkTextTertiary),
                 filled: true,
                 fillColor: AppColors.darkSurface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.darkBorder),
+                  borderSide: BorderSide(color: AppColors.darkBorder),
                 ),
               ),
             ),
@@ -1244,7 +1239,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   DateTime _dueDate = DateTime.now().add(const Duration(days: 30));
 
   // GST calculation service (MH seller by default)
-  final _gstService = const GstCalculationService(sellerStateCode: '27');
+  static const _gstService = GstCalculationService(sellerStateCode: '27');
 
   bool _saving = false;
 
@@ -1377,7 +1372,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                                   onChanged: (v) => setState(
                                     () => _buyerStateCode = v.trim(),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.darkTextPrimary,
                                   ),
                                   decoration: _inputDecoration('e.g. 27'),
@@ -1393,7 +1388,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                                 const _FieldLabel('Notes (optional)'),
                                 TextFormField(
                                   controller: _notesCtrl,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.darkTextPrimary,
                                   ),
                                   decoration: _inputDecoration(
@@ -1410,7 +1405,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                       // Line items section
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Line Items',
                             style: TextStyle(
                               fontSize: 15,
@@ -1444,7 +1439,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: AppColors.darkBorder),
                           ),
-                          child: const Text(
+                          child: Text(
                             'No line items. Click "Add Item" to add fuel/products.',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -1493,7 +1488,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
             // Footer actions
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: AppColors.darkBorder)),
               ),
               child: Row(
@@ -1522,11 +1517,11 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.save_outlined,
                             color: AppColors.darkTextPrimary,
                           ),
-                    label: const Text(
+                    label: Text(
                       'Save Draft',
                       style: TextStyle(color: AppColors.darkTextPrimary),
                     ),
@@ -1541,11 +1536,11 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
                         vertical: 12,
                       ),
                     ),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.publish_rounded,
                       color: AppColors.darkBackground,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Post Invoice',
                       style: TextStyle(
                         color: AppColors.darkBackground,
@@ -1566,7 +1561,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
     return DropdownButtonFormField<Customer>(
       initialValue: _selectedCustomer,
       dropdownColor: AppColors.darkCard,
-      style: const TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
+      style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
       decoration: _inputDecoration('Select customer'),
       items: customers
           .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
@@ -1618,7 +1613,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
           if (cgst > 0) _TotalRow('CGST', cgst),
           if (sgst > 0) _TotalRow('SGST', sgst),
           if (igst > 0) _TotalRow('IGST', igst),
-          const Divider(color: AppColors.darkBorder, height: 16),
+          Divider(color: AppColors.darkBorder, height: 16),
           _TotalRow(
             'Total Amount',
             total,
@@ -1638,7 +1633,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
     return DropdownButtonFormField<String>(
       initialValue: value,
       dropdownColor: AppColors.darkCard,
-      style: const TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
+      style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
       decoration: _inputDecoration(''),
       items: items
           .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -1780,7 +1775,7 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   }
 
   String _stateNameToCode(String stateName) {
-    const stateMap = {
+    final stateMap = {
       'maharashtra': '27',
       'delhi': '07',
       'karnataka': '29',
@@ -1877,7 +1872,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                 child: DropdownButtonFormField<Product>(
                   initialValue: draft.product,
                   dropdownColor: AppColors.darkCard,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 13,
                   ),
@@ -1907,7 +1902,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                 child: TextField(
                   controller: _qtyCtrl,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 13,
                   ),
@@ -1925,7 +1920,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                 child: TextField(
                   controller: _rateCtrl,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 13,
                   ),
@@ -1944,7 +1939,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                 child: DropdownButtonFormField<String>(
                   initialValue: draft.unit,
                   dropdownColor: AppColors.darkCard,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 13,
                   ),
@@ -1968,7 +1963,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                   children: [
                     Text(
                       gst != null ? '₹${_fmt(gst.totalAmount)}' : '₹0.00',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
                         fontSize: 13,
@@ -1977,7 +1972,7 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
                     if (gst != null)
                       Text(
                         'GST: ₹${_fmt(gst.totalTax)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           color: AppColors.darkTextSecondary,
                         ),
@@ -2124,17 +2119,11 @@ class _GstBreakdownRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.darkTextSecondary,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.darkTextSecondary),
           ),
           Text(
             '₹${_fmt(amount)}',
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.darkTextPrimary,
-            ),
+            style: TextStyle(fontSize: 13, color: AppColors.darkTextPrimary),
           ),
         ],
       ),
@@ -2176,7 +2165,7 @@ class _MetaRow extends StatelessWidget {
             width: 140,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.darkTextSecondary,
               ),
@@ -2220,7 +2209,7 @@ class _LineItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkTextPrimary,
                     fontSize: 13,
@@ -2229,7 +2218,7 @@ class _LineItemCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   'HSN: ${item.hsnCode}  •  ${item.quantity} ${item.unit} × ₹${_fmt(item.rate)}/L',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.darkTextSecondary,
                   ),
@@ -2242,14 +2231,14 @@ class _LineItemCard extends StatelessWidget {
             children: [
               Text(
                 '₹${_fmt(item.totalAmount)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppColors.darkTextPrimary,
                 ),
               ),
               Text(
                 'Tax: ₹${_fmt(item.totalTax)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   color: AppColors.darkTextSecondary,
                 ),
@@ -2279,14 +2268,14 @@ class _EmptyInvoicesPlaceholder extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.darkBorder),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.receipt_long_outlined,
               size: 48,
               color: AppColors.darkTextTertiary,
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'No Invoices Found',
             style: TextStyle(
               fontSize: 18,
@@ -2295,7 +2284,7 @@ class _EmptyInvoicesPlaceholder extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Create your first GST-compliant tax invoice.',
             style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 14),
           ),
@@ -2306,11 +2295,8 @@ class _EmptyInvoicesPlaceholder extends StatelessWidget {
               backgroundColor: AppColors.brandAmber,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            icon: const Icon(
-              Icons.add_rounded,
-              color: AppColors.darkBackground,
-            ),
-            label: const Text(
+            icon: Icon(Icons.add_rounded, color: AppColors.darkBackground),
+            label: Text(
               'Create Invoice',
               style: TextStyle(
                 color: AppColors.darkBackground,
@@ -2340,7 +2326,7 @@ class _DatePickerField extends StatelessWidget {
           lastDate: DateTime(2035),
           builder: (context, child) => Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.dark(
+              colorScheme: ColorScheme.dark(
                 primary: AppColors.brandAmber,
                 surface: AppColors.darkCard,
               ),
@@ -2360,7 +2346,7 @@ class _DatePickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.calendar_today_outlined,
               size: 16,
               color: AppColors.darkTextSecondary,
@@ -2368,10 +2354,7 @@ class _DatePickerField extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               DateFormat('dd MMM yyyy').format(date),
-              style: const TextStyle(
-                color: AppColors.darkTextPrimary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
             ),
           ],
         ),
@@ -2390,7 +2373,7 @@ class _FieldLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: AppColors.darkTextSecondary,
@@ -2465,17 +2448,17 @@ String _fmt(double v) {
 InputDecoration _inputDecoration(String hint) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.darkTextTertiary, fontSize: 13),
+    hintStyle: TextStyle(color: AppColors.darkTextTertiary, fontSize: 13),
     filled: true,
     fillColor: AppColors.darkSurface,
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.darkBorder),
+      borderSide: BorderSide(color: AppColors.darkBorder),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.darkBorder),
+      borderSide: BorderSide(color: AppColors.darkBorder),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),

@@ -34,7 +34,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           ),
 
           // ── Vertical Divider ─────────────────────────────────────────────
-          const VerticalDivider(
+          VerticalDivider(
             width: 1,
             thickness: 1,
             color: AppColors.darkBorder,
@@ -45,7 +45,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
             child: Column(
               children: [
                 _TopBar(isSidebarCollapsed: _isSidebarCollapsed),
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 1,
                   color: AppColors.darkBorder,
@@ -79,7 +79,7 @@ class _TopBar extends StatelessWidget {
           // Breadcrumb / current section label
           Text(
             _currentLabel(context),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: AppColors.darkTextPrimary,

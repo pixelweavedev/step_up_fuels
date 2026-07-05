@@ -138,11 +138,15 @@ class AppDatabase extends _$AppDatabase {
         await _createTableIfNotExists(m, documents);
       }
       if (from < 5) {
-        await m.addColumn(fuelPurchases, fuelPurchases.destinationLocationId);
+        if (from >= 4) {
+          await m.addColumn(fuelPurchases, fuelPurchases.destinationLocationId);
+        }
       }
       if (from < 6) {
         await _createTableIfNotExists(m, paymentAllocations);
-        await m.addColumn(payments, payments.status);
+        if (from >= 5) {
+          await m.addColumn(payments, payments.status);
+        }
       }
     },
   );

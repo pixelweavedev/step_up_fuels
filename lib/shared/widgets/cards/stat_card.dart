@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
-/// A premium gradient stat card for the dashboard.
+/// A premium, professional stat card for the dashboard.
 ///
 /// Shows a KPI metric with a title, value, subtitle, icon, and trend indicator.
+/// Refactored to match the minimalist KPI format with a typography-first layout,
+/// standard margins/padding, a large number, and a muted monochrome icon on the right.
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -27,51 +30,60 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 110,
+        padding: const EdgeInsets.all(24), // 24px spacing as per design system
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+          borderRadius: BorderRadius.circular(10), // 10px standard radius
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           ),
-          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: gradientColors.last.withValues(alpha: 0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(18),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+                    title.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.8,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary,
                     ),
                   ),
+                  const SizedBox(height: 8), // 8px spacing system
                   Text(
                     value,
-                    style: const TextStyle(
-                      fontSize: 22,
+                    style: TextStyle(
+                      fontSize: 32, // Display Large
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      fontFeatures: [FontFeature.tabularFigures()],
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                  if (subtitle != null || trend != null)
+                  if (subtitle != null || trend != null) ...[
+                    const SizedBox(height: 12), // 12px spacing system
                     Row(
                       children: [
                         if (trend != null) ...[
@@ -81,40 +93,46 @@ class StatCard extends StatelessWidget {
                                 : Icons.trending_down_rounded,
                             size: 14,
                             color: trendPositive == true
-                                ? Colors.white
-                                : Colors.white60,
+                                ? AppColors.success
+                                : AppColors.error,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 4), // 4px spacing system
                           Text(
                             trend!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
+                              color: trendPositive == true
+                                  ? AppColors.success
+                                  : AppColors.error,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
-                        if (subtitle != null)
+                        if (subtitle != null) ...[
+                          if (trend != null) const SizedBox(width: 8),
                           Text(
                             subtitle!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: Colors.white60,
+                              color: isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary,
                             ),
                           ),
+                        ],
                       ],
                     ),
+                  ],
                 ],
               ),
             ),
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 16),
+            Icon(
+              icon,
+              color: isDark
+                  ? AppColors.darkTextTertiary
+                  : AppColors.lightTextTertiary,
+              size: 24, // Muted monochrome icon
             ),
           ],
         ),

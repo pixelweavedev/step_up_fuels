@@ -125,14 +125,14 @@ class SidebarWidget extends ConsumerWidget {
       child: Column(
         children: [
           _buildHeader(context),
-          const Divider(color: AppColors.darkBorder, height: 1),
+          Divider(color: AppColors.darkBorder, height: 1),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: _buildNavItems(context, location),
             ),
           ),
-          const Divider(color: AppColors.darkBorder, height: 1),
+          Divider(color: AppColors.darkBorder, height: 1),
           _buildFooter(context),
         ],
       ),
@@ -165,7 +165,7 @@ class SidebarWidget extends ConsumerWidget {
             ),
             if (!isCollapsed) ...[
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,

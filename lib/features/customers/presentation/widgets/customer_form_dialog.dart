@@ -341,17 +341,14 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     _isEditMode
                         ? 'Edit Enterprise Customer'
                         : 'Register Enterprise Customer',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: AppColors.darkTextSecondary,
-                    ),
+                    icon: Icon(Icons.close, color: AppColors.darkTextSecondary),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -471,7 +468,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Customer Category',
             style: TextStyle(
               fontSize: 12,
@@ -515,7 +512,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             }).toList(),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Billing Address Details',
             style: TextStyle(
               fontSize: 13,
@@ -523,7 +520,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               color: AppColors.darkTextPrimary,
             ),
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           const SizedBox(height: 12),
           AppTextField(
             controller: _billingAddress1Controller,
@@ -677,7 +674,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Compliance Settings',
             style: TextStyle(
               fontSize: 13,
@@ -685,9 +682,9 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               color: AppColors.darkTextPrimary,
             ),
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           CheckboxListTile(
-            title: const Text(
+            title: Text(
               'GST Applicable',
               style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
             ),
@@ -701,7 +698,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             contentPadding: EdgeInsets.zero,
           ),
           CheckboxListTile(
-            title: const Text(
+            title: Text(
               'e-Invoice Required',
               style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
             ),
@@ -716,7 +713,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             contentPadding: EdgeInsets.zero,
           ),
           CheckboxListTile(
-            title: const Text(
+            title: Text(
               'e-Way Bill Required',
               style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
             ),
@@ -743,7 +740,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Payment Credit Terms',
                       style: TextStyle(
                         fontSize: 12,
@@ -828,7 +825,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Accounting Details',
             style: TextStyle(
               fontSize: 13,
@@ -836,7 +833,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               color: AppColors.darkTextPrimary,
             ),
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -882,7 +879,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Fuel Type Preference',
                       style: TextStyle(
                         fontSize: 12,
@@ -940,7 +937,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Active Purchase Order (PO) Details',
             style: TextStyle(
               fontSize: 13,
@@ -948,7 +945,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               color: AppColors.darkTextPrimary,
             ),
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -1060,7 +1057,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Communication & Print Settings',
             style: TextStyle(
               fontSize: 13,
@@ -1068,7 +1065,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               color: AppColors.darkTextPrimary,
             ),
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           Row(
             children: [
               Expanded(

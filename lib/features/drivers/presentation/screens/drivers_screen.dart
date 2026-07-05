@@ -30,7 +30,7 @@ class DriversScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -41,10 +41,13 @@ class DriversScreen extends ConsumerWidget {
                         color: AppColors.darkTextPrimary,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       'Manage delivery drivers, licenses validity, and vehicle assignments.',
-                      style: TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -87,18 +90,20 @@ class DriversScreen extends ConsumerWidget {
                       child: EmptyStateWidget(
                         icon: Icons.badge_outlined,
                         title: 'No Drivers Found',
-                        subtitle: 'Register a driver profile to manage assignments.',
+                        subtitle:
+                            'Register a driver profile to manage assignments.',
                       ),
                     );
                   }
 
                   return GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 380,
-                      mainAxisExtent: 220,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 380,
+                          mainAxisExtent: 220,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       final driver = list[index];
@@ -107,7 +112,9 @@ class DriversScreen extends ConsumerWidget {
                   );
                 },
                 error: (err, st) => Center(child: Text('Error: $err')),
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
+                ),
               ),
             ),
           ],
@@ -127,7 +134,11 @@ class _DriverGridCard extends ConsumerWidget {
     final vehiclesAsync = ref.watch(vehiclesListProvider);
 
     final isLicenseExpired = driver.licenseExpiry.isBefore(DateTime.now());
-    final isLicenseExpiringSoon = driver.licenseExpiry.isBefore(DateTime.now().add(const Duration(days: 30))) && !isLicenseExpired;
+    final isLicenseExpiringSoon =
+        driver.licenseExpiry.isBefore(
+          DateTime.now().add(const Duration(days: 30)),
+        ) &&
+        !isLicenseExpired;
 
     return Card(
       color: AppColors.darkCard,
@@ -136,7 +147,9 @@ class _DriverGridCard extends ConsumerWidget {
         side: BorderSide(
           color: isLicenseExpired
               ? AppColors.error.withValues(alpha: 0.5)
-              : (isLicenseExpiringSoon ? AppColors.brandAmber.withValues(alpha: 0.5) : AppColors.darkBorder),
+              : (isLicenseExpiringSoon
+                    ? AppColors.brandAmber.withValues(alpha: 0.5)
+                    : AppColors.darkBorder),
         ),
       ),
       child: Padding(
@@ -153,7 +166,7 @@ class _DriverGridCard extends ConsumerWidget {
                     driver.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkTextPrimary,
@@ -161,7 +174,10 @@ class _DriverGridCard extends ConsumerWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: driver.status == DriverStatus.active
                         ? AppColors.success.withValues(alpha: 0.15)
@@ -173,7 +189,9 @@ class _DriverGridCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: driver.status == DriverStatus.active ? AppColors.success : AppColors.error,
+                      color: driver.status == DriverStatus.active
+                          ? AppColors.success
+                          : AppColors.error,
                     ),
                   ),
                 ),
@@ -184,9 +202,19 @@ class _DriverGridCard extends ConsumerWidget {
             // Contact
             Row(
               children: [
-                const Icon(Icons.phone_rounded, size: 14, color: AppColors.darkTextSecondary),
+                Icon(
+                  Icons.phone_rounded,
+                  size: 14,
+                  color: AppColors.darkTextSecondary,
+                ),
                 const SizedBox(width: 8),
-                Text(driver.phone, style: const TextStyle(fontSize: 12, color: AppColors.darkTextPrimary)),
+                Text(
+                  driver.phone,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextPrimary,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -194,14 +222,21 @@ class _DriverGridCard extends ConsumerWidget {
             // License
             Row(
               children: [
-                const Icon(Icons.badge_outlined, size: 14, color: AppColors.darkTextSecondary),
+                Icon(
+                  Icons.badge_outlined,
+                  size: 14,
+                  color: AppColors.darkTextSecondary,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Lic: ${driver.licenseNumber}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkTextSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -212,27 +247,35 @@ class _DriverGridCard extends ConsumerWidget {
             Row(
               children: [
                 Icon(
-                  isLicenseExpired || isLicenseExpiringSoon ? Icons.warning_amber_rounded : Icons.calendar_today_rounded,
+                  isLicenseExpired || isLicenseExpiringSoon
+                      ? Icons.warning_amber_rounded
+                      : Icons.calendar_today_rounded,
                   size: 14,
                   color: isLicenseExpired
                       ? AppColors.error
-                      : (isLicenseExpiringSoon ? AppColors.brandAmber : AppColors.darkTextTertiary),
+                      : (isLicenseExpiringSoon
+                            ? AppColors.brandAmber
+                            : AppColors.darkTextTertiary),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Expires: ${AppDateUtils.toDisplay(driver.licenseExpiry)}',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: isLicenseExpired || isLicenseExpiringSoon ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isLicenseExpired || isLicenseExpiringSoon
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isLicenseExpired
                         ? AppColors.error
-                        : (isLicenseExpiringSoon ? AppColors.brandAmber : AppColors.darkTextTertiary),
+                        : (isLicenseExpiringSoon
+                              ? AppColors.brandAmber
+                              : AppColors.darkTextTertiary),
                   ),
                 ),
               ],
             ),
             const Spacer(),
-            const Divider(color: AppColors.darkBorder, height: 1),
+            Divider(color: AppColors.darkBorder, height: 1),
             const SizedBox(height: 12),
 
             // Assignment Actions
@@ -240,7 +283,13 @@ class _DriverGridCard extends ConsumerWidget {
               data: (assignments) {
                 final activeAsg = assignments.firstWhere(
                   (a) => a.isActive,
-                  orElse: () => DriverAssignment(id: '', driverId: '', vehicleId: '', assignedAt: DateTime.now(), isActive: false),
+                  orElse: () => DriverAssignment(
+                    id: '',
+                    driverId: '',
+                    vehicleId: '',
+                    assignedAt: DateTime.now(),
+                    isActive: false,
+                  ),
                 );
 
                 return vehiclesAsync.when(
@@ -270,20 +319,31 @@ class _DriverGridCard extends ConsumerWidget {
                           'Bowser: ${vehicle.registrationNumber}',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: hasActive ? FontWeight.bold : FontWeight.normal,
-                            color: hasActive ? AppColors.brandAmber : AppColors.darkTextSecondary,
+                            fontWeight: hasActive
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: hasActive
+                                ? AppColors.brandAmber
+                                : AppColors.darkTextSecondary,
                           ),
                         ),
                         TextButton(
                           onPressed: () {
                             showDialog<void>(
                               context: context,
-                              builder: (context) => DriverAssignmentDialog(driver: driver, currentAssignment: hasActive ? activeAsg : null),
+                              builder: (context) => DriverAssignmentDialog(
+                                driver: driver,
+                                currentAssignment: hasActive ? activeAsg : null,
+                              ),
                             );
                           },
                           child: Text(
                             hasActive ? 'Change' : 'Assign Bowser',
-                            style: const TextStyle(fontSize: 12, color: AppColors.brandAmber, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.brandAmber,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -360,7 +420,7 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
               children: [
                 Text(
                   isEdit ? 'Edit Driver Profile' : 'Register Driver',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.darkTextPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -400,26 +460,43 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'License Expiry Date',
-                          style: TextStyle(fontSize: 11, color: AppColors.darkTextSecondary),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.darkTextSecondary,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           AppDateUtils.toDisplay(_expiry),
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkTextPrimary,
+                          ),
                         ),
                       ],
                     ),
                     TextButton.icon(
-                      icon: const Icon(Icons.edit_calendar_rounded, color: AppColors.brandAmber),
-                      label: const Text('Change Date', style: TextStyle(color: AppColors.brandAmber)),
+                      icon: const Icon(
+                        Icons.edit_calendar_rounded,
+                        color: AppColors.brandAmber,
+                      ),
+                      label: const Text(
+                        'Change Date',
+                        style: TextStyle(color: AppColors.brandAmber),
+                      ),
                       onPressed: () async {
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: _expiry,
-                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+                          firstDate: DateTime.now().subtract(
+                            const Duration(days: 365),
+                          ),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365 * 10),
+                          ),
                         );
                         if (picked != null) {
                           setState(() => _expiry = picked);
@@ -434,7 +511,10 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
                   dropdownColor: AppColors.darkSurface,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: DriverStatus.values.map((s) {
-                    return DropdownMenuItem(value: s, child: Text(s.displayName));
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(s.displayName),
+                    );
                   }).toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _status = val);
@@ -446,7 +526,10 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     PrimaryButton(
@@ -457,10 +540,14 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
                         final driver = Driver(
                           id: widget.driver?.id ?? const Uuid().v4(),
                           name: _nameController.text.trim(),
-                          licenseNumber: _licenseController.text.trim().toUpperCase(),
+                          licenseNumber: _licenseController.text
+                              .trim()
+                              .toUpperCase(),
                           licenseExpiry: _expiry,
                           phone: _phoneController.text.trim(),
-                          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+                          email: _emailController.text.trim().isEmpty
+                              ? null
+                              : _emailController.text.trim(),
                           status: _status,
                           createdBy: widget.driver?.createdBy ?? 'system',
                           createdAt: widget.driver?.createdAt ?? DateTime.now(),
@@ -469,7 +556,9 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
                           version: widget.driver?.version ?? 1,
                         );
 
-                        await ref.read(driversListProvider.notifier).saveDriver(driver);
+                        await ref
+                            .read(driversListProvider.notifier)
+                            .saveDriver(driver);
                         if (context.mounted) Navigator.pop(context);
                       },
                     ),
@@ -485,15 +574,21 @@ class _DriverFormDialogState extends ConsumerState<DriverFormDialog> {
 }
 
 class DriverAssignmentDialog extends ConsumerStatefulWidget {
-  const DriverAssignmentDialog({super.key, required this.driver, this.currentAssignment});
+  const DriverAssignmentDialog({
+    super.key,
+    required this.driver,
+    this.currentAssignment,
+  });
   final Driver driver;
   final DriverAssignment? currentAssignment;
 
   @override
-  ConsumerState<DriverAssignmentDialog> createState() => _DriverAssignmentDialogState();
+  ConsumerState<DriverAssignmentDialog> createState() =>
+      _DriverAssignmentDialogState();
 }
 
-class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog> {
+class _DriverAssignmentDialogState
+    extends ConsumerState<DriverAssignmentDialog> {
   String? _selectedVehicleId;
 
   @override
@@ -512,7 +607,7 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
           children: [
             Text(
               'Assign Bowser (${widget.driver.name})',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.darkTextPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -521,12 +616,21 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
             const SizedBox(height: 16),
             vehiclesAsync.when(
               data: (list) {
-                final activeVehicles = list.where((v) => v.status == VehicleStatus.active && v.deletedAt == null).toList();
+                final activeVehicles = list
+                    .where(
+                      (v) =>
+                          v.status == VehicleStatus.active &&
+                          v.deletedAt == null,
+                    )
+                    .toList();
 
                 if (activeVehicles.isEmpty) {
-                  return const Text(
+                  return Text(
                     'No active vehicles available for assignment. Please register or active bowser vehicles first.',
-                    style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                    ),
                   );
                 }
 
@@ -538,9 +642,14 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
                 return DropdownButtonFormField<String>(
                   initialValue: _selectedVehicleId,
                   dropdownColor: AppColors.darkSurface,
-                  decoration: const InputDecoration(labelText: 'Select Bowser Vehicle'),
+                  decoration: const InputDecoration(
+                    labelText: 'Select Bowser Vehicle',
+                  ),
                   items: activeVehicles.map((v) {
-                    return DropdownMenuItem(value: v.id, child: Text(v.registrationNumber));
+                    return DropdownMenuItem(
+                      value: v.id,
+                      child: Text(v.registrationNumber),
+                    );
                   }).toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedVehicleId = val);
@@ -548,7 +657,9 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
                 );
               },
               error: (err, st) => Text('Error loading vehicles: $err'),
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.brandAmber),
+              ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -556,7 +667,10 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.darkTextSecondary),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 PrimaryButton(
@@ -572,7 +686,9 @@ class _DriverAssignmentDialogState extends ConsumerState<DriverAssignmentDialog>
                             isActive: true,
                           );
 
-                          await ref.read(executeDriverAssignmentProvider.notifier).assignDriver(assignment);
+                          await ref
+                              .read(executeDriverAssignmentProvider.notifier)
+                              .assignDriver(assignment);
                           if (context.mounted) Navigator.pop(context);
                         },
                 ),

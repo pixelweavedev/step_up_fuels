@@ -48,7 +48,7 @@ class InventoryScreen extends ConsumerWidget {
               // Left: locations sidebar list
               Container(
                 width: 320,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   border: Border(
                     right: BorderSide(color: AppColors.darkBorder),
                   ),
@@ -61,7 +61,7 @@ class InventoryScreen extends ConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Locations',
                             style: TextStyle(
                               fontSize: 18,
@@ -80,7 +80,7 @@ class InventoryScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const Divider(color: AppColors.darkBorder, height: 1),
+                    Divider(color: AppColors.darkBorder, height: 1),
                     Expanded(
                       child: ListView.builder(
                         itemCount: locations.length,
@@ -112,7 +112,7 @@ class InventoryScreen extends ConsumerWidget {
                               loc.type == StorageLocationType.mainStorage
                                   ? 'Main Terminal'
                                   : 'Mobile Bowser',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.darkTextSecondary,
                               ),
@@ -174,7 +174,7 @@ class InventoryScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Register Storage Location',
                         style: TextStyle(
                           color: AppColors.darkTextPrimary,
@@ -215,7 +215,7 @@ class InventoryScreen extends ConsumerWidget {
                         children: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
                               style: TextStyle(
                                 color: AppColors.darkTextSecondary,
@@ -296,14 +296,14 @@ class _LocationDetailDashboard extends ConsumerWidget {
                         children: [
                           Text(
                             location.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: AppColors.darkTextPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
+                          Text(
                             'Real-Time Balance & Historical Stock Ledger',
                             style: TextStyle(
                               fontSize: 12,
@@ -338,7 +338,7 @@ class _LocationDetailDashboard extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Inventory Movements Logs',
                     style: TextStyle(
                       fontSize: 14,
@@ -399,7 +399,7 @@ class _LocationDetailDashboard extends ConsumerWidget {
                     children: [
                       Text(
                         'Stock Adjustment (${location.name})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.darkTextPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -453,7 +453,7 @@ class _LocationDetailDashboard extends ConsumerWidget {
                         children: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
                               style: TextStyle(
                                 color: AppColors.darkTextSecondary,
@@ -536,7 +536,7 @@ class _StockBalanceCard extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'CURRENT STOCK BALANCE',
                     style: TextStyle(
                       fontSize: 11,
@@ -560,7 +560,7 @@ class _StockBalanceCard extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         product.unitOfMeasure,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           color: AppColors.darkTextSecondary,
                         ),
@@ -572,7 +572,7 @@ class _StockBalanceCard extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text(
+                  Text(
                     'PRODUCT',
                     style: TextStyle(
                       fontSize: 10,
@@ -582,7 +582,7 @@ class _StockBalanceCard extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Text(
                     product.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.darkTextPrimary,
@@ -591,7 +591,7 @@ class _StockBalanceCard extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     'HSN: ${product.hsnCode}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppColors.darkTextSecondary,
                     ),
@@ -621,7 +621,7 @@ class _MovementsList extends ConsumerWidget {
     return movementsAsync.when(
       data: (list) {
         if (list.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'No stock movements logged for this location.',
               style: TextStyle(
@@ -646,7 +646,7 @@ class _MovementsList extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
-                side: const BorderSide(color: AppColors.darkBorder),
+                side: BorderSide(color: AppColors.darkBorder),
               ),
               child: ListTile(
                 leading: Container(
@@ -673,7 +673,7 @@ class _MovementsList extends ConsumerWidget {
                 ),
                 title: Text(
                   '${mov.type.name.toUpperCase()} (${mov.quantity} LTRS)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkTextPrimary,
@@ -681,14 +681,14 @@ class _MovementsList extends ConsumerWidget {
                 ),
                 subtitle: Text(
                   mov.notes ?? 'Transaction ID: ${mov.referenceId ?? "N/A"}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppColors.darkTextSecondary,
                   ),
                 ),
                 trailing: Text(
                   AppDateUtils.toDisplay(mov.movementDate),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     color: AppColors.darkTextTertiary,
                   ),

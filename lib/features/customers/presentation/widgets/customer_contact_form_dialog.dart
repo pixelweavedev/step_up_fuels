@@ -144,14 +144,14 @@ class _CustomerContactFormDialogState
                 children: [
                   Text(
                     _isEditMode ? 'Edit Contact Person' : 'Add Contact Person',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close,
                       color: AppColors.darkTextSecondary,
                       size: 20,
@@ -161,7 +161,7 @@ class _CustomerContactFormDialogState
                 ],
               ),
             ),
-            const Divider(color: AppColors.darkBorder),
+            Divider(color: AppColors.darkBorder),
 
             // Error display
             if (_errorMessage != null)
@@ -239,7 +239,7 @@ class _CustomerContactFormDialogState
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Mark as Primary Contact',
                             style: TextStyle(
                               fontSize: 13,

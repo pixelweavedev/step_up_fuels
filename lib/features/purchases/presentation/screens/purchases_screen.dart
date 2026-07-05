@@ -31,7 +31,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   late final AnimationController _panelAnim;
   late final Animation<double> _panelSlide;
   bool _showDetail = false;
-  final _uuid = const Uuid();
+  static const _uuid = Uuid();
 
   @override
   void initState() {
@@ -127,7 +127,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         sizeFactor: _panelSlide,
                         child: Container(
                           width: 520,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.darkCard,
                             border: Border(
                               left: BorderSide(color: AppColors.darkBorder),
@@ -208,7 +208,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                 ),
               ),
               const SizedBox(width: 16),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -294,11 +294,11 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                 controller: _searchCtrl,
                 onChanged: (v) =>
                     ref.read(purchaseSearchQueryProvider.notifier).state = v,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.darkTextPrimary,
                   fontSize: 14,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Search by purchase number or invoice reference…',
                   hintStyle: TextStyle(
                     color: AppColors.darkTextTertiary,
@@ -310,7 +310,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                     size: 20,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 12,
                   ),
@@ -329,13 +329,13 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.shopping_cart_outlined,
               size: 48,
               color: AppColors.darkTextTertiary,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No purchase records found',
               style: TextStyle(color: AppColors.darkTextSecondary),
             ),
@@ -345,7 +345,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandAmber,
               ),
-              child: const Text(
+              child: Text(
                 'Record First Purchase',
                 style: TextStyle(color: AppColors.darkBackground),
               ),
@@ -392,7 +392,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                       children: [
                         Text(
                           pur.purchaseNumber,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkTextPrimary,
                           ),
@@ -400,7 +400,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         const SizedBox(height: 4),
                         Text(
                           'Inv Ref: ${pur.supplierInvoiceNo}  •  Supplier: ${pur.supplierId}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppColors.darkTextSecondary,
                           ),
@@ -408,7 +408,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         const SizedBox(height: 2),
                         Text(
                           'Date: ${DateFormat('dd MMM yyyy').format(pur.purchaseDate)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             color: AppColors.darkTextTertiary,
                           ),
@@ -421,7 +421,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                     children: [
                       Text(
                         '₹${_fmt(pur.totalAmount)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkTextPrimary,
                           fontSize: 16,
@@ -467,13 +467,13 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.people_outline,
               size: 48,
               color: AppColors.darkTextTertiary,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No suppliers registered',
               style: TextStyle(color: AppColors.darkTextSecondary),
             ),
@@ -483,7 +483,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandAmber,
               ),
-              child: const Text(
+              child: Text(
                 'Add Supplier Vendor',
                 style: TextStyle(color: AppColors.darkBackground),
               ),
@@ -533,7 +533,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                       children: [
                         Text(
                           spl.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkTextPrimary,
                           ),
@@ -542,7 +542,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         ),
                         Text(
                           spl.supplierCode,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppColors.darkTextSecondary,
                           ),
@@ -555,7 +555,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               const Spacer(),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.person_outline,
                     size: 14,
                     color: AppColors.darkTextSecondary,
@@ -563,7 +563,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                   const SizedBox(width: 6),
                   Text(
                     spl.contactPerson,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppColors.darkTextSecondary,
                     ),
@@ -573,7 +573,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.phone_outlined,
                     size: 14,
                     color: AppColors.darkTextSecondary,
@@ -581,7 +581,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                   const SizedBox(width: 6),
                   Text(
                     spl.phone,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppColors.darkTextSecondary,
                     ),
@@ -591,7 +591,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.pin_drop_outlined,
                     size: 14,
                     color: AppColors.darkTextSecondary,
@@ -600,7 +600,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                   Expanded(
                     child: Text(
                       '${spl.billingCity ?? ""}, ${spl.billingState ?? ""}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppColors.darkTextTertiary,
                       ),
@@ -625,13 +625,13 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.account_balance_wallet_outlined,
               size: 48,
               color: AppColors.darkTextTertiary,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'No expense logs recorded',
               style: TextStyle(color: AppColors.darkTextSecondary),
             ),
@@ -641,7 +641,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandAmber,
               ),
-              child: const Text(
+              child: Text(
                 'Log First Expense',
                 style: TextStyle(color: AppColors.darkBackground),
               ),
@@ -670,7 +670,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
             children: [
               const Icon(Icons.analytics_outlined, color: AppColors.brandAmber),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Total Cumulative Expenditures:',
                 style: TextStyle(color: AppColors.darkTextSecondary),
               ),
@@ -727,7 +727,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                             children: [
                               Text(
                                 exp.category,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.darkTextPrimary,
                                 ),
@@ -735,7 +735,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                               const SizedBox(width: 8),
                               Text(
                                 exp.expenseNumber,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.darkTextTertiary,
                                 ),
@@ -746,7 +746,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                           Text(
                             exp.notes ??
                                 'General operational overhead cost log',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.darkTextSecondary,
                             ),
@@ -754,7 +754,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                           const SizedBox(height: 2),
                           Text(
                             'Paid via: ${exp.paymentMode}  •  Date: ${DateFormat('dd MMM yyyy').format(exp.expenseDate)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               color: AppColors.darkTextTertiary,
                             ),
@@ -767,7 +767,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                       children: [
                         Text(
                           '₹${_fmt(exp.amount)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: AppColors.darkTextPrimary,
@@ -789,7 +789,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                             size: 16,
                           ),
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          //raints:  Boxraints(),
                           tooltip: 'Delete entry',
                         ),
                       ],
@@ -810,7 +810,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     showDialog(
       context: context,
       barrierColor: AppColors.scrim,
-      builder: (_) => _CreatePurchaseDialog(uuid: _uuid),
+      builder: (_) => const _CreatePurchaseDialog(uuid: _uuid),
     );
   }
 
@@ -820,7 +820,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     showDialog(
       context: context,
       barrierColor: AppColors.scrim,
-      builder: (_) => _AddSupplierDialog(uuid: _uuid),
+      builder: (_) => const _AddSupplierDialog(uuid: _uuid),
     );
   }
 
@@ -830,7 +830,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     showDialog(
       context: context,
       barrierColor: AppColors.scrim,
-      builder: (_) => _AddExpenseDialog(uuid: _uuid),
+      builder: (_) => const _AddExpenseDialog(uuid: _uuid),
     );
   }
 
@@ -873,7 +873,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
             ),
             child: Row(
@@ -883,7 +883,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                   children: [
                     Text(
                       detail.purchase.purchaseNumber,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkTextPrimary,
@@ -892,7 +892,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Vendor Invoice: ${detail.purchase.supplierInvoiceNo}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
                       ),
@@ -902,7 +902,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                 const Spacer(),
                 IconButton(
                   onPressed: onClose,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
                     color: AppColors.darkTextSecondary,
                   ),
@@ -974,7 +974,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                               children: [
                                 Text(
                                   item.description,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.darkTextPrimary,
                                   ),
@@ -982,7 +982,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${item.quantity} ${item.unit} × ₹${_fmt(item.rate)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.darkTextSecondary,
                                   ),
@@ -995,14 +995,14 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                             children: [
                               Text(
                                 '₹${_fmt(item.totalAmount)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.darkTextPrimary,
                                 ),
                               ),
                               Text(
                                 'GST: ₹${_fmt(item.cgstAmount + item.sgstAmount + item.igstAmount)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.darkTextTertiary,
                                 ),
@@ -1086,7 +1086,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
             width: 140,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 color: AppColors.darkTextSecondary,
               ),
@@ -1095,10 +1095,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.darkTextPrimary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.darkTextPrimary),
             ),
           ),
         ],
@@ -1155,7 +1152,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Register Supplier Vendor',
                   style: TextStyle(
                     fontSize: 18,
@@ -1169,9 +1166,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _codeCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco(
                           'Supplier Code *',
                           'e.g. SPL-001',
@@ -1183,9 +1178,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _gstCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco(
                           'GSTIN (optional)',
                           '15-digit GSTIN',
@@ -1197,7 +1190,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _nameCtrl,
-                  style: const TextStyle(color: AppColors.darkTextPrimary),
+                  style: TextStyle(color: AppColors.darkTextPrimary),
                   decoration: _inputDeco(
                     'Company / Vendor Name *',
                     'e.g. Bharat Petroleum Corporation Ltd',
@@ -1210,9 +1203,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _contactCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco('Contact Person *', 'Name'),
                         validator: (v) => v!.trim().isEmpty ? 'Required' : null,
                       ),
@@ -1221,9 +1212,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _phoneCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco(
                           'Mobile Number *',
                           '10-digit number',
@@ -1239,9 +1228,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _cityCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco('City', 'e.g. Pune'),
                       ),
                     ),
@@ -1249,9 +1236,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _stateCtrl,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco('State', 'e.g. Maharashtra'),
                       ),
                     ),
@@ -1271,7 +1256,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brandAmber,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Save Supplier',
                         style: TextStyle(
                           color: AppColors.darkBackground,
@@ -1393,7 +1378,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Log Operating Expense',
                   style: TextStyle(
                     fontSize: 18,
@@ -1405,7 +1390,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                 DropdownButtonFormField<String>(
                   initialValue: _category,
                   dropdownColor: AppColors.darkCard,
-                  style: const TextStyle(color: AppColors.darkTextPrimary),
+                  style: TextStyle(color: AppColors.darkTextPrimary),
                   decoration: _inputDeco('Category *', ''),
                   items: _categories
                       .map(
@@ -1424,9 +1409,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                       child: TextFormField(
                         controller: _amountCtrl,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco('Amount (₹) *', '0.00'),
                         validator: (v) => double.tryParse(v ?? '') == null
                             ? 'Invalid amount'
@@ -1438,9 +1421,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _paymentMode,
                         dropdownColor: AppColors.darkCard,
-                        style: const TextStyle(
-                          color: AppColors.darkTextPrimary,
-                        ),
+                        style: TextStyle(color: AppColors.darkTextPrimary),
                         decoration: _inputDeco('Payment Mode *', ''),
                         items: ['CASH', 'UPI', 'BANK_TRANSFER']
                             .map(
@@ -1459,7 +1440,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Expense Date',
                             style: TextStyle(
                               fontSize: 11,
@@ -1488,7 +1469,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                               ),
                               child: Text(
                                 DateFormat('dd MMM yyyy').format(_expenseDate),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.darkTextPrimary,
                                 ),
                               ),
@@ -1505,7 +1486,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                   data: (vehicles) => DropdownButtonFormField<String?>(
                     initialValue: _selectedVehicle,
                     dropdownColor: AppColors.darkCard,
-                    style: const TextStyle(color: AppColors.darkTextPrimary),
+                    style: TextStyle(color: AppColors.darkTextPrimary),
                     decoration: _inputDeco(
                       'Link to Bowser (optional)',
                       'Select vehicle',
@@ -1530,7 +1511,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                   data: (drivers) => DropdownButtonFormField<String?>(
                     initialValue: _selectedDriver,
                     dropdownColor: AppColors.darkCard,
-                    style: const TextStyle(color: AppColors.darkTextPrimary),
+                    style: TextStyle(color: AppColors.darkTextPrimary),
                     decoration: _inputDeco(
                       'Link to Driver (optional)',
                       'Select driver',
@@ -1550,7 +1531,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _notesCtrl,
-                  style: const TextStyle(color: AppColors.darkTextPrimary),
+                  style: TextStyle(color: AppColors.darkTextPrimary),
                   maxLines: 2,
                   decoration: _inputDeco(
                     'Expense Notes',
@@ -1571,7 +1552,7 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brandAmber,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Save Expense',
                         style: TextStyle(
                           color: AppColors.darkBackground,
@@ -1654,7 +1635,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
   DateTime _purchaseDate = DateTime.now();
   bool _saving = false;
 
-  final _gstService = const GstCalculationService(
+  static const _gstService = GstCalculationService(
     sellerStateCode: '27',
   ); // default MH
 
@@ -1720,7 +1701,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                   DropdownButtonFormField<Supplier>(
                                     initialValue: _selectedSupplier,
                                     dropdownColor: AppColors.darkCard,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: AppColors.darkTextPrimary,
                                     ),
                                     decoration: _inputDeco(
@@ -1748,7 +1729,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _invoiceNoCtrl,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.darkTextPrimary,
                               ),
                               decoration: _inputDeco(
@@ -1768,7 +1749,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Purchase Date',
                                   style: TextStyle(
                                     fontSize: 11,
@@ -1799,7 +1780,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.calendar_today_outlined,
                                           size: 14,
                                           color: AppColors.darkTextSecondary,
@@ -1809,7 +1790,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                           DateFormat(
                                             'dd MMM yyyy',
                                           ).format(_purchaseDate),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.darkTextPrimary,
                                           ),
                                         ),
@@ -1824,7 +1805,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                           Expanded(
                             child: TextFormField(
                               controller: _notesCtrl,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.darkTextPrimary,
                               ),
                               decoration: _inputDeco(
@@ -1837,7 +1818,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                       ),
                       const SizedBox(height: 12),
                       // Storage/Bowser Destination Selection - fixes Bug 4
-                      const Text(
+                      Text(
                         'Fuel Destination *',
                         style: TextStyle(
                           fontSize: 11,
@@ -1862,7 +1843,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                               return DropdownButtonFormField<String>(
                                 initialValue: _selectedDestinationId,
                                 dropdownColor: AppColors.darkCard,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppColors.darkTextPrimary,
                                 ),
                                 decoration: _inputDeco(
@@ -1893,7 +1874,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Purchase Items',
                             style: TextStyle(
                               fontSize: 14,
@@ -1927,7 +1908,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                             color: AppColors.darkSurface,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
+                          child: Text(
                             'No products added yet. Click "Add Product".',
                             style: TextStyle(
                               color: AppColors.darkTextSecondary,
@@ -1966,7 +1947,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                     child: DropdownButtonFormField<Product>(
                                       initialValue: draft.product,
                                       dropdownColor: AppColors.darkCard,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppColors.darkTextPrimary,
                                         fontSize: 13,
                                       ),
@@ -1995,7 +1976,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                     flex: 2,
                                     child: TextFormField(
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppColors.darkTextPrimary,
                                         fontSize: 13,
                                       ),
@@ -2012,7 +1993,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                     child: TextFormField(
                                       keyboardType: TextInputType.number,
                                       initialValue: draft.rate.toString(),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         color: AppColors.darkTextPrimary,
                                         fontSize: 13,
                                       ),
@@ -2032,7 +2013,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                       children: [
                                         Text(
                                           '₹${_fmt(breakdown?.totalAmount ?? 0.0)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
                                             color: AppColors.darkTextPrimary,
@@ -2040,7 +2021,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                         ),
                                         Text(
                                           'Taxes: ₹${_fmt(breakdown?.totalTax ?? 0.0)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 10,
                                             color: AppColors.darkTextTertiary,
                                           ),
@@ -2074,7 +2055,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: AppColors.darkBorder)),
               ),
               child: Row(
@@ -2090,7 +2071,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brandAmber,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Record Purchase',
                       style: TextStyle(
                         color: AppColors.darkBackground,
@@ -2140,13 +2121,13 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Taxable Subtotal',
                 style: TextStyle(color: AppColors.darkTextSecondary),
               ),
               Text(
                 '₹${_fmt(subtotal)}',
-                style: const TextStyle(color: AppColors.darkTextPrimary),
+                style: TextStyle(color: AppColors.darkTextPrimary),
               ),
             ],
           ),
@@ -2154,17 +2135,17 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'CGST + SGST',
                 style: TextStyle(color: AppColors.darkTextSecondary),
               ),
               Text(
                 '₹${_fmt(cgst + sgst)}',
-                style: const TextStyle(color: AppColors.darkTextPrimary),
+                style: TextStyle(color: AppColors.darkTextPrimary),
               ),
             ],
           ),
-          const Divider(color: AppColors.darkBorder),
+          Divider(color: AppColors.darkBorder),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -2324,22 +2305,19 @@ String _fmt(double v) {
 InputDecoration _inputDeco(String label, String hint) {
   return InputDecoration(
     labelText: label,
-    labelStyle: const TextStyle(
-      color: AppColors.darkTextSecondary,
-      fontSize: 13,
-    ),
+    labelStyle: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.darkTextTertiary, fontSize: 13),
+    hintStyle: TextStyle(color: AppColors.darkTextTertiary, fontSize: 13),
     filled: true,
     fillColor: AppColors.darkSurface,
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.darkBorder),
+      borderSide: BorderSide(color: AppColors.darkBorder),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: AppColors.darkBorder),
+      borderSide: BorderSide(color: AppColors.darkBorder),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),

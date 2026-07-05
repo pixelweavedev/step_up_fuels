@@ -9,7 +9,7 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
     _loadTheme();
-    return ThemeMode.dark;
+    return ThemeMode.light;
   }
 
   Future<void> _loadTheme() async {
@@ -17,16 +17,21 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
       final db = ref.read(databaseProvider);
       final storedValue = await db.getSetting(AppConstants.settingsKeyThemeMode);
       if (storedValue != null) {
-        state = storedValue.toLowerCase() == 'light' ? ThemeMode.light : ThemeMode.dark;
+        final mode = storedValue.toLowerCase() == 'light' ? ThemeMode.light : ThemeMode.dark;
+        state = mode;
+        AppColors.isDark = (mode == ThemeMode.dark);
+      } else {
+        AppColors.isDark = false;
       }
     } catch (_) {
-      // Keep default ThemeMode.dark
+      AppColors.isDark = false;
     }
   }
 
   Future<void> toggleTheme() async {
     final newMode = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     state = newMode;
+    AppColors.isDark = (newMode == ThemeMode.dark);
     try {
       final db = ref.read(databaseProvider);
       await db.setSetting(AppConstants.settingsKeyThemeMode, newMode == ThemeMode.light ? 'light' : 'dark');
@@ -75,5 +80,5 @@ class ThemeModeTile extends ConsumerWidget {
 ThemeData themeDataForMode(ThemeMode mode) => switch (mode) {
   ThemeMode.dark => AppTheme.dark,
   ThemeMode.light => AppTheme.light,
-  ThemeMode.system => AppTheme.dark, // default to dark for this ERP
+  ThemeMode.system => AppTheme.light, // default to light for this ERP
 };
