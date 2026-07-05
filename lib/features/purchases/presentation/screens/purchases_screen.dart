@@ -1475,8 +1475,9 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
                                 firstDate: DateTime(2025),
                                 lastDate: DateTime(2030),
                               );
-                              if (picked != null)
+                              if (picked != null) {
                                 setState(() => _expenseDate = picked);
+                              }
                             },
                             child: Container(
                               padding: const EdgeInsets.all(12),
@@ -1783,8 +1784,9 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                       firstDate: DateTime(2025),
                                       lastDate: DateTime(2030),
                                     );
-                                    if (picked != null)
+                                    if (picked != null) {
                                       setState(() => _purchaseDate = picked);
+                                    }
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.all(12),
@@ -1858,7 +1860,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                                 );
                               }
                               return DropdownButtonFormField<String>(
-                                value: _selectedDestinationId,
+                                initialValue: _selectedDestinationId,
                                 dropdownColor: AppColors.darkCard,
                                 style: const TextStyle(
                                   color: AppColors.darkTextPrimary,

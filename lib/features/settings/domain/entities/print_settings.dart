@@ -1,18 +1,4 @@
 class PrintSettings {
-  final String paperSize; // "A4" or "LETTER"
-  final double marginTop;
-  final double marginBottom;
-  final double marginLeft;
-  final double marginRight;
-
-  const PrintSettings({
-    required this.paperSize,
-    required this.marginTop,
-    required this.marginBottom,
-    required this.marginLeft,
-    required this.marginRight,
-  });
-
   factory PrintSettings.defaultSettings() {
     return const PrintSettings(
       paperSize: 'A4',
@@ -22,6 +8,29 @@ class PrintSettings {
       marginRight: 20.0,
     );
   }
+
+  factory PrintSettings.fromJson(Map<String, dynamic> json) {
+    return PrintSettings(
+      paperSize: json['paperSize'] as String? ?? 'A4',
+      marginTop: (json['marginTop'] as num? ?? 20.0).toDouble(),
+      marginBottom: (json['marginBottom'] as num? ?? 20.0).toDouble(),
+      marginLeft: (json['marginLeft'] as num? ?? 20.0).toDouble(),
+      marginRight: (json['marginRight'] as num? ?? 20.0).toDouble(),
+    );
+  }
+
+  const PrintSettings({
+    required this.paperSize,
+    required this.marginTop,
+    required this.marginBottom,
+    required this.marginLeft,
+    required this.marginRight,
+  });
+  final String paperSize; // "A4" or "LETTER"
+  final double marginTop;
+  final double marginBottom;
+  final double marginLeft;
+  final double marginRight;
 
   PrintSettings copyWith({
     String? paperSize,
@@ -47,15 +56,5 @@ class PrintSettings {
       'marginLeft': marginLeft,
       'marginRight': marginRight,
     };
-  }
-
-  factory PrintSettings.fromJson(Map<String, dynamic> json) {
-    return PrintSettings(
-      paperSize: json['paperSize'] as String? ?? 'A4',
-      marginTop: (json['marginTop'] as num? ?? 20.0).toDouble(),
-      marginBottom: (json['marginBottom'] as num? ?? 20.0).toDouble(),
-      marginLeft: (json['marginLeft'] as num? ?? 20.0).toDouble(),
-      marginRight: (json['marginRight'] as num? ?? 20.0).toDouble(),
-    );
   }
 }

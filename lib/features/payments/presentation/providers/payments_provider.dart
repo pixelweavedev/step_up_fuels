@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment_allocation.dart';
 import 'package:step_up_fuels/features/payments/domain/repositories/payment_repository.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 // ── Filters ───────────────────────────────────────────────────────────────────
 
@@ -14,9 +14,10 @@ final paymentDateToProvider = StateProvider<DateTime?>((ref) => null);
 
 // ── Payments List ─────────────────────────────────────────────────────────────
 
-final paymentsListProvider = AsyncNotifierProvider<PaymentsListNotifier, List<Payment>>(
-  PaymentsListNotifier.new,
-);
+final paymentsListProvider =
+    AsyncNotifierProvider<PaymentsListNotifier, List<Payment>>(
+      PaymentsListNotifier.new,
+    );
 
 class PaymentsListNotifier extends AsyncNotifier<List<Payment>> {
   @override
@@ -40,10 +41,16 @@ class PaymentsListNotifier extends AsyncNotifier<List<Payment>> {
     );
   }
 
-  Future<void> receivePayment(Payment payment, {bool autoAllocate = true}) async {
+  Future<void> receivePayment(
+    Payment payment, {
+    bool autoAllocate = true,
+  }) async {
     state = const AsyncValue.loading();
     final repo = sl<PaymentRepository>();
-    final result = await repo.receivePayment(payment, autoAllocate: autoAllocate);
+    final result = await repo.receivePayment(
+      payment,
+      autoAllocate: autoAllocate,
+    );
     await result.when(
       success: (_) async {
         ref.invalidateSelf();
@@ -99,28 +106,32 @@ final selectedPaymentProvider = Provider<AsyncValue<Payment>>((ref) {
 // ── Family Providers ──────────────────────────────────────────────────────────
 
 /// Family provider for fetching all payments for a specific customer.
-final paymentsForCustomerProvider = FutureProvider.family<List<Payment>, String>(
-  (ref, customerId) async {
-    final repo = sl<PaymentRepository>();
-    final result = await repo.getAll(customerId: customerId);
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final paymentsForCustomerProvider =
+    FutureProvider.family<List<Payment>, String>((ref, customerId) async {
+      final repo = sl<PaymentRepository>();
+      final result = await repo.getAll(customerId: customerId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 /// Family provider for fetching active payment allocations for a specific invoice.
-final paymentAllocationsForInvoiceProvider = FutureProvider.family<List<PaymentAllocation>, String>(
-  (ref, invoiceId) async {
-    final repo = sl<PaymentRepository>();
-    final result = await repo.getAllAllocations(invoiceId: invoiceId, status: 'ACTIVE');
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final paymentAllocationsForInvoiceProvider =
+    FutureProvider.family<List<PaymentAllocation>, String>((
+      ref,
+      invoiceId,
+    ) async {
+      final repo = sl<PaymentRepository>();
+      final result = await repo.getAllAllocations(
+        invoiceId: invoiceId,
+        status: 'ACTIVE',
+      );
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 /// Provider exposing the PaymentRepository dependency.
 final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
@@ -129,7 +140,12 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
 
 /// Provider for applying existing advance payments to invoices.
 final applyAdvanceProvider = Provider((ref) {
-  return (String customerId, String paymentId, String invoiceId, double amount) async {
+  return (
+    String customerId,
+    String paymentId,
+    String invoiceId,
+    double amount,
+  ) async {
     final repo = ref.read(paymentRepositoryProvider);
     final result = await repo.applyAdvance(
       customerId: customerId,

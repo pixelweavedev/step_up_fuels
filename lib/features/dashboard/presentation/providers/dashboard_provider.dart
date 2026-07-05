@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
-import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
 import 'package:step_up_fuels/features/dashboard/domain/services/dashboard_service.dart';
+import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
 
-final dashboardStatsProvider = AsyncNotifierProvider<DashboardStatsNotifier, DashboardStats>(
-  DashboardStatsNotifier.new,
-);
+final dashboardStatsProvider =
+    AsyncNotifierProvider<DashboardStatsNotifier, DashboardStats>(
+      DashboardStatsNotifier.new,
+    );
 
 class DashboardStatsNotifier extends AsyncNotifier<DashboardStats> {
   @override

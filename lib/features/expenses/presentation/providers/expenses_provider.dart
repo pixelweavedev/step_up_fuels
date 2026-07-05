@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/expenses/application/usecases/delete_expense_usecase.dart';
 import 'package:step_up_fuels/features/expenses/application/usecases/get_expenses_usecase.dart';
 import 'package:step_up_fuels/features/expenses/application/usecases/save_expense_usecase.dart';
 import 'package:step_up_fuels/features/expenses/domain/entities/expense.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 // ── Search & Filter State Providers ──────────────────────────────────────────
 
@@ -17,9 +17,10 @@ final expenseDateToProvider = StateProvider<DateTime?>((ref) => null);
 
 // ── Expenses List Provider ───────────────────────────────────────────────────
 
-final expensesListProvider = AsyncNotifierProvider<ExpensesListNotifier, List<Expense>>(
-  ExpensesListNotifier.new,
-);
+final expensesListProvider =
+    AsyncNotifierProvider<ExpensesListNotifier, List<Expense>>(
+      ExpensesListNotifier.new,
+    );
 
 class ExpensesListNotifier extends AsyncNotifier<List<Expense>> {
   @override
@@ -46,9 +47,11 @@ class ExpensesListNotifier extends AsyncNotifier<List<Expense>> {
         if (query.trim().isNotEmpty) {
           final q = query.trim().toLowerCase();
           filtered = filtered
-              .where((e) =>
-                  e.expenseNumber.toLowerCase().contains(q) ||
-                  (e.notes?.toLowerCase().contains(q) ?? false))
+              .where(
+                (e) =>
+                    e.expenseNumber.toLowerCase().contains(q) ||
+                    (e.notes?.toLowerCase().contains(q) ?? false),
+              )
               .toList();
         }
         return filtered;

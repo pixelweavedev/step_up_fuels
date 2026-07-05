@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
-import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/inventory/presentation/providers/inventory_provider.dart';
@@ -247,19 +246,22 @@ class _VehicleMasterList extends ConsumerWidget {
                                 ),
                                 Consumer(
                                   builder: (context, ref, child) {
-                                    final assignmentsAsync = ref.watch(vehicleAssignmentsProvider(vehicle.id));
+                                    final assignmentsAsync = ref.watch(
+                                      vehicleAssignmentsProvider(vehicle.id),
+                                    );
                                     return assignmentsAsync.when(
                                       data: (assignments) {
-                                        final activeAssignment = assignments.firstWhere(
-                                          (a) => a.isActive,
-                                          orElse: () => DriverAssignment(
-                                            id: '',
-                                            driverId: '',
-                                            vehicleId: '',
-                                            assignedAt: DateTime.now(),
-                                            isActive: false,
-                                          ),
-                                        );
+                                        final activeAssignment = assignments
+                                            .firstWhere(
+                                              (a) => a.isActive,
+                                              orElse: () => DriverAssignment(
+                                                id: '',
+                                                driverId: '',
+                                                vehicleId: '',
+                                                assignedAt: DateTime.now(),
+                                                isActive: false,
+                                              ),
+                                            );
 
                                         if (!activeAssignment.isActive) {
                                           return const Text(
@@ -272,7 +274,11 @@ class _VehicleMasterList extends ConsumerWidget {
                                           );
                                         }
 
-                                        final driverAsync = ref.watch(driverByIdProvider(activeAssignment.driverId));
+                                        final driverAsync = ref.watch(
+                                          driverByIdProvider(
+                                            activeAssignment.driverId,
+                                          ),
+                                        );
                                         return driverAsync.when(
                                           data: (driver) => Text(
                                             driver.name,
@@ -570,7 +576,9 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                       );
                     }
 
-                    final driverAsync = ref.watch(driverByIdProvider(activeAssignment.driverId));
+                    final driverAsync = ref.watch(
+                      driverByIdProvider(activeAssignment.driverId),
+                    );
 
                     return driverAsync.when(
                       data: (driver) {
@@ -626,7 +634,9 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                       loading: () => const SizedBox(
                         height: 60,
                         child: Center(
-                          child: CircularProgressIndicator(color: AppColors.brandAmber),
+                          child: CircularProgressIndicator(
+                            color: AppColors.brandAmber,
+                          ),
                         ),
                       ),
                     );
@@ -998,8 +1008,9 @@ class _VehicleFormDialogState extends ConsumerState<VehicleFormDialog> {
                   hint: 'e.g. 6000',
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null)
+                    if (double.tryParse(v) == null) {
                       return 'Must be a valid number';
+                    }
                     return null;
                   },
                 ),
@@ -1159,8 +1170,9 @@ class _ServiceRecordFormDialogState
                   hint: 'e.g. 4500',
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Required';
-                    if (double.tryParse(v) == null)
+                    if (double.tryParse(v) == null) {
                       return 'Must be a valid decimal';
+                    }
                     return null;
                   },
                 ),

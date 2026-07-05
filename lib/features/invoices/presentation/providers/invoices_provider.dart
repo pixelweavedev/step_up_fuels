@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/cancel_invoice_usecase.dart';
 import 'package:step_up_fuels/features/invoices/application/usecases/get_invoice_detail_usecase.dart';
@@ -8,11 +7,14 @@ import 'package:step_up_fuels/features/invoices/application/usecases/post_invoic
 import 'package:step_up_fuels/features/invoices/application/usecases/save_invoice_usecase.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice_item.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 // ── Filters ───────────────────────────────────────────────────────────────────
 
 final invoiceSearchQueryProvider = StateProvider<String>((ref) => '');
-final invoiceStatusFilterProvider = StateProvider<InvoiceStatus?>((ref) => null);
+final invoiceStatusFilterProvider = StateProvider<InvoiceStatus?>(
+  (ref) => null,
+);
 final invoiceDateFromProvider = StateProvider<DateTime?>((ref) => null);
 final invoiceDateToProvider = StateProvider<DateTime?>((ref) => null);
 final invoiceCustomerFilterProvider = StateProvider<String?>((ref) => null);
@@ -21,8 +23,8 @@ final invoiceCustomerFilterProvider = StateProvider<String?>((ref) => null);
 
 final invoicesListProvider =
     AsyncNotifierProvider<InvoicesListNotifier, List<Invoice>>(
-  InvoicesListNotifier.new,
-);
+      InvoicesListNotifier.new,
+    );
 
 class InvoicesListNotifier extends AsyncNotifier<List<Invoice>> {
   @override
@@ -118,32 +120,25 @@ final selectedInvoiceProvider = Provider<AsyncValue<Invoice>>((ref) {
 
 // ── Invoice Detail (with items) ───────────────────────────────────────────────
 
-final invoiceDetailProvider = FutureProvider.family<
-    ({Invoice invoice, List<InvoiceItem> items}), String>(
-  (ref, invoiceId) async {
-    final useCase = sl<GetInvoiceDetailUseCase>();
-    final result = await useCase(invoiceId);
-    return result.when(
-      success: (detail) => detail,
-      failure: (f) => throw Exception(f.userMessage),
+final invoiceDetailProvider =
+    FutureProvider.family<({Invoice invoice, List<InvoiceItem> items}), String>(
+      (ref, invoiceId) async {
+        final useCase = sl<GetInvoiceDetailUseCase>();
+        final result = await useCase(invoiceId);
+        return result.when(
+          success: (detail) => detail,
+          failure: (f) => throw Exception(f.userMessage),
+        );
+      },
     );
-  },
-);
 
 /// Provider to fetch invoices for a specific customer - fixes Bug 3
-final invoicesForCustomerProvider = FutureProvider.family<List<Invoice>, String>(
-  (ref, customerId) async {
-    final getInvoices = sl<GetInvoicesUseCase>();
-    final result = await getInvoices(
-      customerId: customerId,
-      status: null,
-      searchQuery: null,
-      fromDate: null,
-      toDate: null,
-    );
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final invoicesForCustomerProvider =
+    FutureProvider.family<List<Invoice>, String>((ref, customerId) async {
+      final getInvoices = sl<GetInvoicesUseCase>();
+      final result = await getInvoices(customerId: customerId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });

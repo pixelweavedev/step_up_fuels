@@ -11,9 +11,8 @@ import 'package:step_up_fuels/features/settings/domain/entities/print_settings.d
 import 'package:step_up_fuels/features/settings/domain/repositories/settings_repository.dart';
 
 class SettingsRepositoryImpl implements SettingsRepository {
-  final AppDatabase _db;
-
   SettingsRepositoryImpl(this._db);
+  final AppDatabase _db;
 
   static const _keyCompanyProfile = 'company_profile_json';
   static const _keyInvoiceSettings = 'invoice_settings_json';
@@ -29,7 +28,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final decoded = json.decode(jsonStr) as Map<String, dynamic>;
       return Result.success(CompanyProfile.fromJson(decoded));
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to load company profile settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to load company profile settings: $e'),
+      );
     }
   }
 
@@ -40,7 +41,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await _db.setSetting(_keyCompanyProfile, jsonStr);
       return const Result.success(null);
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to save company profile settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to save company profile settings: $e'),
+      );
     }
   }
 
@@ -54,7 +57,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final decoded = json.decode(jsonStr) as Map<String, dynamic>;
       return Result.success(InvoiceSettings.fromJson(decoded));
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to load invoice settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to load invoice settings: $e'),
+      );
     }
   }
 
@@ -65,7 +70,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await _db.setSetting(_keyInvoiceSettings, jsonStr);
       return const Result.success(null);
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to save invoice settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to save invoice settings: $e'),
+      );
     }
   }
 
@@ -79,7 +86,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       final decoded = json.decode(jsonStr) as Map<String, dynamic>;
       return Result.success(PrintSettings.fromJson(decoded));
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to load print settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to load print settings: $e'),
+      );
     }
   }
 
@@ -90,7 +99,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await _db.setSetting(_keyPrintSettings, jsonStr);
       return const Result.success(null);
     } catch (e) {
-      return Result.failure(DatabaseFailure(message: 'Failed to save print settings: $e'));
+      return Result.failure(
+        DatabaseFailure(message: 'Failed to save print settings: $e'),
+      );
     }
   }
 
@@ -98,9 +109,15 @@ class SettingsRepositoryImpl implements SettingsRepository {
   Future<Result<void>> backupDatabase(String destinationPath) async {
     try {
       final dbFolder = await getApplicationDocumentsDirectory();
-      final activeDbFile = File(p.join(dbFolder.path, 'StepUpFuels', 'step_up_fuels.db'));
+      final activeDbFile = File(
+        p.join(dbFolder.path, 'StepUpFuels', 'step_up_fuels.db'),
+      );
       if (!await activeDbFile.exists()) {
-        return const Result.failure(UnexpectedFailure(message: 'Active database file does not exist at expected path.'));
+        return const Result.failure(
+          UnexpectedFailure(
+            message: 'Active database file does not exist at expected path.',
+          ),
+        );
       }
       // Ensure target directory exists
       final destFile = File(destinationPath);
@@ -111,7 +128,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
       await activeDbFile.copy(destinationPath);
       return const Result.success(null);
     } catch (e) {
-      return Result.failure(UnexpectedFailure(message: 'Database backup operation failed: $e'));
+      return Result.failure(
+        UnexpectedFailure(message: 'Database backup operation failed: $e'),
+      );
     }
   }
 
@@ -120,19 +139,27 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       final sourceFile = File(sourcePath);
       if (!await sourceFile.exists()) {
-        return Result.failure(UnexpectedFailure(message: 'Backup source file does not exist at: $sourcePath'));
+        return Result.failure(
+          UnexpectedFailure(
+            message: 'Backup source file does not exist at: $sourcePath',
+          ),
+        );
       }
       final dbFolder = await getApplicationDocumentsDirectory();
-      final activeDbFile = File(p.join(dbFolder.path, 'StepUpFuels', 'step_up_fuels.db'));
-      
+      final activeDbFile = File(
+        p.join(dbFolder.path, 'StepUpFuels', 'step_up_fuels.db'),
+      );
+
       // Close the database connection to release lock
       await _db.close();
-      
+
       // Copy backup over active database
       await sourceFile.copy(activeDbFile.path);
       return const Result.success(null);
     } catch (e) {
-      return Result.failure(UnexpectedFailure(message: 'Database restore operation failed: $e'));
+      return Result.failure(
+        UnexpectedFailure(message: 'Database restore operation failed: $e'),
+      );
     }
   }
 }

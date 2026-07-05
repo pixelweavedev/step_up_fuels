@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchase_detail_usecase.dart';
 import 'package:step_up_fuels/features/purchases/application/usecases/get_purchases_usecase.dart';
@@ -10,6 +9,7 @@ import 'package:step_up_fuels/features/purchases/application/usecases/save_suppl
 import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase.dart';
 import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase_item.dart';
 import 'package:step_up_fuels/features/purchases/domain/entities/supplier.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 // ── Search & Filter State Providers ──────────────────────────────────────────
 
@@ -20,9 +20,10 @@ final purchaseDateToProvider = StateProvider<DateTime?>((ref) => null);
 
 // ── Suppliers List Provider ──────────────────────────────────────────────────
 
-final suppliersListProvider = AsyncNotifierProvider<SuppliersListNotifier, List<Supplier>>(
-  SuppliersListNotifier.new,
-);
+final suppliersListProvider =
+    AsyncNotifierProvider<SuppliersListNotifier, List<Supplier>>(
+      SuppliersListNotifier.new,
+    );
 
 class SuppliersListNotifier extends AsyncNotifier<List<Supplier>> {
   @override
@@ -51,9 +52,10 @@ class SuppliersListNotifier extends AsyncNotifier<List<Supplier>> {
 
 // ── Purchases List Provider ──────────────────────────────────────────────────
 
-final purchasesListProvider = AsyncNotifierProvider<PurchasesListNotifier, List<FuelPurchase>>(
-  PurchasesListNotifier.new,
-);
+final purchasesListProvider =
+    AsyncNotifierProvider<PurchasesListNotifier, List<FuelPurchase>>(
+      PurchasesListNotifier.new,
+    );
 
 class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
   @override
@@ -76,9 +78,11 @@ class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
         if (query.trim().isNotEmpty) {
           final q = query.trim().toLowerCase();
           filtered = filtered
-              .where((p) =>
-                  p.purchaseNumber.toLowerCase().contains(q) ||
-                  p.supplierInvoiceNo.toLowerCase().contains(q))
+              .where(
+                (p) =>
+                    p.purchaseNumber.toLowerCase().contains(q) ||
+                    p.supplierInvoiceNo.toLowerCase().contains(q),
+              )
               .toList();
         }
         return filtered;
@@ -87,7 +91,10 @@ class PurchasesListNotifier extends AsyncNotifier<List<FuelPurchase>> {
     );
   }
 
-  Future<void> savePurchase(FuelPurchase purchase, List<FuelPurchaseItem> items) async {
+  Future<void> savePurchase(
+    FuelPurchase purchase,
+    List<FuelPurchaseItem> items,
+  ) async {
     state = const AsyncValue.loading();
     final useCase = sl<SavePurchaseUseCase>();
     final result = await useCase(purchase, items);
@@ -155,13 +162,15 @@ final selectedPurchaseProvider = Provider<AsyncValue<FuelPurchase>>((ref) {
 
 // ── Detailed Purchase with Items ─────────────────────────────────────────────
 
-final purchaseDetailProvider = FutureProvider.family<({FuelPurchase purchase, List<FuelPurchaseItem> items}), String>(
-  (ref, id) async {
-    final useCase = sl<GetPurchaseDetailUseCase>();
-    final result = await useCase(id);
-    return result.when(
-      success: (detail) => detail,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final purchaseDetailProvider =
+    FutureProvider.family<
+      ({FuelPurchase purchase, List<FuelPurchaseItem> items}),
+      String
+    >((ref, id) async {
+      final useCase = sl<GetPurchaseDetailUseCase>();
+      final result = await useCase(id);
+      return result.when(
+        success: (detail) => detail,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });

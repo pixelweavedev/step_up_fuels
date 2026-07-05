@@ -5,8 +5,8 @@ import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/features/invoices/domain/repositories/invoice_repository.dart';
 import 'package:step_up_fuels/features/ledger/domain/repositories/ledger_repository.dart';
 import 'package:step_up_fuels/features/payments/data/daos/payments_dao.dart';
-import 'package:step_up_fuels/features/payments/data/models/payment_mapper.dart';
 import 'package:step_up_fuels/features/payments/data/models/payment_allocation_mapper.dart';
+import 'package:step_up_fuels/features/payments/data/models/payment_mapper.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment_allocation.dart';
 import 'package:step_up_fuels/features/payments/domain/repositories/payment_repository.dart';
@@ -132,7 +132,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
         if (payment.invoiceId != null) {
           // Manual Allocation to specific invoice
-          final invoiceRow = await db.invoicesDao.getInvoiceById(payment.invoiceId!);
+          final invoiceRow = await db.invoicesDao.getInvoiceById(
+            payment.invoiceId!,
+          );
           if (invoiceRow != null) {
             final toAllocate = remainingAmount < invoiceRow.outstanding
                 ? remainingAmount
@@ -162,21 +164,22 @@ class PaymentRepositoryImpl implements PaymentRepository {
           }
         } else if (autoAllocate) {
           // FIFO Auto-Allocation
-          final invoiceRows = await (db.select(db.invoices)
-                ..where(
-                  (t) =>
-                      t.customerId.equals(payment.customerId) &
-                      t.deletedAt.isNull() &
-                      (t.status.equals('POSTED') |
-                          t.status.equals('PARTIALLY_PAID') |
-                          t.status.equals('OVERDUE')),
-                )
-                ..orderBy([
-                  (t) => OrderingTerm.asc(t.invoiceDate),
-                  (t) => OrderingTerm.asc(t.dueDate),
-                  (t) => OrderingTerm.asc(t.invoiceNumber)
-                ]))
-              .get();
+          final invoiceRows =
+              await (db.select(db.invoices)
+                    ..where(
+                      (t) =>
+                          t.customerId.equals(payment.customerId) &
+                          t.deletedAt.isNull() &
+                          (t.status.equals('POSTED') |
+                              t.status.equals('PARTIALLY_PAID') |
+                              t.status.equals('OVERDUE')),
+                    )
+                    ..orderBy([
+                      (t) => OrderingTerm.asc(t.invoiceDate),
+                      (t) => OrderingTerm.asc(t.dueDate),
+                      (t) => OrderingTerm.asc(t.invoiceNumber),
+                    ]))
+                  .get();
 
           for (final invoice in invoiceRows) {
             if (remainingAmount <= 0) break;
@@ -214,7 +217,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
         final debitRes = await _ledgerRepo.postEntry(
           accountId: bankOrCashLedger.id,
           entryDate: payment.paymentDate,
-          description: 'Payment received $paymentNumber from ${customerRow.name}',
+          description:
+              'Payment received $paymentNumber from ${customerRow.name}',
           debit: payment.amount,
           credit: 0.0,
           referenceId: paymentToSave.id,
@@ -229,7 +233,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
         final creditRes = await _ledgerRepo.postEntry(
           accountId: customerLedger.id,
           entryDate: payment.paymentDate,
-          description: 'Payment received $paymentNumber from ${customerRow.name}',
+          description:
+              'Payment received $paymentNumber from ${customerRow.name}',
           debit: 0.0,
           credit: payment.amount,
           referenceId: paymentToSave.id,
@@ -276,23 +281,31 @@ class PaymentRepositoryImpl implements PaymentRepository {
         for (final alloc in activeAllocations) {
           // Set allocation status to REVERSED and timestamp it
           await _dao.saveAllocation(
-            alloc.toDomain().copyWith(
-              status: AllocationStatus.reversed,
-              reversedAt: DateTime.now(),
-            ).toCompanion(),
+            alloc
+                .toDomain()
+                .copyWith(
+                  status: AllocationStatus.reversed,
+                  reversedAt: DateTime.now(),
+                )
+                .toCompanion(),
           );
 
           // Rollback invoice amountPaid and outstanding
-          final invoiceRow = await db.invoicesDao.getInvoiceById(alloc.invoiceId);
+          final invoiceRow = await db.invoicesDao.getInvoiceById(
+            alloc.invoiceId,
+          );
           if (invoiceRow != null) {
             final newPaid = invoiceRow.amountPaid - alloc.allocatedAmount;
-            final newOutstanding = invoiceRow.outstanding + alloc.allocatedAmount;
+            final newOutstanding =
+                invoiceRow.outstanding + alloc.allocatedAmount;
             // Invoice status: if newOutstanding >= totalAmount, it goes back to POSTED.
             final newStatus = newOutstanding >= invoiceRow.totalAmount
                 ? 'POSTED'
                 : 'PARTIALLY_PAID';
 
-            await (db.update(db.invoices)..where((t) => t.id.equals(alloc.invoiceId))).write(
+            await (db.update(
+              db.invoices,
+            )..where((t) => t.id.equals(alloc.invoiceId))).write(
               InvoicesCompanion(
                 amountPaid: Value(newPaid < 0 ? 0.0 : newPaid),
                 outstanding: Value(newOutstanding),
@@ -304,9 +317,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
         }
 
         // 5. Post reversing ledger entries
-        final customerRow = await (db.select(db.customers)
-              ..where((t) => t.id.equals(paymentRow.customerId)))
-            .getSingleOrNull();
+        final customerRow = await (db.select(
+          db.customers,
+        )..where((t) => t.id.equals(paymentRow.customerId))).getSingleOrNull();
         if (customerRow == null) throw Exception('Customer not found');
 
         final customerLedgerRes = await _ledgerRepo.getOrCreateCustomerAccount(
@@ -389,8 +402,11 @@ class PaymentRepositoryImpl implements PaymentRepository {
         // 2. Get invoice
         final invoiceRow = await db.invoicesDao.getInvoiceById(invoiceId);
         if (invoiceRow == null) throw Exception('Invoice not found');
-        if (invoiceRow.status != 'POSTED' && invoiceRow.status != 'PARTIALLY_PAID') {
-          throw Exception('Invoice must be POSTED or PARTIALLY_PAID to apply advance');
+        if (invoiceRow.status != 'POSTED' &&
+            invoiceRow.status != 'PARTIALLY_PAID') {
+          throw Exception(
+            'Invoice must be POSTED or PARTIALLY_PAID to apply advance',
+          );
         }
 
         // 3. Verify advance balance on this payment
@@ -433,7 +449,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
         final newOutstanding = invoiceRow.outstanding - amount;
         final newStatus = newOutstanding <= 0 ? 'PAID' : 'PARTIALLY_PAID';
 
-        await (db.update(db.invoices)..where((t) => t.id.equals(invoiceId))).write(
+        await (db.update(
+          db.invoices,
+        )..where((t) => t.id.equals(invoiceId))).write(
           InvoicesCompanion(
             amountPaid: Value(newPaid),
             outstanding: Value(newOutstanding < 0 ? 0.0 : newOutstanding),
@@ -479,14 +497,16 @@ class PaymentRepositoryImpl implements PaymentRepository {
     String customerId,
   ) async {
     // Sum of all outstanding invoice balances (only POSTED, PARTIALLY_PAID, OVERDUE)
-    final activeInvoices = await (db.select(db.invoices)
-          ..where((t) =>
-              t.customerId.equals(customerId) &
-              t.deletedAt.isNull() &
-              (t.status.equals('POSTED') |
-                  t.status.equals('PARTIALLY_PAID') |
-                  t.status.equals('OVERDUE'))))
-        .get();
+    final activeInvoices =
+        await (db.select(db.invoices)..where(
+              (t) =>
+                  t.customerId.equals(customerId) &
+                  t.deletedAt.isNull() &
+                  (t.status.equals('POSTED') |
+                      t.status.equals('PARTIALLY_PAID') |
+                      t.status.equals('OVERDUE')),
+            ))
+            .get();
 
     final totalOutstanding = activeInvoices.fold<double>(
       0.0,
@@ -494,7 +514,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
     );
 
     // Update customer currentBalance with the total outstanding balance
-    await (db.update(db.customers)..where((t) => t.id.equals(customerId))).write(
+    await (db.update(
+      db.customers,
+    )..where((t) => t.id.equals(customerId))).write(
       CustomersCompanion(
         currentBalance: Value(totalOutstanding),
         updatedAt: Value(DateTime.now()),

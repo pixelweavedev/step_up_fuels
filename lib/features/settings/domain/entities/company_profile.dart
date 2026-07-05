@@ -1,15 +1,18 @@
 class CompanyProfile {
-  final String companyName;
-  final String gstin;
-  final String? pan;
-  final String email;
-  final String phone;
-  final String address;
-  final String bankName;
-  final String bankBranch;
-  final String bankAccountNo;
-  final String bankIfsc;
-  final String? logoUrl;
+  factory CompanyProfile.empty() {
+    return const CompanyProfile(
+      companyName: '',
+      gstin: '',
+      pan: '',
+      email: '',
+      phone: '',
+      address: '',
+      bankName: '',
+      bankBranch: '',
+      bankAccountNo: '',
+      bankIfsc: '',
+    );
+  }
 
   const CompanyProfile({
     required this.companyName,
@@ -25,20 +28,32 @@ class CompanyProfile {
     this.logoUrl,
   });
 
-  factory CompanyProfile.empty() {
-    return const CompanyProfile(
-      companyName: '',
-      gstin: '',
-      pan: '',
-      email: '',
-      phone: '',
-      address: '',
-      bankName: '',
-      bankBranch: '',
-      bankAccountNo: '',
-      bankIfsc: '',
+  factory CompanyProfile.fromJson(Map<String, dynamic> json) {
+    return CompanyProfile(
+      companyName: json['companyName'] as String? ?? '',
+      gstin: json['gstin'] as String? ?? '',
+      pan: json['pan'] as String?,
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      address: json['address'] as String? ?? '',
+      bankName: json['bankName'] as String? ?? '',
+      bankBranch: json['bankBranch'] as String? ?? '',
+      bankAccountNo: json['bankAccountNo'] as String? ?? '',
+      bankIfsc: json['bankIfsc'] as String? ?? '',
+      logoUrl: json['logoUrl'] as String?,
     );
   }
+  final String companyName;
+  final String gstin;
+  final String? pan;
+  final String email;
+  final String phone;
+  final String address;
+  final String bankName;
+  final String bankBranch;
+  final String bankAccountNo;
+  final String bankIfsc;
+  final String? logoUrl;
 
   CompanyProfile copyWith({
     String? companyName,
@@ -82,21 +97,5 @@ class CompanyProfile {
       'bankIfsc': bankIfsc,
       'logoUrl': logoUrl,
     };
-  }
-
-  factory CompanyProfile.fromJson(Map<String, dynamic> json) {
-    return CompanyProfile(
-      companyName: json['companyName'] as String? ?? '',
-      gstin: json['gstin'] as String? ?? '',
-      pan: json['pan'] as String?,
-      email: json['email'] as String? ?? '',
-      phone: json['phone'] as String? ?? '',
-      address: json['address'] as String? ?? '',
-      bankName: json['bankName'] as String? ?? '',
-      bankBranch: json['bankBranch'] as String? ?? '',
-      bankAccountNo: json['bankAccountNo'] as String? ?? '',
-      bankIfsc: json['bankIfsc'] as String? ?? '',
-      logoUrl: json['logoUrl'] as String?,
-    );
   }
 }

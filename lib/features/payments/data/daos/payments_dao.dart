@@ -1,12 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:step_up_fuels/app/database/app_database.dart';
-import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
 import 'package:step_up_fuels/features/payments/data/tables/payment_allocations_table.dart';
+import 'package:step_up_fuels/features/payments/data/tables/payments_table.dart';
 
 part 'payments_dao.g.dart';
 
 @DriftAccessor(tables: [Payments, PaymentAllocations])
-class PaymentsDao extends DatabaseAccessor<AppDatabase> with _$PaymentsDaoMixin {
+class PaymentsDao extends DatabaseAccessor<AppDatabase>
+    with _$PaymentsDaoMixin {
   PaymentsDao(super.db);
 
   Future<List<PaymentRow>> getAllPayments({
@@ -21,8 +22,12 @@ class PaymentsDao extends DatabaseAccessor<AppDatabase> with _$PaymentsDaoMixin 
       expr = expr & t.deletedAt.isNull();
       if (customerId != null) expr = expr & t.customerId.equals(customerId);
       if (invoiceId != null) expr = expr & t.invoiceId.equals(invoiceId);
-      if (fromDate != null) expr = expr & t.paymentDate.isBiggerOrEqualValue(fromDate);
-      if (toDate != null) expr = expr & t.paymentDate.isSmallerOrEqualValue(toDate);
+      if (fromDate != null) {
+        expr = expr & t.paymentDate.isBiggerOrEqualValue(fromDate);
+      }
+      if (toDate != null) {
+        expr = expr & t.paymentDate.isSmallerOrEqualValue(toDate);
+      }
       return expr;
     });
     query.orderBy([(t) => OrderingTerm.desc(t.paymentDate)]);
@@ -70,22 +75,23 @@ class PaymentsDao extends DatabaseAccessor<AppDatabase> with _$PaymentsDaoMixin 
   }
 
   Future<void> reverseAllocationsForPayment(String paymentId) async {
-    await (update(paymentAllocations)
-          ..where((t) => t.paymentId.equals(paymentId) & t.status.equals('ACTIVE')))
+    await (update(paymentAllocations)..where(
+          (t) => t.paymentId.equals(paymentId) & t.status.equals('ACTIVE'),
+        ))
         .write(
-      PaymentAllocationsCompanion(
-        status: const Value('REVERSED'),
-        reversedAt: Value(DateTime.now()),
-      ),
-    );
+          PaymentAllocationsCompanion(
+            status: const Value('REVERSED'),
+            reversedAt: Value(DateTime.now()),
+          ),
+        );
   }
 
   // ─── Counter ───────────────────────────────────────────────────────────────
 
   Future<int> readAndIncrementCounter() async {
-    final row = await (select(db.appSettings)
-          ..where((t) => t.key.equals('payment_counter')))
-        .getSingleOrNull();
+    final row = await (select(
+      db.appSettings,
+    )..where((t) => t.key.equals('payment_counter'))).getSingleOrNull();
 
     final current = int.tryParse(row?.value ?? '0') ?? 0;
     final next = current + 1;

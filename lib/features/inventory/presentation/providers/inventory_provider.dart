@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_current_stock_usecase.dart';
 import 'package:step_up_fuels/features/inventory/application/usecases/get_movements_usecase.dart';
@@ -9,12 +8,14 @@ import 'package:step_up_fuels/features/inventory/application/usecases/save_stora
 import 'package:step_up_fuels/features/inventory/domain/entities/inventory_movement.dart';
 import 'package:step_up_fuels/features/inventory/domain/entities/stock_adjustment.dart';
 import 'package:step_up_fuels/features/inventory/domain/entities/storage_location.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 final selectedStorageLocationIdProvider = StateProvider<String?>((ref) => null);
 
-final storageLocationsProvider = AsyncNotifierProvider<StorageLocationsNotifier, List<StorageLocation>>(
-  StorageLocationsNotifier.new,
-);
+final storageLocationsProvider =
+    AsyncNotifierProvider<StorageLocationsNotifier, List<StorageLocation>>(
+      StorageLocationsNotifier.new,
+    );
 
 class StorageLocationsNotifier extends AsyncNotifier<List<StorageLocation>> {
   @override
@@ -43,7 +44,9 @@ class StorageLocationsNotifier extends AsyncNotifier<List<StorageLocation>> {
   }
 }
 
-final selectedStorageLocationProvider = Provider<AsyncValue<StorageLocation>>((ref) {
+final selectedStorageLocationProvider = Provider<AsyncValue<StorageLocation>>((
+  ref,
+) {
   final selectedId = ref.watch(selectedStorageLocationIdProvider);
   if (selectedId == null) return const AsyncValue.loading();
   final listAsync = ref.watch(storageLocationsProvider);
@@ -53,7 +56,10 @@ final selectedStorageLocationProvider = Provider<AsyncValue<StorageLocation>>((r
         final loc = list.firstWhere((l) => l.id == selectedId);
         return AsyncValue.data(loc);
       } catch (_) {
-        return AsyncValue.error('Storage location not found', StackTrace.current);
+        return AsyncValue.error(
+          'Storage location not found',
+          StackTrace.current,
+        );
       }
     },
     error: (err, st) => AsyncValue.error(err, st),
@@ -62,33 +68,41 @@ final selectedStorageLocationProvider = Provider<AsyncValue<StorageLocation>>((r
 });
 
 // Family provider to calculate current stock for (locationId, productId)
-final stockBalanceProvider = FutureProvider.family<double, ({String locationId, String productId})>(
-  (ref, arg) async {
-    final getStock = sl<GetCurrentStockUseCase>();
-    final result = await getStock(locationId: arg.locationId, productId: arg.productId);
-    return result.when(
-      success: (stock) => stock,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final stockBalanceProvider =
+    FutureProvider.family<double, ({String locationId, String productId})>((
+      ref,
+      arg,
+    ) async {
+      final getStock = sl<GetCurrentStockUseCase>();
+      final result = await getStock(
+        locationId: arg.locationId,
+        productId: arg.productId,
+      );
+      return result.when(
+        success: (stock) => stock,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 // Family provider to fetch movements for a location
-final locationMovementsProvider = FutureProvider.family<List<InventoryMovement>, String>(
-  (ref, locationId) async {
-    final getMovements = sl<GetMovementsUseCase>();
-    final result = await getMovements(locationId: locationId);
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final locationMovementsProvider =
+    FutureProvider.family<List<InventoryMovement>, String>((
+      ref,
+      locationId,
+    ) async {
+      final getMovements = sl<GetMovementsUseCase>();
+      final result = await getMovements(locationId: locationId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 // Notifier for executing stock adjustments
-final stockAdjustmentProvider = AsyncNotifierProvider<StockAdjustmentNotifier, void>(
-  StockAdjustmentNotifier.new,
-);
+final stockAdjustmentProvider =
+    AsyncNotifierProvider<StockAdjustmentNotifier, void>(
+      StockAdjustmentNotifier.new,
+    );
 
 class StockAdjustmentNotifier extends AsyncNotifier<void> {
   @override

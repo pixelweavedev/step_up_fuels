@@ -1,9 +1,4 @@
 class InvoiceSettings {
-  final String prefix;
-  final int startingNumber;
-  final String termsAndConditions;
-  final String authorizedSignatoryName;
-
   const InvoiceSettings({
     required this.prefix,
     required this.startingNumber,
@@ -15,10 +10,24 @@ class InvoiceSettings {
     return const InvoiceSettings(
       prefix: 'SUF',
       startingNumber: 1,
-      termsAndConditions: '1. Fuel once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged for delayed payments.\n3. All disputes subject to local jurisdiction.',
+      termsAndConditions:
+          '1. Fuel once sold will not be taken back.\n2. Interest @ 18% p.a. will be charged for delayed payments.\n3. All disputes subject to local jurisdiction.',
       authorizedSignatoryName: '',
     );
   }
+
+  factory InvoiceSettings.fromJson(Map<String, dynamic> json) {
+    return InvoiceSettings(
+      prefix: json['prefix'] as String? ?? 'SUF',
+      startingNumber: json['startingNumber'] as int? ?? 1,
+      termsAndConditions: json['termsAndConditions'] as String? ?? '',
+      authorizedSignatoryName: json['authorizedSignatoryName'] as String? ?? '',
+    );
+  }
+  final String prefix;
+  final int startingNumber;
+  final String termsAndConditions;
+  final String authorizedSignatoryName;
 
   InvoiceSettings copyWith({
     String? prefix,
@@ -30,7 +39,8 @@ class InvoiceSettings {
       prefix: prefix ?? this.prefix,
       startingNumber: startingNumber ?? this.startingNumber,
       termsAndConditions: termsAndConditions ?? this.termsAndConditions,
-      authorizedSignatoryName: authorizedSignatoryName ?? this.authorizedSignatoryName,
+      authorizedSignatoryName:
+          authorizedSignatoryName ?? this.authorizedSignatoryName,
     );
   }
 
@@ -41,14 +51,5 @@ class InvoiceSettings {
       'termsAndConditions': termsAndConditions,
       'authorizedSignatoryName': authorizedSignatoryName,
     };
-  }
-
-  factory InvoiceSettings.fromJson(Map<String, dynamic> json) {
-    return InvoiceSettings(
-      prefix: json['prefix'] as String? ?? 'SUF',
-      startingNumber: json['startingNumber'] as int? ?? 1,
-      termsAndConditions: json['termsAndConditions'] as String? ?? '',
-      authorizedSignatoryName: json['authorizedSignatoryName'] as String? ?? '',
-    );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/domain/repositories/driver_repository.dart';
 import 'package:step_up_fuels/features/vehicles/application/usecases/get_service_records_usecase.dart';
@@ -9,14 +8,18 @@ import 'package:step_up_fuels/features/vehicles/application/usecases/save_servic
 import 'package:step_up_fuels/features/vehicles/application/usecases/save_vehicle_usecase.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle_service_record.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 final vehicleSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final vehicleStatusFilterProvider = StateProvider<bool?>((ref) => true); // true = active only
+final vehicleStatusFilterProvider = StateProvider<bool?>(
+  (ref) => true,
+); // true = active only
 
-final vehiclesListProvider = AsyncNotifierProvider<VehiclesListNotifier, List<Vehicle>>(
-  VehiclesListNotifier.new,
-);
+final vehiclesListProvider =
+    AsyncNotifierProvider<VehiclesListNotifier, List<Vehicle>>(
+      VehiclesListNotifier.new,
+    );
 
 class VehiclesListNotifier extends AsyncNotifier<List<Vehicle>> {
   @override
@@ -37,14 +40,21 @@ class VehiclesListNotifier extends AsyncNotifier<List<Vehicle>> {
           filtered = filtered
               .where(
                 (v) =>
-                    v.registrationNumber.toLowerCase().contains(lowercaseQuery) ||
+                    v.registrationNumber.toLowerCase().contains(
+                      lowercaseQuery,
+                    ) ||
                     v.model.toLowerCase().contains(lowercaseQuery),
               )
               .toList();
         }
         if (statusFilter != null) {
           if (statusFilter == true) {
-            filtered = filtered.where((v) => v.status == VehicleStatus.active && v.deletedAt == null).toList();
+            filtered = filtered
+                .where(
+                  (v) =>
+                      v.status == VehicleStatus.active && v.deletedAt == null,
+                )
+                .toList();
           } else {
             filtered = filtered.where((v) => v.deletedAt != null).toList();
           }
@@ -94,21 +104,24 @@ final selectedVehicleProvider = Provider<AsyncValue<Vehicle>>((ref) {
 });
 
 // Family provider to load service records for a vehicle
-final vehicleServiceRecordsProvider = FutureProvider.family<List<VehicleServiceRecord>, String>(
-  (ref, vehicleId) async {
-    final getRecords = sl<GetServiceRecordsUseCase>();
-    final result = await getRecords(vehicleId);
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final vehicleServiceRecordsProvider =
+    FutureProvider.family<List<VehicleServiceRecord>, String>((
+      ref,
+      vehicleId,
+    ) async {
+      final getRecords = sl<GetServiceRecordsUseCase>();
+      final result = await getRecords(vehicleId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });
 
 // Notifier for recording service log
-final saveServiceRecordProvider = AsyncNotifierProvider<SaveServiceRecordNotifier, void>(
-  SaveServiceRecordNotifier.new,
-);
+final saveServiceRecordProvider =
+    AsyncNotifierProvider<SaveServiceRecordNotifier, void>(
+      SaveServiceRecordNotifier.new,
+    );
 
 class SaveServiceRecordNotifier extends AsyncNotifier<void> {
   @override
@@ -133,13 +146,15 @@ class SaveServiceRecordNotifier extends AsyncNotifier<void> {
 }
 
 // Family provider to load assignments for a vehicle
-final vehicleAssignmentsProvider = FutureProvider.family<List<DriverAssignment>, String>(
-  (ref, vehicleId) async {
-    final repo = sl<DriverRepository>();
-    final result = await repo.getAssignments(vehicleId: vehicleId);
-    return result.when(
-      success: (list) => list,
-      failure: (f) => throw Exception(f.userMessage),
-    );
-  },
-);
+final vehicleAssignmentsProvider =
+    FutureProvider.family<List<DriverAssignment>, String>((
+      ref,
+      vehicleId,
+    ) async {
+      final repo = sl<DriverRepository>();
+      final result = await repo.getAssignments(vehicleId: vehicleId);
+      return result.when(
+        success: (list) => list,
+        failure: (f) => throw Exception(f.userMessage),
+      );
+    });

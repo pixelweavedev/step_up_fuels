@@ -1,23 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/products/application/usecases/delete_product_usecase.dart';
 import 'package:step_up_fuels/features/products/application/usecases/get_products_usecase.dart';
 import 'package:step_up_fuels/features/products/application/usecases/save_product_usecase.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 final productSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final productStatusFilterProvider = StateProvider<bool?>((ref) => true); // true = active only, null = all
+final productStatusFilterProvider = StateProvider<bool?>(
+  (ref) => true,
+); // true = active only, null = all
 
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
   return sl<ProductRepository>();
 });
 
-final productsListProvider = AsyncNotifierProvider<ProductsListNotifier, List<Product>>(
-  ProductsListNotifier.new,
-);
+final productsListProvider =
+    AsyncNotifierProvider<ProductsListNotifier, List<Product>>(
+      ProductsListNotifier.new,
+    );
 
 class ProductsListNotifier extends AsyncNotifier<List<Product>> {
   @override
@@ -38,7 +41,9 @@ class ProductsListNotifier extends AsyncNotifier<List<Product>> {
         var filtered = list;
         if (statusFilter != null) {
           if (statusFilter == true) {
-            filtered = filtered.where((p) => p.isActive && p.deletedAt == null).toList();
+            filtered = filtered
+                .where((p) => p.isActive && p.deletedAt == null)
+                .toList();
           } else {
             filtered = filtered.where((p) => p.deletedAt != null).toList();
           }

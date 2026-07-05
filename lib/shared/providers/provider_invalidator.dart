@@ -5,9 +5,9 @@ import 'package:step_up_fuels/features/expenses/presentation/providers/expenses_
 import 'package:step_up_fuels/features/inventory/presentation/providers/inventory_provider.dart';
 import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
 import 'package:step_up_fuels/features/ledger/presentation/providers/ledger_provider.dart';
+import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 import 'package:step_up_fuels/features/purchases/presentation/providers/purchases_provider.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
-import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 
 /// Centralized cross-feature provider invalidation.
 ///

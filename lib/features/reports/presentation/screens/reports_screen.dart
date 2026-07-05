@@ -7,7 +7,6 @@ import 'package:printing/printing.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/reports/data/exporters/excel_exporter.dart';
 import 'package:step_up_fuels/features/reports/data/exporters/pdf_report_generator.dart';
-import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 
@@ -37,9 +36,7 @@ class ReportsScreen extends ConsumerWidget {
               children: [
                 _buildFilterHeader(context, ref),
                 const Divider(color: AppColors.darkBorder, height: 1),
-                Expanded(
-                  child: _buildReportContent(selectedType),
-                ),
+                Expanded(child: _buildReportContent(selectedType)),
               ],
             ),
           ),
@@ -54,7 +51,8 @@ class ReportsScreen extends ConsumerWidget {
     final toDate = ref.watch(reportDateToProvider);
 
     // Hide date picker for reports that don't need it (e.g. Stock, Outstanding Aging)
-    final needsDateRange = selectedType != 'stock' && selectedType != 'outstanding';
+    final needsDateRange =
+        selectedType != 'stock' && selectedType != 'outstanding';
 
     Future<void> selectDateRange() async {
       final DateTimeRange? picked = await showDateRangePicker(
@@ -90,12 +88,19 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               Text(
                 _getReportTitle(selectedType),
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkTextPrimary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 _getReportSubtitle(selectedType),
-                style: const TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
+                style: const TextStyle(
+                  color: AppColors.darkTextSecondary,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
@@ -103,12 +108,18 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               if (needsDateRange) ...[
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.date_range_rounded, size: 16, color: AppColors.brandAmber),
+                  icon: const Icon(
+                    Icons.date_range_rounded,
+                    size: 16,
+                    color: AppColors.brandAmber,
+                  ),
                   label: Text(
                     '${DateFormat('dd MMM yyyy').format(fromDate)} - ${DateFormat('dd MMM yyyy').format(toDate)}',
                     style: const TextStyle(color: AppColors.darkTextPrimary),
                   ),
-                  style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.darkBorder)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.darkBorder),
+                  ),
                   onPressed: selectDateRange,
                 ),
                 const SizedBox(width: 16),
@@ -217,7 +228,8 @@ class ReportsScreen extends ConsumerWidget {
 
       // Save file locally in current directory or user downloads
       final dir = await getApplicationDocumentsDirectory();
-      final path = '${dir.path}/GSTR1_Report_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+      final path =
+          '${dir.path}/GSTR1_Report_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
       final file = File(path);
       await file.writeAsBytes(bytes);
 
@@ -246,7 +258,8 @@ class ReportsScreen extends ConsumerWidget {
     final type = ref.read(reportSelectedTypeProvider);
     final fromDate = ref.read(reportDateFromProvider);
     final toDate = ref.read(reportDateToProvider);
-    final rangeStr = '${DateFormat('dd/MM/yyyy').format(fromDate)} to ${DateFormat('dd/MM/yyyy').format(toDate)}';
+    final rangeStr =
+        '${DateFormat('dd/MM/yyyy').format(fromDate)} to ${DateFormat('dd/MM/yyyy').format(toDate)}';
 
     String title = '';
     List<String> headers = [];
@@ -256,7 +269,15 @@ class ReportsScreen extends ConsumerWidget {
     if (type == 'sales') {
       title = 'Customer-wise Sales Report';
       final data = ref.read(customerWiseSalesProvider).value ?? {};
-      headers = ['Customer Name', 'Total Litres', 'Taxable Val', 'Total CGST', 'Total SGST', 'Grand Total', 'Outstanding'];
+      headers = [
+        'Customer Name',
+        'Total Litres',
+        'Taxable Val',
+        'Total CGST',
+        'Total SGST',
+        'Grand Total',
+        'Outstanding',
+      ];
       double totLit = 0;
       double totTax = 0;
       double totVal = 0;
@@ -308,9 +329,18 @@ class ReportsScreen extends ConsumerWidget {
         headers = ['Account Metric', 'Amount'];
         rows = [
           ['Revenue (Sales Subtotal)', '₹${data.revenue.toStringAsFixed(2)}'],
-          ['Cost of Fuel Sold (COGS)', '- ₹${data.costOfFuelSold.toStringAsFixed(2)}'],
-          ['Operating Expenses', '- ₹${data.operatingExpenses.toStringAsFixed(2)}'],
-          ['Estimated Net Profit', '₹${data.estimatedNetProfit.toStringAsFixed(2)}'],
+          [
+            'Cost of Fuel Sold (COGS)',
+            '- ₹${data.costOfFuelSold.toStringAsFixed(2)}',
+          ],
+          [
+            'Operating Expenses',
+            '- ₹${data.operatingExpenses.toStringAsFixed(2)}',
+          ],
+          [
+            'Estimated Net Profit',
+            '₹${data.estimatedNetProfit.toStringAsFixed(2)}',
+          ],
         ];
         stats = {
           'Revenue': '₹${data.revenue.toStringAsFixed(0)}',
@@ -321,7 +351,15 @@ class ReportsScreen extends ConsumerWidget {
       title = 'GSTR-1 Return Data';
       final data = ref.read(gstReportProvider).value;
       if (data != null) {
-        headers = ['Buyer GSTIN', 'Invoice No', 'Date', 'Taxable Val', 'CGST', 'SGST', 'Total Val'];
+        headers = [
+          'Buyer GSTIN',
+          'Invoice No',
+          'Date',
+          'Taxable Val',
+          'CGST',
+          'SGST',
+          'Total Val',
+        ];
         for (final b in data.b2bInvoices) {
           rows.add([
             b.customerGstin ?? 'URP',
@@ -337,7 +375,15 @@ class ReportsScreen extends ConsumerWidget {
     } else if (type == 'outstanding') {
       title = 'Outstanding Aging Report';
       final data = ref.read(outstandingReportProvider).value ?? [];
-      headers = ['Customer', 'Current (0-7d)', '8-15d', '16-30d', '31-45d', '45d+', 'Total Outstanding'];
+      headers = [
+        'Customer',
+        'Current (0-7d)',
+        '8-15d',
+        '16-30d',
+        '31-45d',
+        '45d+',
+        'Total Outstanding',
+      ];
       double total = 0;
       for (final o in data) {
         total += o.totalOutstanding;
@@ -355,7 +401,14 @@ class ReportsScreen extends ConsumerWidget {
     } else if (type == 'purchase') {
       title = 'Purchase Report Summary';
       final data = ref.read(purchaseReportProvider).value ?? [];
-      headers = ['Supplier Name', 'Inv No', 'Date', 'Subtotal', 'GST', 'Total Val'];
+      headers = [
+        'Supplier Name',
+        'Inv No',
+        'Date',
+        'Subtotal',
+        'GST',
+        'Total Val',
+      ];
       double total = 0;
       for (final p in data) {
         total += p.totalAmount;
@@ -402,10 +455,20 @@ class _ReportsSidebar extends ConsumerWidget {
             children: [
               Text(
                 'Reports Console',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkTextPrimary,
+                ),
               ),
               SizedBox(height: 4),
-              Text('Operational & financial reports', style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 12)),
+              Text(
+                'Operational & financial reports',
+                style: TextStyle(
+                  color: AppColors.darkTextSecondary,
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
         ),
@@ -414,13 +477,55 @@ class _ReportsSidebar extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
-              _buildSidebarItem(ref, 'sales', 'Sales Report', Icons.trending_up_rounded, selectedType),
-              _buildSidebarItem(ref, 'purchase', 'Purchase Report', Icons.shopping_cart_rounded, selectedType),
-              _buildSidebarItem(ref, 'stock', 'Stock status', Icons.local_gas_station_rounded, selectedType),
-              _buildSidebarItem(ref, 'expenses', 'Expense Analysis', Icons.pie_chart_outline_rounded, selectedType),
-              _buildSidebarItem(ref, 'p&l', 'Profit & Loss', Icons.account_balance_rounded, selectedType),
-              _buildSidebarItem(ref, 'gst', 'GSTR-1 GST Return', Icons.receipt_long_rounded, selectedType),
-              _buildSidebarItem(ref, 'outstanding', 'Outstanding Aging', Icons.timer_outlined, selectedType),
+              _buildSidebarItem(
+                ref,
+                'sales',
+                'Sales Report',
+                Icons.trending_up_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'purchase',
+                'Purchase Report',
+                Icons.shopping_cart_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'stock',
+                'Stock status',
+                Icons.local_gas_station_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'expenses',
+                'Expense Analysis',
+                Icons.pie_chart_outline_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'p&l',
+                'Profit & Loss',
+                Icons.account_balance_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'gst',
+                'GSTR-1 GST Return',
+                Icons.receipt_long_rounded,
+                selectedType,
+              ),
+              _buildSidebarItem(
+                ref,
+                'outstanding',
+                'Outstanding Aging',
+                Icons.timer_outlined,
+                selectedType,
+              ),
             ],
           ),
         ),
@@ -428,13 +533,22 @@ class _ReportsSidebar extends ConsumerWidget {
     );
   }
 
-  Widget _buildSidebarItem(WidgetRef ref, String type, String label, IconData icon, String current) {
+  Widget _buildSidebarItem(
+    WidgetRef ref,
+    String type,
+    String label,
+    IconData icon,
+    String current,
+  ) {
     final isSelected = type == current;
     return ListTile(
       onTap: () => ref.read(reportSelectedTypeProvider.notifier).state = type,
       selected: isSelected,
       selectedTileColor: AppColors.brandNavyMid,
-      leading: Icon(icon, color: isSelected ? AppColors.brandAmber : AppColors.darkTextSecondary),
+      leading: Icon(
+        icon,
+        color: isSelected ? AppColors.brandAmber : AppColors.darkTextSecondary,
+      ),
       title: Text(
         label,
         style: TextStyle(
@@ -459,7 +573,11 @@ class _SalesReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (map) {
         if (map.isEmpty) {
-          return const EmptyStateWidget(title: 'No sales found', subtitle: 'Modify date range parameters.', icon: Icons.trending_up_rounded);
+          return const EmptyStateWidget(
+            title: 'No sales found',
+            subtitle: 'Modify date range parameters.',
+            icon: Icons.trending_up_rounded,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -467,24 +585,128 @@ class _SalesReportView extends ConsumerWidget {
             DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
               columns: const [
-                DataColumn(label: Text('Customer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Quantity', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Taxable Val', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('CGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('SGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Outstanding', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                DataColumn(
+                  label: Text(
+                    'Customer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Quantity',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Taxable Val',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'CGST',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'SGST',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Total Amount',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Outstanding',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
               rows: map.entries.map((e) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(e.key, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('${e.value.totalLitres.toStringAsFixed(0)} L', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${e.value.taxableAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${e.value.cgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${e.value.sgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${e.value.totalAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
-                    DataCell(Text('₹${e.value.totalOutstanding.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.error))),
+                    DataCell(
+                      Text(
+                        e.key,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '${e.value.totalLitres.toStringAsFixed(0)} L',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.taxableAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.cgstAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.sgstAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.totalOutstanding.toStringAsFixed(2)}',
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                    ),
                   ],
                 );
               }).toList(),
@@ -492,8 +714,15 @@ class _SalesReportView extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }
@@ -508,7 +737,11 @@ class _PurchaseReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyStateWidget(title: 'No purchases found', subtitle: 'Modify date range parameters.', icon: Icons.shopping_cart_rounded);
+          return const EmptyStateWidget(
+            title: 'No purchases found',
+            subtitle: 'Modify date range parameters.',
+            icon: Icons.shopping_cart_rounded,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -516,22 +749,113 @@ class _PurchaseReportView extends ConsumerWidget {
             DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
               columns: const [
-                DataColumn(label: Text('Supplier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Inv No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Date', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Subtotal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('GST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Total Amount', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                DataColumn(
+                  label: Text(
+                    'Supplier',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Inv No',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Date',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Subtotal',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'GST',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Total Amount',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
               rows: list.map((p) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(p.supplierName, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text(p.supplierInvoiceNo, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text(DateFormat('dd/MM/yyyy').format(p.purchaseDate), style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${p.subtotal.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${(p.cgstAmount + p.sgstAmount + p.igstAmount).toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${p.totalAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                    DataCell(
+                      Text(
+                        p.supplierName,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        p.supplierInvoiceNo,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        DateFormat('dd/MM/yyyy').format(p.purchaseDate),
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${p.subtotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${(p.cgstAmount + p.sgstAmount + p.igstAmount).toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${p.totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               }).toList(),
@@ -539,8 +863,15 @@ class _PurchaseReportView extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }
@@ -555,7 +886,11 @@ class _StockReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyStateWidget(title: 'No stock details', subtitle: 'Define storage locations first.', icon: Icons.local_gas_station_rounded);
+          return const EmptyStateWidget(
+            title: 'No stock details',
+            subtitle: 'Define storage locations first.',
+            icon: Icons.local_gas_station_rounded,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -563,18 +898,81 @@ class _StockReportView extends ConsumerWidget {
             DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
               columns: const [
-                DataColumn(label: Text('Location Name', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Type', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Fuel Product', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Current Stock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                DataColumn(
+                  label: Text(
+                    'Location Name',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Type',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Fuel Product',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Current Stock',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
               rows: list.map((s) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(s.locationName, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text(s.locationType, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text(s.productName, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('${s.currentStock.toStringAsFixed(0)} Ltrs', style: TextStyle(color: s.currentStock < 500 ? AppColors.error : AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                    DataCell(
+                      Text(
+                        s.locationName,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        s.locationType,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        s.productName,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '${s.currentStock.toStringAsFixed(0)} Ltrs',
+                        style: TextStyle(
+                          color: s.currentStock < 500
+                              ? AppColors.error
+                              : AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               }).toList(),
@@ -582,8 +980,15 @@ class _StockReportView extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }
@@ -598,7 +1003,11 @@ class _ExpenseReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (map) {
         if (map.isEmpty) {
-          return const EmptyStateWidget(title: 'No expenses found', subtitle: 'Create operating expenses first.', icon: Icons.pie_chart_outline_rounded);
+          return const EmptyStateWidget(
+            title: 'No expenses found',
+            subtitle: 'Create operating expenses first.',
+            icon: Icons.pie_chart_outline_rounded,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -606,14 +1015,45 @@ class _ExpenseReportView extends ConsumerWidget {
             DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
               columns: const [
-                DataColumn(label: Text('Expense Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Total Value', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                DataColumn(
+                  label: Text(
+                    'Expense Category',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Total Value',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
               rows: map.entries.map((e) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(e.key.replaceAll('_', ' '), style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${e.value.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                    DataCell(
+                      Text(
+                        e.key.replaceAll('_', ' '),
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${e.value.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               }).toList(),
@@ -621,8 +1061,15 @@ class _ExpenseReportView extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }
@@ -652,16 +1099,40 @@ class _ProfitLossReportView extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Profit & Loss Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkTextPrimary)),
+                    const Text(
+                      'Profit & Loss Summary',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 20),
-                    _buildPlRow('Revenue (Sales Subtotal)', pl.revenue, isPositive: true),
+                    _buildPlRow(
+                      'Revenue (Sales Subtotal)',
+                      pl.revenue,
+                      isPositive: true,
+                    ),
                     const Divider(color: AppColors.darkBorder),
-                    _buildPlRow('Cost of Fuel Sold (COGS)', pl.costOfFuelSold, isPositive: false),
+                    _buildPlRow(
+                      'Cost of Fuel Sold (COGS)',
+                      pl.costOfFuelSold,
+                      isPositive: false,
+                    ),
                     const Divider(color: AppColors.darkBorder),
-                    _buildPlRow('Operating Expenses', pl.operatingExpenses, isPositive: false),
+                    _buildPlRow(
+                      'Operating Expenses',
+                      pl.operatingExpenses,
+                      isPositive: false,
+                    ),
                     const Divider(color: AppColors.darkBorder, thickness: 1.5),
                     const SizedBox(height: 8),
-                    _buildPlRow('Estimated Net Profit', pl.estimatedNetProfit, isPositive: pl.estimatedNetProfit >= 0, isTotal: true),
+                    _buildPlRow(
+                      'Estimated Net Profit',
+                      pl.estimatedNetProfit,
+                      isPositive: pl.estimatedNetProfit >= 0,
+                      isTotal: true,
+                    ),
                   ],
                 ),
               ),
@@ -669,12 +1140,24 @@ class _ProfitLossReportView extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 
-  Widget _buildPlRow(String label, double val, {required bool isPositive, bool isTotal = false}) {
+  Widget _buildPlRow(
+    String label,
+    double val, {
+    required bool isPositive,
+    bool isTotal = false,
+  }) {
     final style = TextStyle(
       fontSize: isTotal ? 16 : 14,
       fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
@@ -688,7 +1171,16 @@ class _ProfitLossReportView extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: isTotal ? 16 : 14, fontWeight: isTotal ? FontWeight.bold : FontWeight.w500, color: isTotal ? AppColors.darkTextPrimary : AppColors.darkTextSecondary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 16 : 14,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              color: isTotal
+                  ? AppColors.darkTextPrimary
+                  : AppColors.darkTextSecondary,
+            ),
+          ),
           Text(
             '${isPositive ? "" : "- "}₹${val.abs().toStringAsFixed(2)}',
             style: style,
@@ -709,7 +1201,11 @@ class _GstReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (report) {
         if (report.b2bInvoices.isEmpty && report.hsnSummary.isEmpty) {
-          return const EmptyStateWidget(title: 'No GST returns data', subtitle: 'Modify date range parameters.', icon: Icons.receipt_long_rounded);
+          return const EmptyStateWidget(
+            title: 'No GST returns data',
+            subtitle: 'Modify date range parameters.',
+            icon: Icons.receipt_long_rounded,
+          );
         }
 
         return DefaultTabController(
@@ -730,31 +1226,148 @@ class _GstReportView extends ConsumerWidget {
                   children: [
                     // B2B Invoices Tab
                     report.b2bInvoices.isEmpty
-                        ? const Center(child: Text('No registered B2B invoice returns', style: TextStyle(color: AppColors.darkTextTertiary)))
+                        ? const Center(
+                            child: Text(
+                              'No registered B2B invoice returns',
+                              style: TextStyle(
+                                color: AppColors.darkTextTertiary,
+                              ),
+                            ),
+                          )
                         : ListView(
                             padding: const EdgeInsets.all(24),
                             children: [
                               DataTable(
-                                headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
+                                headingRowColor: WidgetStateProperty.all(
+                                  AppColors.brandNavy,
+                                ),
                                 columns: const [
-                                  DataColumn(label: Text('GSTIN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Invoice No', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Date', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Taxable Val', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('CGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('SGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Grand Total', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                                  DataColumn(
+                                    label: Text(
+                                      'GSTIN',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Invoice No',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Taxable Val',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'CGST',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'SGST',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Grand Total',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 rows: report.b2bInvoices.map((b) {
                                   return DataRow(
                                     cells: [
-                                      DataCell(Text(b.customerGstin ?? 'URP', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text(b.invoiceNumber, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text(DateFormat('dd/MM/yyyy').format(b.invoiceDate), style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${b.taxableValue.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${b.cgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${b.sgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${b.totalAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                                      DataCell(
+                                        Text(
+                                          b.customerGstin ?? 'URP',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          b.invoiceNumber,
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          DateFormat(
+                                            'dd/MM/yyyy',
+                                          ).format(b.invoiceDate),
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${b.taxableValue.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${b.cgstAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${b.sgstAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${b.totalAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.brandAmber,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   );
                                 }).toList(),
@@ -764,33 +1377,163 @@ class _GstReportView extends ConsumerWidget {
 
                     // HSN Summary Tab
                     report.hsnSummary.isEmpty
-                        ? const Center(child: Text('No HSN summaries found', style: TextStyle(color: AppColors.darkTextTertiary)))
+                        ? const Center(
+                            child: Text(
+                              'No HSN summaries found',
+                              style: TextStyle(
+                                color: AppColors.darkTextTertiary,
+                              ),
+                            ),
+                          )
                         : ListView(
                             padding: const EdgeInsets.all(24),
                             children: [
                               DataTable(
-                                headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
+                                headingRowColor: WidgetStateProperty.all(
+                                  AppColors.brandNavy,
+                                ),
                                 columns: const [
-                                  DataColumn(label: Text('HSN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Description', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('UQC', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Total Qty', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Taxable Val', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('CGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('SGST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  DataColumn(label: Text('Total Value', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                                  DataColumn(
+                                    label: Text(
+                                      'HSN',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Description',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'UQC',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Total Qty',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Taxable Val',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'CGST',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'SGST',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Total Value',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 rows: report.hsnSummary.map((h) {
                                   return DataRow(
                                     cells: [
-                                      DataCell(Text(h.hsnCode, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text(h.description, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text(h.unit, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text(h.totalQuantity.toStringAsFixed(0), style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${h.taxableValue.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${h.cgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${h.sgstAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                                      DataCell(Text('₹${h.totalValue.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                                      DataCell(
+                                        Text(
+                                          h.hsnCode,
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          h.description,
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          h.unit,
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          h.totalQuantity.toStringAsFixed(0),
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${h.taxableValue.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${h.cgstAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${h.sgstAmount.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          '₹${h.totalValue.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: AppColors.brandAmber,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   );
                                 }).toList(),
@@ -804,8 +1547,15 @@ class _GstReportView extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }
@@ -820,7 +1570,11 @@ class _OutstandingReportView extends ConsumerWidget {
     return dataAsync.when(
       data: (list) {
         if (list.isEmpty) {
-          return const EmptyStateWidget(title: 'No outstanding balances', subtitle: 'All customer balances are fully paid.', icon: Icons.timer_outlined);
+          return const EmptyStateWidget(
+            title: 'No outstanding balances',
+            subtitle: 'All customer balances are fully paid.',
+            icon: Icons.timer_outlined,
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -828,24 +1582,133 @@ class _OutstandingReportView extends ConsumerWidget {
             DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
               columns: const [
-                DataColumn(label: Text('Customer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Current (0-7d)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('8-15d', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('16-30d', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('31-45d', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('45d+', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Total Outstanding', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                DataColumn(
+                  label: Text(
+                    'Customer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Current (0-7d)',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    '8-15d',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    '16-30d',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    '31-45d',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    '45d+',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Total Outstanding',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
               rows: list.map((o) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(o.customerName, style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${o.current.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${o.tier1.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${o.tier2.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${o.tier3.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.darkTextPrimary))),
-                    DataCell(Text('₹${o.overdue.toStringAsFixed(0)}', style: TextStyle(color: o.overdue > 0 ? AppColors.error : AppColors.darkTextPrimary, fontWeight: o.overdue > 0 ? FontWeight.bold : null))),
-                    DataCell(Text('₹${o.totalOutstanding.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.brandAmber, fontWeight: FontWeight.bold))),
+                    DataCell(
+                      Text(
+                        o.customerName,
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.current.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.tier1.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.tier2.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.tier3.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.darkTextPrimary,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.overdue.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: o.overdue > 0
+                              ? AppColors.error
+                              : AppColors.darkTextPrimary,
+                          fontWeight: o.overdue > 0 ? FontWeight.bold : null,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        '₹${o.totalOutstanding.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               }).toList(),
@@ -853,8 +1716,15 @@ class _OutstandingReportView extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-      error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppColors.error))),
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: AppColors.brandAmber),
+      ),
+      error: (e, _) => Center(
+        child: Text(
+          e.toString(),
+          style: const TextStyle(color: AppColors.error),
+        ),
+      ),
     );
   }
 }

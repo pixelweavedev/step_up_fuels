@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/core/utils/number_utils.dart';
@@ -13,9 +14,8 @@ import 'package:step_up_fuels/features/customers/presentation/widgets/customer_f
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_site_form_dialog.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
-import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
-import 'package:intl/intl.dart';
+import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
@@ -1350,7 +1350,8 @@ class _CustomerDetailScaffoldState
             child: EmptyStateWidget(
               icon: Icons.payments_rounded,
               title: 'No Payments Found',
-              subtitle: 'No customer payments or receipts have been recorded yet.',
+              subtitle:
+                  'No customer payments or receipts have been recorded yet.',
             ),
           );
         }
@@ -1386,15 +1387,21 @@ class _CustomerDetailScaffoldState
                         color: isReversed
                             ? AppColors.darkTextTertiary
                             : AppColors.darkTextPrimary,
-                        decoration: isReversed ? TextDecoration.lineThrough : null,
+                        decoration: isReversed
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                     Text(
                       '₹${NumberUtils.formatCurrency(pmt.amount).replaceAll('₹', '')}',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: isReversed ? AppColors.darkTextTertiary : AppColors.brandAmber,
-                        decoration: isReversed ? TextDecoration.lineThrough : null,
+                        color: isReversed
+                            ? AppColors.darkTextTertiary
+                            : AppColors.brandAmber,
+                        decoration: isReversed
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                   ],
@@ -1454,7 +1461,9 @@ class _CustomerDetailScaffoldState
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
-                                color: isReversed ? AppColors.error : AppColors.success,
+                                color: isReversed
+                                    ? AppColors.error
+                                    : AppColors.success,
                               ),
                             ),
                           ),
@@ -1921,10 +1930,12 @@ class _CustomerDetailScaffoldState
       data: (invoices) {
         return paymentsAsync.when(
           data: (payments) {
-            final activeInvoices = invoices.where((inv) =>
-                inv.status != InvoiceStatus.draft &&
-                inv.status != InvoiceStatus.cancelled);
-            
+            final activeInvoices = invoices.where(
+              (inv) =>
+                  inv.status != InvoiceStatus.draft &&
+                  inv.status != InvoiceStatus.cancelled,
+            );
+
             final totalInvoiced = activeInvoices.fold<double>(
               0.0,
               (sum, inv) => sum + inv.totalAmount,
@@ -1955,7 +1966,8 @@ class _CustomerDetailScaffoldState
                   Expanded(
                     child: _KpiCard(
                       title: 'Total Invoiced',
-                      value: '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
+                      value:
+                          '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
                       icon: Icons.receipt_long_rounded,
                       color: AppColors.info,
                     ),
@@ -1964,7 +1976,8 @@ class _CustomerDetailScaffoldState
                   Expanded(
                     child: _KpiCard(
                       title: 'Total Paid',
-                      value: '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
+                      value:
+                          '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
                       icon: Icons.check_circle_rounded,
                       color: AppColors.success,
                     ),
@@ -1973,16 +1986,20 @@ class _CustomerDetailScaffoldState
                   Expanded(
                     child: _KpiCard(
                       title: 'Outstanding',
-                      value: '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
+                      value:
+                          '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
                       icon: Icons.warning_amber_rounded,
-                      color: totalOutstanding > 0 ? AppColors.error : AppColors.success,
+                      color: totalOutstanding > 0
+                          ? AppColors.error
+                          : AppColors.success,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _KpiCard(
                       title: 'Advance Balance',
-                      value: '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
+                      value:
+                          '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
                       icon: Icons.account_balance_wallet_rounded,
                       color: AppColors.brandAmber,
                     ),

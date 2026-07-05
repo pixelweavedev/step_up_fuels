@@ -1,14 +1,6 @@
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 
 class SalesSummary {
-  final double totalLitres;
-  final double taxableAmount;
-  final double cgstAmount;
-  final double sgstAmount;
-  final double igstAmount;
-  final double totalAmount;
-  final double totalOutstanding;
-
   const SalesSummary({
     required this.totalLitres,
     required this.taxableAmount,
@@ -18,16 +10,16 @@ class SalesSummary {
     required this.totalAmount,
     required this.totalOutstanding,
   });
+  final double totalLitres;
+  final double taxableAmount;
+  final double cgstAmount;
+  final double sgstAmount;
+  final double igstAmount;
+  final double totalAmount;
+  final double totalOutstanding;
 }
 
 class ProfitLossEstimate {
-  final DateTime startDate;
-  final DateTime endDate;
-  final double revenue;
-  final double costOfFuelSold;
-  final double operatingExpenses;
-  final double estimatedNetProfit;
-
   const ProfitLossEstimate({
     required this.startDate,
     required this.endDate,
@@ -36,18 +28,15 @@ class ProfitLossEstimate {
     required this.operatingExpenses,
     required this.estimatedNetProfit,
   });
+  final DateTime startDate;
+  final DateTime endDate;
+  final double revenue;
+  final double costOfFuelSold;
+  final double operatingExpenses;
+  final double estimatedNetProfit;
 }
 
 class CustomerOutstandingAging {
-  final String customerId;
-  final String customerName;
-  final double current; // 0-7 days
-  final double tier1; // 8-15 days
-  final double tier2; // 16-30 days
-  final double tier3; // 31-45 days
-  final double overdue; // 45+ days
-  final double totalOutstanding;
-
   const CustomerOutstandingAging({
     required this.customerId,
     required this.customerName,
@@ -58,20 +47,17 @@ class CustomerOutstandingAging {
     required this.overdue,
     required this.totalOutstanding,
   });
+  final String customerId;
+  final String customerName;
+  final double current; // 0-7 days
+  final double tier1; // 8-15 days
+  final double tier2; // 16-30 days
+  final double tier3; // 31-45 days
+  final double overdue; // 45+ days
+  final double totalOutstanding;
 }
 
 class FuelPurchaseReportRow {
-  final String id;
-  final String purchaseNumber;
-  final String supplierName;
-  final String supplierInvoiceNo;
-  final DateTime purchaseDate;
-  final double subtotal;
-  final double cgstAmount;
-  final double sgstAmount;
-  final double igstAmount;
-  final double totalAmount;
-
   const FuelPurchaseReportRow({
     required this.id,
     required this.purchaseNumber,
@@ -84,16 +70,19 @@ class FuelPurchaseReportRow {
     required this.igstAmount,
     required this.totalAmount,
   });
+  final String id;
+  final String purchaseNumber;
+  final String supplierName;
+  final String supplierInvoiceNo;
+  final DateTime purchaseDate;
+  final double subtotal;
+  final double cgstAmount;
+  final double sgstAmount;
+  final double igstAmount;
+  final double totalAmount;
 }
 
 class StockStatusRow {
-  final String locationId;
-  final String locationName;
-  final String locationType;
-  final String productId;
-  final String productName;
-  final double currentStock;
-
   const StockStatusRow({
     required this.locationId,
     required this.locationName,
@@ -102,20 +91,15 @@ class StockStatusRow {
     required this.productName,
     required this.currentStock,
   });
+  final String locationId;
+  final String locationName;
+  final String locationType;
+  final String productId;
+  final String productName;
+  final double currentStock;
 }
 
 class GstB2BRow {
-  final String invoiceId;
-  final String invoiceNumber;
-  final DateTime invoiceDate;
-  final String customerName;
-  final String? customerGstin;
-  final double taxableValue;
-  final double cgstAmount;
-  final double sgstAmount;
-  final double igstAmount;
-  final double totalAmount;
-
   const GstB2BRow({
     required this.invoiceId,
     required this.invoiceNumber,
@@ -128,19 +112,19 @@ class GstB2BRow {
     required this.igstAmount,
     required this.totalAmount,
   });
-}
-
-class GstHsnSummaryRow {
-  final String hsnCode;
-  final String description;
-  final String unit;
-  final double totalQuantity;
-  final double totalValue;
+  final String invoiceId;
+  final String invoiceNumber;
+  final DateTime invoiceDate;
+  final String customerName;
+  final String? customerGstin;
   final double taxableValue;
   final double cgstAmount;
   final double sgstAmount;
   final double igstAmount;
+  final double totalAmount;
+}
 
+class GstHsnSummaryRow {
   const GstHsnSummaryRow({
     required this.hsnCode,
     required this.description,
@@ -152,29 +136,31 @@ class GstHsnSummaryRow {
     required this.sgstAmount,
     required this.igstAmount,
   });
+  final String hsnCode;
+  final String description;
+  final String unit;
+  final double totalQuantity;
+  final double totalValue;
+  final double taxableValue;
+  final double cgstAmount;
+  final double sgstAmount;
+  final double igstAmount;
 }
 
 class GstReport {
-  final DateTime startDate;
-  final DateTime endDate;
-  final List<GstB2BRow> b2bInvoices;
-  final List<GstHsnSummaryRow> hsnSummary;
-
   const GstReport({
     required this.startDate,
     required this.endDate,
     required this.b2bInvoices,
     required this.hsnSummary,
   });
+  final DateTime startDate;
+  final DateTime endDate;
+  final List<GstB2BRow> b2bInvoices;
+  final List<GstHsnSummaryRow> hsnSummary;
 }
 
 class LowStockAlert {
-  final String locationId;
-  final String locationName;
-  final String productName;
-  final double currentStock;
-  final double threshold;
-
   const LowStockAlert({
     required this.locationId,
     required this.locationName,
@@ -182,20 +168,14 @@ class LowStockAlert {
     required this.currentStock,
     required this.threshold,
   });
+  final String locationId;
+  final String locationName;
+  final String productName;
+  final double currentStock;
+  final double threshold;
 }
 
 class DashboardStats {
-  final double todaySalesLitres;
-  final double todaySalesValue;
-  final int todayDeliveriesCount;
-  final double totalOutstandingReceivables;
-  final double mainStorageStock;
-  final Map<String, double> bowserStockLevels;
-  final int totalActiveCustomers;
-  final double currentMonthRevenue;
-  final List<Invoice> recentInvoices;
-  final List<LowStockAlert> lowStockAlerts;
-
   const DashboardStats({
     required this.todaySalesLitres,
     required this.todaySalesValue,
@@ -208,4 +188,14 @@ class DashboardStats {
     required this.recentInvoices,
     required this.lowStockAlerts,
   });
+  final double todaySalesLitres;
+  final double todaySalesValue;
+  final int todayDeliveriesCount;
+  final double totalOutstandingReceivables;
+  final double mainStorageStock;
+  final Map<String, double> bowserStockLevels;
+  final int totalActiveCustomers;
+  final double currentMonthRevenue;
+  final List<Invoice> recentInvoices;
+  final List<LowStockAlert> lowStockAlerts;
 }

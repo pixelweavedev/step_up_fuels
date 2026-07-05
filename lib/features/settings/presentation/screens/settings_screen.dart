@@ -1,16 +1,17 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
-import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/features/settings/domain/entities/company_profile.dart';
 import 'package:step_up_fuels/features/settings/domain/entities/invoice_settings.dart';
 import 'package:step_up_fuels/features/settings/domain/entities/print_settings.dart';
 import 'package:step_up_fuels/features/settings/presentation/providers/settings_provider.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -19,7 +20,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTickerProviderStateMixin {
+class _SettingsScreenState extends ConsumerState<SettingsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _profileFormKey = GlobalKey<FormState>();
   final _invoiceFormKey = GlobalKey<FormState>();
@@ -67,11 +69,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       final docsDir = await getApplicationDocumentsDirectory();
       final backupFolder = docsDir.path;
       final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      
+
       setState(() {
-        _activeDbLocation = p.join(docsDir.path, 'StepUpFuels', 'step_up_fuels.db');
-        _backupPathController.text = p.join(backupFolder, 'step_up_fuels_backup_$dateStr.db');
-        _restorePathController.text = p.join(backupFolder, 'step_up_fuels_backup.db');
+        _activeDbLocation = p.join(
+          docsDir.path,
+          'StepUpFuels',
+          'step_up_fuels.db',
+        );
+        _backupPathController.text = p.join(
+          backupFolder,
+          'step_up_fuels_backup_$dateStr.db',
+        );
+        _restorePathController.text = p.join(
+          backupFolder,
+          'step_up_fuels_backup.db',
+        );
       });
     } catch (_) {}
   }
@@ -138,11 +150,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
 
   Future<void> _saveProfile() async {
     if (!_profileFormKey.currentState!.validate()) return;
-    
+
     final updated = CompanyProfile(
       companyName: _companyNameController.text.trim(),
       gstin: _gstinController.text.trim().toUpperCase(),
-      pan: _panController.text.trim().toUpperCase().isEmpty ? null : _panController.text.trim().toUpperCase(),
+      pan: _panController.text.trim().toUpperCase().isEmpty
+          ? null
+          : _panController.text.trim().toUpperCase(),
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
@@ -152,7 +166,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       bankIfsc: _bankIfscController.text.trim().toUpperCase(),
     );
 
-    final res = await ref.read(companyProfileProvider.notifier).saveProfile(updated);
+    final res = await ref
+        .read(companyProfileProvider.notifier)
+        .saveProfile(updated);
     _showResultSnackbar(res, 'Company profile saved successfully!');
   }
 
@@ -166,7 +182,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       authorizedSignatoryName: _signatoryController.text.trim(),
     );
 
-    final res = await ref.read(invoiceSettingsProvider.notifier).saveSettings(updated);
+    final res = await ref
+        .read(invoiceSettingsProvider.notifier)
+        .saveSettings(updated);
     _showResultSnackbar(res, 'Invoice settings saved successfully!');
   }
 
@@ -181,7 +199,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       marginRight: double.parse(_marginRightController.text.trim()),
     );
 
-    final res = await ref.read(printSettingsProvider.notifier).saveSettings(updated);
+    final res = await ref
+        .read(printSettingsProvider.notifier)
+        .saveSettings(updated);
     _showResultSnackbar(res, 'Print layout settings saved successfully!');
   }
 
@@ -189,7 +209,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
     final dest = _backupPathController.text.trim();
     if (dest.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide a valid backup path.'), backgroundColor: AppColors.error),
+        const SnackBar(
+          content: Text('Please provide a valid backup path.'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -197,7 +220,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
     final repo = ref.read(settingsRepositoryProvider);
     final res = await repo.backupDatabase(dest);
     _showResultSnackbar(res, 'Database backup created successfully!');
-    
+
     // Refresh date string for next potential backup
     await _initializePaths();
   }
@@ -206,7 +229,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
     final src = _restorePathController.text.trim();
     if (src.isEmpty || !File(src).existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Backup source file does not exist.'), backgroundColor: AppColors.error),
+        const SnackBar(
+          content: Text('Backup source file does not exist.'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -220,7 +246,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
           children: [
             Icon(Icons.warning_amber_rounded, color: AppColors.error),
             SizedBox(width: 8),
-            Text('Confirm Database Restore', style: TextStyle(color: AppColors.darkTextPrimary)),
+            Text(
+              'Confirm Database Restore',
+              style: TextStyle(color: AppColors.darkTextPrimary),
+            ),
           ],
         ),
         content: const Text(
@@ -230,12 +259,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.darkTextSecondary)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.darkTextSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes, Overwrite Data', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Yes, Overwrite Data',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -245,25 +280,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
 
     final repo = ref.read(settingsRepositoryProvider);
     final res = await repo.restoreDatabase(src);
-    _showResultSnackbar(res, 'Database restored successfully! Please restart the application.');
+    _showResultSnackbar(
+      res,
+      'Database restored successfully! Please restart the application.',
+    );
   }
 
   void _showResultSnackbar(Result<dynamic> result, String successMsg) {
     if (!mounted) return;
     if (result.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(successMsg),
-          backgroundColor: AppColors.success,
-        ),
+        SnackBar(content: Text(successMsg), backgroundColor: AppColors.success),
       );
     } else {
       final msg = result.failureOrNull?.message ?? 'An error occurred';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: AppColors.error,
-        ),
+        SnackBar(content: Text(msg), backgroundColor: AppColors.error),
       );
     }
   }
@@ -283,7 +315,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       appBar: AppBar(
         backgroundColor: AppColors.brandNavy,
         elevation: 0,
-        title: const Text('System Settings', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          'System Settings',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.brandAmber,
@@ -291,9 +326,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
           indicatorColor: AppColors.brandAmber,
           tabs: const [
             Tab(icon: Icon(Icons.business_rounded), text: 'Company Profile'),
-            Tab(icon: Icon(Icons.receipt_long_rounded), text: 'Invoice Configuration'),
+            Tab(
+              icon: Icon(Icons.receipt_long_rounded),
+              text: 'Invoice Configuration',
+            ),
             Tab(icon: Icon(Icons.print_rounded), text: 'Print Layout'),
-            Tab(icon: Icon(Icons.settings_suggest_rounded), text: 'System & Maintenance'),
+            Tab(
+              icon: Icon(Icons.settings_suggest_rounded),
+              text: 'System & Maintenance',
+            ),
           ],
         ),
       ),
@@ -303,22 +344,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
           // 1. Company Profile
           profileAsync.when(
             data: (_) => _buildProfileTab(),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-            error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                'Error: $e',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
           ),
 
           // 2. Invoice Config
           invoiceAsync.when(
             data: (_) => _buildInvoiceTab(),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-            error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                'Error: $e',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
           ),
 
           // 3. Print Layout
           printAsync.when(
             data: (_) => _buildPrintTab(),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brandAmber)),
-            error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                'Error: $e',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
           ),
 
           // 4. System Maintenance
@@ -336,7 +398,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Company Legal Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              'Company Legal Details',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -355,8 +424,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                     controller: _gstinController,
                     validator: (v) {
                       if (v!.isEmpty) return 'GSTIN required';
-                      final reg = RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$');
-                      if (!reg.hasMatch(v.toUpperCase())) return 'Invalid GSTIN format';
+                      final reg = RegExp(
+                        r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+                      );
+                      if (!reg.hasMatch(v.toUpperCase())) {
+                        return 'Invalid GSTIN format';
+                      }
                       return null;
                     },
                   ),
@@ -369,7 +442,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                     validator: (v) {
                       if (v != null && v.isNotEmpty) {
                         final reg = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
-                        if (!reg.hasMatch(v.toUpperCase())) return 'Invalid PAN';
+                        if (!reg.hasMatch(v.toUpperCase())) {
+                          return 'Invalid PAN';
+                        }
                       }
                       return null;
                     },
@@ -384,7 +459,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Email Address',
                     controller: _emailController,
-                    validator: (v) => !v!.contains('@') ? 'Invalid email' : null,
+                    validator: (v) =>
+                        !v!.contains('@') ? 'Invalid email' : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -405,7 +481,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               validator: (v) => v!.isEmpty ? 'Address required' : null,
             ),
             const SizedBox(height: 32),
-            const Text('Bank Account Configurations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              'Bank Account Configurations',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -434,7 +517,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Bank Account Number',
                     controller: _bankAccountController,
-                    validator: (v) => v!.isEmpty ? 'Account number required' : null,
+                    validator: (v) =>
+                        v!.isEmpty ? 'Account number required' : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -445,7 +529,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                     validator: (v) {
                       if (v!.isEmpty) return 'IFSC required';
                       final reg = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
-                      if (!reg.hasMatch(v.toUpperCase())) return 'Invalid IFSC code';
+                      if (!reg.hasMatch(v.toUpperCase())) {
+                        return 'Invalid IFSC code';
+                      }
                       return null;
                     },
                   ),
@@ -459,12 +545,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.brandAmber,
                   foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 onPressed: _saveProfile,
                 icon: const Icon(Icons.save_rounded),
-                label: const Text('Save Profile Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Save Profile Details',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -481,7 +575,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Invoice Numbering Configurations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              'Invoice Numbering Configurations',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -513,7 +614,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               validator: (v) => v!.isEmpty ? 'Signatory name required' : null,
             ),
             const SizedBox(height: 32),
-            const Text('Default Invoice Terms & Notes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              'Default Invoice Terms & Notes',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(height: 16),
             _buildTextField(
               label: 'Terms and Conditions',
@@ -528,12 +636,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.brandAmber,
                   foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 onPressed: _saveInvoiceSettings,
                 icon: const Icon(Icons.save_rounded),
-                label: const Text('Save Invoice Rules', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Save Invoice Rules',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -550,7 +666,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Document Margins & Print Layout', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text(
+              'Document Margins & Print Layout',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(height: 24),
             Row(
               children: [
@@ -558,16 +681,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Default Paper Size',
-                      labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+                      labelStyle: const TextStyle(
+                        color: AppColors.darkTextSecondary,
+                      ),
                       filled: true,
                       fillColor: AppColors.darkSurface,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     dropdownColor: AppColors.darkSurface,
                     style: const TextStyle(color: Colors.white),
                     initialValue: _selectedPaperSize,
                     items: const [
-                      DropdownMenuItem(value: 'A4', child: Text('A4 (Standard)')),
+                      DropdownMenuItem(
+                        value: 'A4',
+                        child: Text('A4 (Standard)'),
+                      ),
                       DropdownMenuItem(value: 'LETTER', child: Text('Letter')),
                     ],
                     onChanged: (val) {
@@ -584,7 +714,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               ],
             ),
             const SizedBox(height: 24),
-            const Text('Page Margins (in Pixels/Points)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkTextSecondary)),
+            const Text(
+              'Page Margins (in Pixels/Points)',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -592,7 +729,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Margin Top',
                     controller: _marginTopController,
-                    validator: (v) => double.tryParse(v ?? '') == null ? 'Must be double' : null,
+                    validator: (v) => double.tryParse(v ?? '') == null
+                        ? 'Must be double'
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -600,7 +739,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Margin Bottom',
                     controller: _marginBottomController,
-                    validator: (v) => double.tryParse(v ?? '') == null ? 'Must be double' : null,
+                    validator: (v) => double.tryParse(v ?? '') == null
+                        ? 'Must be double'
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -608,7 +749,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Margin Left',
                     controller: _marginLeftController,
-                    validator: (v) => double.tryParse(v ?? '') == null ? 'Must be double' : null,
+                    validator: (v) => double.tryParse(v ?? '') == null
+                        ? 'Must be double'
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -616,7 +759,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   child: _buildTextField(
                     label: 'Margin Right',
                     controller: _marginRightController,
-                    validator: (v) => double.tryParse(v ?? '') == null ? 'Must be double' : null,
+                    validator: (v) => double.tryParse(v ?? '') == null
+                        ? 'Must be double'
+                        : null,
                   ),
                 ),
               ],
@@ -628,12 +773,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.brandAmber,
                   foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 onPressed: _savePrintSettings,
                 icon: const Icon(Icons.save_rounded),
-                label: const Text('Save Print Layout', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  'Save Print Layout',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -648,7 +801,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Theme Configuration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text(
+            'Theme Configuration',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 16),
           Card(
             color: AppColors.darkSurface,
@@ -659,7 +819,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
             child: const ThemeModeTile(),
           ),
           const SizedBox(height: 32),
-          const Text('Database Maintenance & Lifecycle', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text(
+            'Database Maintenance & Lifecycle',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 16),
           _buildTextField(
             label: 'Active SQL Database File Location',
@@ -667,7 +834,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
             readOnly: true,
           ),
           const SizedBox(height: 24),
-          
+
           // Backup Card
           Card(
             color: AppColors.darkSurface,
@@ -680,11 +847,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Create System Backup', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                  const Text(
+                    'Create System Backup',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   const Text(
                     'Exports a standalone SQLite database backup file that can be restored on any terminal.',
-                    style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -693,10 +870,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.brandAmber, foregroundColor: AppColors.darkBackground),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brandAmber,
+                      foregroundColor: AppColors.darkBackground,
+                    ),
                     onPressed: _backupDb,
                     icon: const Icon(Icons.backup_rounded),
-                    label: const Text('Export Backup File', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Export Backup File',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -716,11 +899,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Restore Database from Backup', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error, fontSize: 15)),
+                  const Text(
+                    'Restore Database from Backup',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   const Text(
                     'Restores the database state from a backup file. All current customer balances, inventory counts, and sales logs will be replaced.',
-                    style: TextStyle(color: AppColors.darkTextSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -729,10 +922,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      foregroundColor: Colors.white,
+                    ),
                     onPressed: _restoreDb,
                     icon: const Icon(Icons.restore_rounded),
-                    label: const Text('Restore System Database', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: const Text(
+                      'Restore System Database',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -760,7 +959,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         labelText: label,
         labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
         filled: true,
-        fillColor: readOnly ? AppColors.darkSurface.withValues(alpha: 0.5) : AppColors.darkSurface,
+        fillColor: readOnly
+            ? AppColors.darkSurface.withValues(alpha: 0.5)
+            : AppColors.darkSurface,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

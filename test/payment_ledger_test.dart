@@ -685,7 +685,7 @@ void main() {
           version: 1,
         );
 
-        final payRes = await paymentRepository.receivePayment(payment, autoAllocate: true);
+        final payRes = await paymentRepository.receivePayment(payment);
         expect(payRes.isSuccess, isTrue);
 
         // Check invoice balances

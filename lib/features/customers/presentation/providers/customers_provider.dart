@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/features/customers/application/usecases/create_customer_usecase.dart';
 import 'package:step_up_fuels/features/customers/application/usecases/get_customers_usecase.dart';
@@ -12,6 +11,7 @@ import 'package:step_up_fuels/features/customers/domain/entities/customer_docume
 import 'package:step_up_fuels/features/customers/domain/entities/customer_note.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_site.dart';
 import 'package:step_up_fuels/features/customers/domain/repositories/customer_repository.dart';
+import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 /// Provider for customer search text.
 final customerSearchQueryProvider = StateProvider<String>((ref) => '');
