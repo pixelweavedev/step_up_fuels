@@ -3,6 +3,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
+import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
@@ -29,7 +31,7 @@ class DashboardScreen extends ConsumerWidget {
           backgroundColor: AppColors.darkSurface,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(28),
+            padding: ResponsiveSpacing.pageEdgeInsets(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -47,35 +49,8 @@ class DashboardScreen extends ConsumerWidget {
                 _buildKpiGrid(stats),
                 const SizedBox(height: 32),
 
-                // Charts & Lists Layout
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left Column (60% width): Recent Invoices & Sales Trend Chart
-                    Expanded(
-                      flex: 3,
-                      child: Column(
-                        children: [
-                          _buildSalesTrendChart(),
-                          const SizedBox(height: 24),
-                          _buildRecentInvoices(stats.recentInvoices),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    // Right Column (40% width): Expense Breakdown & Bowser Stock
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        children: [
-                          _buildExpenseBreakdownChart(expenseAsync),
-                          const SizedBox(height: 24),
-                          _buildBowserStockLevels(stats.bowserStockLevels),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                // Charts & Lists Layout — side-by-side on desktop, stacked on tablet/mobile
+                _buildChartsLayout(context, stats, expenseAsync),
               ],
             ),
           ),
@@ -90,6 +65,51 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Side-by-side on desktop; stacked column on tablet / mobile.
+  Widget _buildChartsLayout(
+    BuildContext context,
+    DashboardStats stats,
+    AsyncValue<Map<String, double>> expenseAsync,
+  ) {
+    final isNarrow = ResponsiveLayout.isNarrow(context);
+    final spacing = ResponsiveSpacing.sectionSpacing(context);
+
+    final leftColumn = Column(
+      children: [
+        _buildSalesTrendChart(),
+        SizedBox(height: spacing),
+        _buildRecentInvoices(stats.recentInvoices),
+      ],
+    );
+
+    final rightColumn = Column(
+      children: [
+        _buildExpenseBreakdownChart(expenseAsync),
+        SizedBox(height: spacing),
+        _buildBowserStockLevels(stats.bowserStockLevels),
+      ],
+    );
+
+    if (isNarrow) {
+      return Column(
+        children: [
+          leftColumn,
+          SizedBox(height: spacing),
+          rightColumn,
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 3, child: leftColumn),
+        SizedBox(width: spacing),
+        Expanded(flex: 2, child: rightColumn),
+      ],
     );
   }
 
@@ -180,10 +200,16 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildKpiGrid(DashboardStats stats) {
     return LayoutBuilder(
       builder: (context, raints) {
-        final cardWidth = (raints.maxWidth - 48) / 4;
+        // Desktop: 4 per row. Tablet: 2 per row. Mobile: 2 per row (fills width).
+        final device = ResponsiveLayout.device(context);
+        final columns = device == DeviceType.desktop ? 4 : 2;
+        final spacing = 16.0;
+        final cardWidth =
+            (raints.maxWidth - spacing * (columns - 1)) / columns;
+
         return Wrap(
-          spacing: 16,
-          runSpacing: 16,
+          spacing: spacing,
+          runSpacing: spacing,
           children: [
             SizedBox(
               width: cardWidth,

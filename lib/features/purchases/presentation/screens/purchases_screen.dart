@@ -2,6 +2,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/responsive_dimensions.dart';
+import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
+import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/expenses/domain/entities/expense.dart';
@@ -64,8 +67,41 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 
   void _openDetail(String id) {
     ref.read(selectedPurchaseIdProvider.notifier).state = id;
-    setState(() => _showDetail = true);
-    _panelAnimCtrl.forward(from: 0);
+
+    // On mobile/small-tablet: open as a DraggableScrollableSheet.
+    // On tablet/desktop: slide in the side panel.
+    if (ResponsiveLayout.isMobileOrSmallTablet(context)) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => DraggableScrollableSheet(
+          initialChildSize: 0.92,
+          minChildSize: 0.5,
+          maxChildSize: 0.97,
+          builder: (ctx, scrollCtrl) => Container(
+            decoration: BoxDecoration(
+              color: AppColors.darkCard,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              border: Border.all(color: AppColors.darkBorder),
+            ),
+            child: _PurchaseDetailPanel(
+              purchaseId: id,
+              onClose: () {
+                Navigator.of(ctx).pop();
+                ref.read(selectedPurchaseIdProvider.notifier).state = null;
+              },
+              scrollController: scrollCtrl,
+            ),
+          ),
+        ),
+      ).whenComplete(() {
+        ref.read(selectedPurchaseIdProvider.notifier).state = null;
+      });
+    } else {
+      setState(() => _showDetail = true);
+      _panelAnimCtrl.forward(from: 0);
+    }
   }
 
   void _closeDetailPanel() {
@@ -94,7 +130,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
             child: TabBarView(
               controller: _tabCtrl,
               children: [
-                // Tab 1: Fuel Purchases
+                          // Tab 1: Fuel Purchases
                 Row(
                   children: [
                     Expanded(
@@ -124,12 +160,17 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         ],
                       ),
                     ),
-                    if (_showDetail && selectedId != null)
+                    // Side panel — only on tablet/desktop; mobile uses modal sheet
+                    if (_showDetail &&
+                        selectedId != null &&
+                        !ResponsiveLayout.isMobileOrSmallTablet(context))
                       SizeTransition(
                         axis: Axis.horizontal,
                         sizeFactor: _panelAnim,
                         child: Container(
-                          width: 520,
+                          width: ResponsiveDimensions.purchaseDetailPanelWidth(
+                            context,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.darkCard,
                             border: Border(
@@ -186,8 +227,10 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   }
 
   Widget _buildTabsHeader() {
+    final h = ResponsiveSpacing.pageHorizontal(context);
+    final v = ResponsiveSpacing.pageVertical(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
+      padding: EdgeInsets.fromLTRB(h, v, h, 0),
       color: AppColors.darkSurface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,8 +324,9 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   // ── Tab 1: Fuel Purchases UI ────────────────────────────────────────────────
 
   Widget _buildPurchaseFilters() {
+    final h = ResponsiveSpacing.pageHorizontal(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(28, 16, 28, 8),
+      padding: EdgeInsets.fromLTRB(h, 16, h, 8),
       child: Row(
         children: [
           Expanded(
@@ -359,7 +403,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(28, 8, 28, 100),
+      padding: ResponsiveSpacing.listPadding(context),
       itemCount: purchases.length,
       separatorBuilder: (_, __) => const SizedBox(height: 6),
       itemBuilder: (context, i) {
@@ -497,7 +541,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(ResponsiveSpacing.pageHorizontal(context)),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 380,
         mainAxisSpacing: 16,
@@ -692,7 +736,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(28, 8, 28, 100),
+            padding: ResponsiveSpacing.listPadding(context),
             itemCount: expenses.length,
             separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (context, i) {
@@ -863,9 +907,15 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 // ── Purchase Detail Panel ──────────────────────────────────────────────────────
 
 class _PurchaseDetailPanel extends ConsumerWidget {
-  const _PurchaseDetailPanel({required this.purchaseId, required this.onClose});
+  const _PurchaseDetailPanel({
+    required this.purchaseId,
+    required this.onClose,
+    this.scrollController,
+  });
   final String purchaseId;
   final VoidCallback onClose;
+  /// Optional scroll controller — passed from [DraggableScrollableSheet] on mobile.
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

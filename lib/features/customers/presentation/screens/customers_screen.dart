@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/responsive_dimensions.dart';
+import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
+import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/core/utils/number_utils.dart';
@@ -24,35 +28,43 @@ import 'package:uuid/uuid.dart';
 
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 
-/// Customers Screen implementing a premium Master-Detail layout.
+/// Customers Screen implementing a responsive adaptive Master-Detail layout.
 class CustomersScreen extends ConsumerWidget {
   const CustomersScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
+    final selectedId = ref.watch(selectedCustomerIdProvider);
+    final isMobileOrSmall = ResponsiveLayout.isMobileOrSmallTablet(context);
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left side: Master list (380px wide)
-          Container(
-            width: 380,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.darkBorder)),
-            ),
-            child: const _CustomerMasterList(),
-          ),
-          // Right side: Detail view
-          const Expanded(child: _CustomerDetailView()),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: ResponsiveDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: _CustomerMasterList(
+          // On mobile/small tablet the detail is pushed as a new page.
+          onMobileTap: isMobileOrSmall
+              ? (customer) => AdaptiveMasterDetail.openDetail(
+                    context,
+                    title: customer.name,
+                    detail: _CustomerDetailScaffold(customer: customer),
+                  )
+              : null,
+        ),
+        detail: const _CustomerDetailView(),
       ),
     );
   }
 }
 
 class _CustomerMasterList extends ConsumerWidget {
-  const _CustomerMasterList();
+  const _CustomerMasterList({this.onMobileTap});
+
+  /// Called instead of updating [selectedCustomerIdProvider] on mobile/small
+  /// tablet — the caller pushes a detail page via [AdaptiveMasterDetail.openDetail].
+  final void Function(Customer customer)? onMobileTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -433,274 +445,340 @@ class _CustomerDetailScaffoldState
   Widget build(BuildContext context) {
     final customer = widget.customer;
     final isDeleted = customer.deletedAt != null;
+    final overviewWidth = ResponsiveDimensions.customerOverviewColumnWidth(context);
+    final isNarrow = ResponsiveLayout.isMobileOrSmallTablet(context);
+
+    // The inner detail content — overview + tabbed panel.
+    // On narrow screens these stack vertically.
+    Widget detailContent;
+    if (isNarrow || overviewWidth == 0) {
+      // Stacked: overview on top (scrollable), tabs below
+      detailContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildKpiSummaryCards(),
+          _buildOverviewPanel(context, customer, isNarrow: true),
+          Expanded(child: _buildTabbedPanel()),
+        ],
+      );
+    } else {
+      // Side-by-side: narrow overview column | tabbed panel
+      detailContent = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: overviewWidth,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: AppColors.darkBorder),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Overview Details',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildOverviewItems(context, customer),
+                const SizedBox(height: 20),
+                Text(
+                  'Internal Notes',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        customer.notes ??
+                            'No internal notes saved for this customer.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.darkTextSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                _buildKpiSummaryCards(),
+                Expanded(child: _buildTabbedPanel()),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       children: [
         // Detail Header
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: AppColors.darkSurface,
-            border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
+        _buildDetailHeader(context, customer, isDeleted),
+        Expanded(child: detailContent),
+      ],
+    );
+  }
+
+  // ── Helper: detail page header ─────────────────────────────────────────────
+
+  Widget _buildDetailHeader(
+    BuildContext context,
+    Customer customer,
+    bool isDeleted,
+  ) {
+    final isNarrow = ResponsiveLayout.isMobileOrSmallTablet(context);
+    return Container(
+      padding: EdgeInsets.all(isNarrow ? 16 : 24),
+      decoration: BoxDecoration(
+        color: AppColors.darkSurface,
+        border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.brandAmber.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.business_rounded,
+              color: AppColors.brandAmber,
+              size: 24,
+            ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar/Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.brandAmber.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.business_rounded,
-                  color: AppColors.brandAmber,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Name & Code
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          customer.name,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.darkTextPrimary,
-                          ),
+                    Flexible(
+                      child: Text(
+                        customer.name,
+                        style: TextStyle(
+                          fontSize: isNarrow ? 16 : 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkTextPrimary,
                         ),
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDeleted
-                                ? AppColors.error.withValues(alpha: 0.15)
-                                : AppColors.brandNavyLight,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            isDeleted
-                                ? 'Inactive (Deleted)'
-                                : (customer.isActive ? 'Active' : 'Inactive'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: isDeleted
-                                  ? AppColors.error
-                                  : AppColors.success,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Customer Code: ${customer.customerCode.isEmpty ? 'CUST-TBD' : customer.customerCode} • Type: ${customer.type.displayName}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkTextSecondary,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Action buttons
-              Row(
-                children: [
-                  if (!isDeleted) ...[
-                    SecondaryButton(
-                      label: 'Edit',
-                      icon: Icons.edit_outlined,
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) =>
-                              CustomerFormDialog(customer: customer),
-                        );
-                      },
                     ),
                     const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error.withValues(alpha: 0.2),
-                        foregroundColor: AppColors.error,
-                        elevation: 0,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
                       ),
-                      icon: const Icon(Icons.delete_outline, size: 16),
-                      label: const Text('Delete'),
-                      onPressed: () async {
-                        final confirmed = await showConfirmDialog(
-                          context: context,
-                          title: 'Soft-Delete Customer',
-                          message:
-                              'Are you sure you want to delete this customer? All transaction details will remain but the customer will be marked as inactive.',
-                          confirmLabel: 'Delete',
-                          isDangerous: true,
-                        );
-                        if (confirmed == true) {
-                          await ref
-                              .read(customersListProvider.notifier)
-                              .deleteCustomer(customer.id);
-                        }
-                      },
-                    ),
-                  ] else ...[
-                    PrimaryButton(
-                      label: 'Restore Customer',
-                      icon: Icons.restore_outlined,
-                      onPressed: () async {
-                        await ref
-                            .read(customersListProvider.notifier)
-                            .restoreCustomer(customer.id);
-                      },
+                      decoration: BoxDecoration(
+                        color: isDeleted
+                            ? AppColors.error.withValues(alpha: 0.15)
+                            : AppColors.brandNavyLight,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        isDeleted
+                            ? 'Deleted'
+                            : (customer.isActive ? 'Active' : 'Inactive'),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isDeleted ? AppColors.error : AppColors.success,
+                        ),
+                      ),
                     ),
                   ],
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Detail Content Split Pane
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Panel: Customer Summary Info Card (300px)
-              Container(
-                width: 300,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(color: AppColors.darkBorder),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Code: ${customer.customerCode.isEmpty ? 'CUST-TBD' : customer.customerCode} • ${customer.type.displayName}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextSecondary,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Overview Details',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildOverviewItem(
-                      'GSTIN',
-                      customer.gstin ?? 'Not Provided',
-                      Icons.receipt_long_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildOverviewItem(
-                      'PAN',
-                      customer.pan ?? 'Not Provided',
-                      Icons.payment_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildOverviewItem(
-                      'Credit Limit',
-                      NumberUtils.formatCurrency(customer.creditLimit),
-                      Icons.currency_rupee_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildOverviewItem(
-                      'Credit Days',
-                      '${customer.creditDays} Days',
-                      Icons.calendar_today_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildOverviewItem(
-                      'Created On',
-                      AppDateUtils.toDisplay(customer.createdAt),
-                      Icons.calendar_month_outlined,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Internal Notes',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.darkCard,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.darkBorder),
-                        ),
-                        child: SingleChildScrollView(
-                          child: Text(
-                            customer.notes ??
-                                'No internal notes saved for this customer.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.darkTextSecondary,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+          ),
+          // Action buttons — wrap on narrow screens
+          if (!isNarrow) ...[
+            if (!isDeleted) ...[
+              SecondaryButton(
+                label: 'Edit',
+                icon: Icons.edit_outlined,
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => CustomerFormDialog(customer: customer),
                 ),
               ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                  foregroundColor: AppColors.error,
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.delete_outline, size: 16),
+                label: const Text('Delete'),
+                onPressed: () async {
+                  final confirmed = await showConfirmDialog(
+                    context: context,
+                    title: 'Soft-Delete Customer',
+                    message:
+                        'Are you sure you want to delete this customer? All transaction details will remain but the customer will be marked as inactive.',
+                    confirmLabel: 'Delete',
+                    isDangerous: true,
+                  );
+                  if (confirmed == true) {
+                    await ref
+                        .read(customersListProvider.notifier)
+                        .deleteCustomer(customer.id);
+                  }
+                },
+              ),
+            ] else ...[
+              PrimaryButton(
+                label: 'Restore Customer',
+                icon: Icons.restore_outlined,
+                onPressed: () async => ref
+                    .read(customersListProvider.notifier)
+                    .restoreCustomer(customer.id),
+              ),
+            ],
+          ] else ...[
+            // Compact icon-only actions on narrow screens
+            if (!isDeleted) ...[
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+                tooltip: 'Edit',
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => CustomerFormDialog(customer: customer),
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
 
-              // Right Panel: Tabbed details
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildKpiSummaryCards(),
-                    TabBar(
-                      controller: _tabController,
-                      indicatorColor: AppColors.brandAmber,
-                      labelColor: AppColors.brandAmber,
-                      unselectedLabelColor: AppColors.darkTextSecondary,
-                      labelStyle: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      tabs: const [
-                        Tab(text: 'Sites'),
-                        Tab(text: 'Contacts'),
-                        Tab(text: 'Documents'),
-                        Tab(text: 'Invoices'),
-                        Tab(text: 'Payments'),
-                        Tab(text: 'Notes'),
-                      ],
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildSitesTab(),
-                          _buildContactsTab(),
-                          _buildDocumentsTab(),
-                          _buildInvoicesTab(),
-                          _buildPaymentsTab(),
-                          _buildNotesTab(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+  // ── Helper: overview items (reused by both narrow and wide layouts) ─────────
+
+  Widget _buildOverviewItems(BuildContext context, Customer customer) {
+    return Column(
+      children: [
+        _buildOverviewItem('GSTIN', customer.gstin ?? 'Not Provided', Icons.receipt_long_outlined),
+        const SizedBox(height: 12),
+        _buildOverviewItem('PAN', customer.pan ?? 'Not Provided', Icons.payment_outlined),
+        const SizedBox(height: 12),
+        _buildOverviewItem('Credit Limit', NumberUtils.formatCurrency(customer.creditLimit), Icons.currency_rupee_outlined),
+        const SizedBox(height: 12),
+        _buildOverviewItem('Credit Days', '${customer.creditDays} Days', Icons.calendar_today_outlined),
+        const SizedBox(height: 12),
+        _buildOverviewItem('Created On', AppDateUtils.toDisplay(customer.createdAt), Icons.calendar_month_outlined),
+      ],
+    );
+  }
+
+  // ── Helper: stacked overview panel for mobile ──────────────────────────────
+
+  Widget _buildOverviewPanel(BuildContext context, Customer customer, {bool isNarrow = false}) {
+    final h = ResponsiveSpacing.pageHorizontal(context);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: h, vertical: 16),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.darkBorder)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Overview',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildOverviewItems(context, customer),
+          if (customer.notes != null && customer.notes!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Notes',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkTextSecondary),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              customer.notes!,
+              style: TextStyle(fontSize: 12, color: AppColors.darkTextSecondary, height: 1.5),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Helper: the tabbed details panel ──────────────────────────────────────
+
+  Widget _buildTabbedPanel() {
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.brandAmber,
+          labelColor: AppColors.brandAmber,
+          unselectedLabelColor: AppColors.darkTextSecondary,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          tabs: const [
+            Tab(text: 'Sites'),
+            Tab(text: 'Contacts'),
+            Tab(text: 'Documents'),
+            Tab(text: 'Invoices'),
+            Tab(text: 'Payments'),
+            Tab(text: 'Notes'),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildSitesTab(),
+              _buildContactsTab(),
+              _buildDocumentsTab(),
+              _buildInvoicesTab(),
+              _buildPaymentsTab(),
+              _buildNotesTab(),
             ],
           ),
         ),
@@ -998,6 +1076,10 @@ class _CustomerDetailScaffoldState
                   );
                 }
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 8,
+                  ),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     final contact = list[index];
