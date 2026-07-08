@@ -20,6 +20,8 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class InvoicesScreen extends ConsumerStatefulWidget {
   const InvoicesScreen({super.key});
 
@@ -70,6 +72,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final invoicesAsync = ref.watch(invoicesListProvider);
     final selectedId = ref.watch(selectedInvoiceIdProvider);
     final statusFilter = ref.watch(invoiceStatusFilterProvider);

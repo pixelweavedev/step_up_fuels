@@ -17,6 +17,8 @@ import 'package:step_up_fuels/features/purchases/presentation/providers/purchase
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class PurchasesScreen extends ConsumerStatefulWidget {
   const PurchasesScreen({super.key});
 
@@ -25,11 +27,11 @@ class PurchasesScreen extends ConsumerStatefulWidget {
 }
 
 class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
-    with TickerProviderStateMixin {
-  late final TabController _tabCtrl;
+    with SingleTickerProviderStateMixin {
+  late TabController _tabCtrl;
   final _searchCtrl = TextEditingController();
-  late final AnimationController _panelAnim;
-  late final Animation<double> _panelSlide;
+  late AnimationController _panelAnimCtrl;
+  late Animation<double> _panelAnim;
   bool _showDetail = false;
   static const _uuid = Uuid();
 
@@ -39,15 +41,15 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     _tabCtrl = TabController(length: 3, vsync: this);
     _tabCtrl.addListener(() {
       setState(() {
-        _closeDetail();
+        _closeDetailPanel();
       });
     });
-    _panelAnim = AnimationController(
+    _panelAnimCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 300),
     );
-    _panelSlide = CurvedAnimation(
-      parent: _panelAnim,
+    _panelAnim = CurvedAnimation(
+      parent: _panelAnimCtrl,
       curve: Curves.easeOutCubic,
     );
   }
@@ -56,18 +58,18 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   void dispose() {
     _tabCtrl.dispose();
     _searchCtrl.dispose();
-    _panelAnim.dispose();
+    _panelAnimCtrl.dispose();
     super.dispose();
   }
 
   void _openDetail(String id) {
     ref.read(selectedPurchaseIdProvider.notifier).state = id;
     setState(() => _showDetail = true);
-    _panelAnim.forward(from: 0);
+    _panelAnimCtrl.forward(from: 0);
   }
 
-  void _closeDetail() {
-    _panelAnim.reverse().then((_) {
+  void _closeDetailPanel() {
+    _panelAnimCtrl.reverse().then((_) {
       setState(() => _showDetail = false);
       ref.read(selectedPurchaseIdProvider.notifier).state = null;
     });
@@ -75,6 +77,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final purchasesAsync = ref.watch(purchasesListProvider);
     final suppliersAsync = ref.watch(suppliersListProvider);
     final expensesAsync = ref.watch(expensesListProvider);
@@ -124,7 +127,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                     if (_showDetail && selectedId != null)
                       SizeTransition(
                         axis: Axis.horizontal,
-                        sizeFactor: _panelSlide,
+                        sizeFactor: _panelAnim,
                         child: Container(
                           width: 520,
                           decoration: BoxDecoration(
@@ -135,7 +138,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                           ),
                           child: _PurchaseDetailPanel(
                             purchaseId: selectedId,
-                            onClose: _closeDetail,
+                            onClose: _closeDetailPanel,
                           ),
                         ),
                       ),

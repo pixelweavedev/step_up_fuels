@@ -8,6 +8,7 @@ import 'package:step_up_fuels/features/dashboard/presentation/providers/dashboar
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/stat_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -15,6 +16,7 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
     final expenseAsync = ref.watch(expenseReportProvider);
 

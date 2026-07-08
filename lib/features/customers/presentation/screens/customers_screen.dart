@@ -22,12 +22,15 @@ import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dar
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 /// Customers Screen implementing a premium Master-Detail layout.
 class CustomersScreen extends ConsumerWidget {
   const CustomersScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       body: Row(
@@ -215,7 +218,7 @@ class _CustomerMasterList extends ConsumerWidget {
                           color: isSelected
                               ? (Theme.of(context).brightness == Brightness.dark
                                     ? AppColors.darkSurface
-                                    : const Color(0xFFF3F4F6))
+                                    : const Color(0xFFEFE9DF))
                               : AppColors.darkCard,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(

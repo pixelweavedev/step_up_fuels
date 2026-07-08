@@ -302,6 +302,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final profileAsync = ref.watch(companyProfileProvider);
     final invoiceAsync = ref.watch(invoiceSettingsProvider);
     final printAsync = ref.watch(printSettingsProvider);

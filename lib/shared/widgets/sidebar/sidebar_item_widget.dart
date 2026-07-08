@@ -41,9 +41,15 @@ class _SidebarItemWidgetState extends State<SidebarItemWidget> {
             vertical: 10,
           ),
           decoration: BoxDecoration(
-            color: _isHovered
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.transparent,
+            color: widget.isActive
+                ? (Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.brandAmber.withValues(alpha: 0.15)
+                    : AppColors.brandAmber.withValues(alpha: 0.08))
+                : (_isHovered
+                    ? (Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.05))
+                    : Colors.transparent),
             borderRadius: BorderRadius.circular(8),
           ),
           child: widget.isCollapsed

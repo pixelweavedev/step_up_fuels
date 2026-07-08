@@ -13,71 +13,71 @@ class AppTheme {
   static ThemeData get dark {
     final base = ThemeData.dark(useMaterial3: true);
     return base.copyWith(
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.brandAmber,
         onPrimary: Colors.white,
         primaryContainer: AppColors.brandNavyMid,
         onPrimaryContainer: AppColors.brandAmberLight,
         secondary: AppColors.brandAmber,
         onSecondary: Colors.white,
-        surface: AppColors.darkSurface,
-        onSurface: AppColors.darkTextPrimary,
-        surfaceContainerHighest: AppColors.darkCard,
-        onSurfaceVariant: AppColors.darkTextSecondary,
-        outline: AppColors.darkBorder,
-        outlineVariant: AppColors.darkBorderLight,
+        surface: AppColors.darkThemeSurface,
+        onSurface: AppColors.darkThemeTextPrimary,
+        surfaceContainerHighest: AppColors.darkThemeCard,
+        onSurfaceVariant: AppColors.darkThemeTextSecondary,
+        outline: AppColors.darkThemeBorder,
+        outlineVariant: AppColors.darkThemeBorderLight,
         error: AppColors.error,
         onError: Colors.white,
         shadow: Colors.black,
       ),
-      scaffoldBackgroundColor: AppColors.darkBackground,
-      textTheme: _buildTextTheme(AppColors.darkTextPrimary),
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.darkSurface,
-        foregroundColor: AppColors.darkTextPrimary,
+      scaffoldBackgroundColor: AppColors.darkThemeBackground,
+      textTheme: _buildTextTheme(AppColors.darkThemeTextPrimary),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.darkThemeSurface,
+        foregroundColor: AppColors.darkThemeTextPrimary,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.darkCard,
+        color: AppColors.darkThemeCard,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: AppColors.darkBorder),
+          side: const BorderSide(color: AppColors.darkThemeBorder),
         ),
       ),
       inputDecorationTheme: _buildInputTheme(isDark: true),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
       outlinedButtonTheme: _buildOutlinedButtonTheme(isDark: true),
       textButtonTheme: _buildTextButtonTheme(),
-      dividerTheme: DividerThemeData(
-        color: AppColors.darkBorder,
+      dividerTheme: const DividerThemeData(
+        color: AppColors.darkThemeBorder,
         thickness: 1,
         space: 1,
       ),
-      popupMenuTheme: PopupMenuThemeData(
-        color: AppColors.darkCard,
+      popupMenuTheme: const PopupMenuThemeData(
+        color: AppColors.darkThemeCard,
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          side: BorderSide(color: AppColors.darkBorder),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          side: BorderSide(color: AppColors.darkThemeBorder),
         ),
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: AppColors.darkCard,
+          color: AppColors.darkThemeCard,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: AppColors.darkBorder),
+          border: Border.all(color: AppColors.darkThemeBorder),
         ),
         textStyle: GoogleFonts.inter(
           fontSize: 12,
-          color: AppColors.darkTextPrimary,
+          color: AppColors.darkThemeTextPrimary,
         ),
       ),
       scrollbarTheme: ScrollbarThemeData(
-        thumbColor: WidgetStateProperty.all(AppColors.darkBorderLight),
+        thumbColor: WidgetStateProperty.all(AppColors.darkThemeBorderLight),
         radius: const Radius.circular(8),
         thickness: WidgetStateProperty.all(6),
       ),
@@ -89,12 +89,12 @@ class AppTheme {
           return Colors.transparent;
         }),
         checkColor: WidgetStateProperty.all(Colors.white),
-        side: BorderSide(color: AppColors.darkBorder, width: 1.5),
+        side: const BorderSide(color: AppColors.darkThemeBorder, width: 1.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
-      dataTableTheme: DataTableThemeData(
-        headingRowColor: WidgetStatePropertyAll(AppColors.darkCard),
-        dataRowColor: const WidgetStatePropertyAll(Colors.transparent),
+      dataTableTheme: const DataTableThemeData(
+        headingRowColor: WidgetStatePropertyAll(AppColors.darkThemeCard),
+        dataRowColor: WidgetStatePropertyAll(Colors.transparent),
         dividerThickness: 1,
         horizontalMargin: 16,
         columnSpacing: 24,

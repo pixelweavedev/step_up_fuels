@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/constants/ui_constants.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/sidebar/sidebar_widget.dart';
 
 /// The root desktop shell: sidebar (left) + content area (right).
@@ -22,8 +23,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Row(
         children: [
           // ── Sidebar ──────────────────────────────────────────────────────
@@ -37,7 +39,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           VerticalDivider(
             width: 1,
             thickness: 1,
-            color: AppColors.darkBorder,
+            color: theme.colorScheme.outline,
           ),
 
           // ── Content Area ─────────────────────────────────────────────────
@@ -48,11 +50,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                 Divider(
                   height: 1,
                   thickness: 1,
-                  color: AppColors.darkBorder,
+                  color: theme.colorScheme.outline,
                 ),
-                Expanded(
-                  child: widget.child,
-                ),
+                Expanded(child: widget.child),
               ],
             ),
           ),
@@ -63,13 +63,15 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 }
 
 /// Top bar showing current time, company name, and quick actions.
-class _TopBar extends StatelessWidget {
+class _TopBar extends ConsumerWidget {
   const _TopBar({required this.isSidebarCollapsed});
 
   final bool isSidebarCollapsed;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: UiConstants.topBarHeight,
       color: AppColors.darkSurface,
@@ -98,6 +100,13 @@ class _TopBar extends StatelessWidget {
             icon: Icons.notifications_outlined,
             tooltip: 'Notifications',
             onTap: () {}, // Future
+          ),
+          const SizedBox(width: 4),
+          // Theme Toggle
+          _TopBarAction(
+            icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            onTap: () => ref.toggleTheme(),
           ),
           const SizedBox(width: 4),
           _TopBarAction(
@@ -157,9 +166,7 @@ class _TopBarAction extends StatelessWidget {
         child: Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
           child: Icon(icon, size: 20, color: AppColors.darkTextSecondary),
         ),
       ),

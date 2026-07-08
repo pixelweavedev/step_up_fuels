@@ -10,11 +10,14 @@ import 'package:step_up_fuels/features/reports/data/exporters/pdf_report_generat
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final selectedType = ref.watch(reportSelectedTypeProvider);
 
     return Scaffold(

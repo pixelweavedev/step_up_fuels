@@ -113,6 +113,9 @@ class SidebarWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final location = GoRouterState.of(context).uri.toString();
     final width = isCollapsed
         ? UiConstants.sidebarCollapsedWidth
@@ -121,18 +124,18 @@ class SidebarWidget extends ConsumerWidget {
     return AnimatedContainer(
       duration: UiConstants.animMedium,
       width: width,
-      color: AppColors.darkSidebar,
+      color: isDark ? AppColors.darkThemeSidebar : Colors.white,
       child: Column(
         children: [
           _buildHeader(context),
-          Divider(color: AppColors.darkBorder, height: 1),
+          Divider(color: theme.colorScheme.outline, height: 1),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: _buildNavItems(context, location),
             ),
           ),
-          Divider(color: AppColors.darkBorder, height: 1),
+          Divider(color: theme.colorScheme.outline, height: 1),
           _buildFooter(context),
         ],
       ),
@@ -209,7 +212,7 @@ class SidebarWidget extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 16, 6),
               child: Text(
                 item.section!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: AppColors.sidebarTextInactive,
@@ -255,7 +258,7 @@ class SidebarWidget extends ConsumerWidget {
                 size: 20,
               ),
               if (!isCollapsed)
-                const Text(
+                Text(
                   ' Collapse',
                   style: TextStyle(
                     fontSize: 12,

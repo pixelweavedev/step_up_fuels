@@ -7,11 +7,14 @@ import 'package:step_up_fuels/features/ledger/presentation/providers/ledger_prov
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class LedgerScreen extends ConsumerWidget {
   const LedgerScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final selectedId = ref.watch(selectedLedgerAccountIdProvider);
 
     return Scaffold(

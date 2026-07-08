@@ -12,11 +12,14 @@ import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dar
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final locationsAsync = ref.watch(storageLocationsProvider);
     final selectedLocationId = ref.watch(selectedStorageLocationIdProvider);
 

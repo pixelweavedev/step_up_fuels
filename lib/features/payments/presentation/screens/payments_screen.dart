@@ -14,6 +14,8 @@ import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dar
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+
 class PaymentsScreen extends ConsumerStatefulWidget {
   const PaymentsScreen({super.key});
 
@@ -27,6 +29,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
   late final AnimationController _panelAnim;
   late final Animation<double> _panelSlide;
   bool _showDetail = false;
+  static const _uuid = Uuid();
 
   @override
   void initState() {
@@ -63,6 +66,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final paymentsAsync = ref.watch(paymentsListProvider);
     final selectedId = ref.watch(selectedPaymentIdProvider);
 
