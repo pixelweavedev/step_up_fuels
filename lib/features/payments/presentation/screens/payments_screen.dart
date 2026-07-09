@@ -29,7 +29,6 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
   late final AnimationController _panelAnim;
   late final Animation<double> _panelSlide;
   bool _showDetail = false;
-  static const _uuid = Uuid();
 
   @override
   void initState() {

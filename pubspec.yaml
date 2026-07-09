@@ -52,6 +52,9 @@ dependencies:
   # ── Excel Export (GSTR-1) ────────────────────────────────────
   excel: ^4.0.6
 
+  # ── File Picker (Import/Export Save-As + Open) ──────────────────────────
+  file_picker: ^8.1.2
+
   # ── Google Fonts ─────────────────────────────────────────────
   google_fonts: ^6.2.1
 

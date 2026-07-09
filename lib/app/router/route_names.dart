@@ -46,6 +46,8 @@ class RouteNames {
   static const String reportStock = '/reports/stock';
   static const String reportPaymentAging = '/reports/payment-aging';
 
+  static const String importExport = '/import-export';
+
   static const String settings = '/settings';
   static const String settingsCompany = '/settings/company';
 

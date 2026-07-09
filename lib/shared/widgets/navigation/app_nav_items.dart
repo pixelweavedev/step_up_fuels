@@ -144,11 +144,17 @@ class AppNavItems {
 
     // ── System ────────────────────────────────────────────────────────────
     AppNavItem(
+      label: 'Data Import & Export',
+      icon: Icons.swap_horizontal_circle_outlined,
+      activeIcon: Icons.swap_horizontal_circle_rounded,
+      route: RouteNames.importExport,
+      section: 'SYSTEM',
+    ),
+    AppNavItem(
       label: 'Settings',
       icon: Icons.settings_outlined,
       activeIcon: Icons.settings_rounded,
       route: RouteNames.settings,
-      section: 'SYSTEM',
     ),
   ];
 

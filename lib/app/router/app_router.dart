@@ -13,6 +13,7 @@ import 'package:step_up_fuels/features/products/presentation/screens/products_sc
 import 'package:step_up_fuels/features/purchases/presentation/screens/purchases_screen.dart';
 import 'package:step_up_fuels/features/reports/presentation/screens/reports_screen.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';
+import 'package:step_up_fuels/features/import_export/presentation/screens/import_export_screen.dart';
 import 'package:step_up_fuels/shared/widgets/app_scaffold.dart';
 
 /// Global router provider — accessible from anywhere via ref.read/watch.
@@ -133,6 +134,16 @@ class AppRouter {
             name: 'reports',
             pageBuilder: (context, state) =>
                 _fadeTransitionPage(state: state, child: const ReportsScreen()),
+          ),
+
+          // ── Import/Export ────────────────────────────────────────────────
+          GoRoute(
+            path: RouteNames.importExport,
+            name: 'importExport',
+            pageBuilder: (context, state) => _fadeTransitionPage(
+              state: state,
+              child: const ImportExportScreen(),
+            ),
           ),
 
           // ── Settings ─────────────────────────────────────────────────────
