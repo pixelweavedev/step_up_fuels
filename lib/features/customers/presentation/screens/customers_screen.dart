@@ -26,6 +26,9 @@ import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 /// Customers Screen implementing a responsive adaptive Master-Detail layout.
@@ -51,15 +54,8 @@ class CustomersScreen extends ConsumerWidget {
                       customer.id;
                   Navigator.of(context)
                       .push(
-                        MaterialPageRoute(
-                          builder: (ctx) => Scaffold(
-                            appBar: AppBar(
-                              title: Text(customer.name),
-                              backgroundColor: AppColors.darkSurface,
-                              foregroundColor: AppColors.darkTextPrimary,
-                            ),
-                            body: const _CustomerDetailView(),
-                          ),
+                        MaterialPageRoute<void>(
+                          builder: (ctx) => const _CustomerDetailView(),
                         ),
                       )
                       .then((_) {
@@ -88,6 +84,154 @@ class _CustomerMasterList extends ConsumerWidget {
     final selectedId = ref.watch(selectedCustomerIdProvider);
     final typeFilter = ref.watch(customerTypeFilterProvider);
     final statusFilter = ref.watch(customerStatusFilterProvider);
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return ListPageTemplate(
+        title: 'Customers',
+        searchWidget: AppTextField(
+          hint: 'Search code or name...',
+          prefixIcon: Icons.search_rounded,
+          onChanged: (val) {
+            ref.read(customerSearchQueryProvider.notifier).state = val;
+          },
+        ),
+        filterWidget: ResponsiveSection(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Type:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                DropdownButton<String?>(
+                  value: typeFilter,
+                  dropdownColor: AppColors.darkSurface,
+                  underline: const SizedBox(),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.brandAmber,
+                  ),
+                  items: const [
+                    DropdownMenuItem(child: Text('All Types')),
+                    DropdownMenuItem(value: 'COMPANY', child: Text('Company')),
+                    DropdownMenuItem(
+                      value: 'INDIVIDUAL',
+                      child: Text('Individual'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'GOVERNMENT',
+                      child: Text('Government'),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    ref.read(customerTypeFilterProvider.notifier).state = val;
+                  },
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Show Soft-Deleted:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                Switch(
+                  value: statusFilter == null || statusFilter == false,
+                  activeThumbColor: AppColors.brandAmber,
+                  onChanged: (val) {
+                    ref.read(customerStatusFilterProvider.notifier).state = val
+                        ? null
+                        : true;
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.add_circle_outline,
+              color: AppColors.brandAmber,
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const CustomerFormDialog(),
+              );
+            },
+            tooltip: 'Register New Customer',
+          ),
+        ],
+        body: customersAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: EmptyStateWidget(
+                    icon: Icons.people_outline_rounded,
+                    title: 'No Customers Found',
+                    subtitle: 'Register a new customer or adjust filters.',
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final customer = list[index];
+                final isSelected = customer.id == selectedId;
+                final isDeleted = customer.deletedAt != null;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: InkWell(
+                    onTap: () {
+                      ref.read(selectedCustomerIdProvider.notifier).state =
+                          customer.id;
+                      if (onMobileTap != null) {
+                        onMobileTap!(customer);
+                      }
+                    },
+                    child: _buildCustomerCard(
+                      context,
+                      customer,
+                      isSelected,
+                      isDeleted,
+                    ),
+                  ),
+                );
+              }, childCount: list.length),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+          ),
+          error: (err, st) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                'Error: $err',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ),
+        ),
+        isSliver: true,
+      );
+    }
 
     return Column(
       children: [
@@ -397,6 +541,126 @@ class _CustomerMasterList extends ConsumerWidget {
       ],
     );
   }
+
+  Widget _buildCustomerCard(
+    BuildContext context,
+    Customer customer,
+    bool isSelected,
+    bool isDeleted,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected
+            ? (Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurface
+                  : const Color(0xFFEFE9DF))
+            : AppColors.darkCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDeleted
+              ? AppColors.error.withValues(alpha: 0.3)
+              : AppColors.darkBorder,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isSelected ? 0.08 : 0.02),
+            blurRadius: isSelected ? 8 : 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 4,
+                color: isSelected ? AppColors.brandAmber : Colors.transparent,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              customer.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isDeleted
+                                  ? AppColors.error
+                                  : (customer.isActive
+                                        ? AppColors.success
+                                        : AppColors.darkTextTertiary),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            customer.customerCode.isEmpty
+                                ? 'CUST-TBD'
+                                : customer.customerCode,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary,
+                            ),
+                          ),
+                          Text(
+                            NumberUtils.formatCurrency(customer.currentBalance),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _CustomerDetailView extends ConsumerWidget {
@@ -404,9 +668,11 @@ class _CustomerDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = context.isMobile;
     final selectedId = ref.watch(selectedCustomerIdProvider);
+
     if (selectedId == null) {
-      return const Center(
+      const emptyWidget = Center(
         child: EmptyStateWidget(
           icon: Icons.people_outline_rounded,
           title: 'Select a Customer',
@@ -414,21 +680,55 @@ class _CustomerDetailView extends ConsumerWidget {
               'Choose a customer from the left sidebar to view profile details, locations, contact lists, and transaction history.',
         ),
       );
+      return isMobile
+          ? Scaffold(
+              appBar: AppBar(
+                title: const Text('Customer Details'),
+                backgroundColor: AppColors.darkSurface,
+                foregroundColor: AppColors.darkTextPrimary,
+              ),
+              body: const SafeArea(child: emptyWidget),
+            )
+          : emptyWidget;
     }
 
     final customerAsync = ref.watch(selectedCustomerProvider);
 
     return customerAsync.when(
       data: (customer) => _CustomerDetailScaffold(customer: customer),
-      error: (err, st) => Center(
-        child: Text(
-          'Error loading details: $err',
-          style: const TextStyle(color: AppColors.error),
-        ),
-      ),
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.brandAmber),
-      ),
+      error: (err, st) {
+        final errorWidget = Center(
+          child: Text(
+            'Error loading details: $err',
+            style: const TextStyle(color: AppColors.error),
+          ),
+        );
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Error'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: SafeArea(child: errorWidget),
+              )
+            : errorWidget;
+      },
+      loading: () {
+        const loadingWidget = Center(
+          child: CircularProgressIndicator(color: AppColors.brandAmber),
+        );
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Loading...'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: const SafeArea(child: loadingWidget),
+              )
+            : loadingWidget;
+      },
     );
   }
 }
@@ -466,6 +766,54 @@ class _CustomerDetailScaffoldState
     final isDeleted = customer.deletedAt != null;
     final overviewWidth = AppDimensions.customerOverviewWidth(context);
     final isNarrow = context.isMobileOrSmallTablet;
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return DetailPageTemplate(
+        title: customer.name,
+        subtitle:
+            'Code: ${customer.customerCode.isEmpty ? 'CUST-TBD' : customer.customerCode} • ${customer.type.displayName}',
+        statusWidget: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: isDeleted
+                ? AppColors.error.withValues(alpha: 0.15)
+                : AppColors.brandNavyLight,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            isDeleted ? 'Deleted' : (customer.isActive ? 'Active' : 'Inactive'),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: isDeleted ? AppColors.error : AppColors.success,
+            ),
+          ),
+        ),
+        actions: !isDeleted
+            ? [
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.brandAmber,
+                  ),
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (_) => CustomerFormDialog(customer: customer),
+                  ),
+                ),
+              ]
+            : null,
+        sections: [
+          _buildKpiSummaryCards(),
+          _buildOverviewPanel(context, customer, isNarrow: true),
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.6,
+            child: _buildTabbedPanel(),
+          ),
+        ],
+      );
+    }
 
     // The inner detail content — overview + tabbed panel.
     // On narrow screens these stack vertically.

@@ -53,7 +53,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
     // Watch export progress to show popup
     if (state.isExporting) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (context) => ProgressDialog(
@@ -256,7 +256,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
           ),
           OutlinedButton.icon(
             onPressed: () {
-              showDialog(
+              showDialog<void>(
                 context: context,
                 builder: (context) => ColumnPickerDialog(
                   allColumns: cols,

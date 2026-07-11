@@ -41,26 +41,29 @@ class ReportsScreen extends ConsumerWidget {
           onMobileTap: isMobileOrSmall
               ? (type) {
                   ref.read(reportSelectedTypeProvider.notifier).state = type;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) => Scaffold(
-                        appBar: AppBar(
-                          title: Text(_getReportTitle(type)),
-                          backgroundColor: AppColors.darkSurface,
-                          foregroundColor: AppColors.darkTextPrimary,
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute<void>(
+                          builder: (ctx) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(_getReportTitle(type)),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.darkTextPrimary,
+                            ),
+                            body: Column(
+                              children: [
+                                _buildFilterHeader(ctx, ref),
+                                Divider(color: AppColors.darkBorder, height: 1),
+                                Expanded(child: _buildReportContent(type)),
+                              ],
+                            ),
+                          ),
                         ),
-                        body: Column(
-                          children: [
-                            _buildFilterHeader(ctx, ref),
-                            Divider(color: AppColors.darkBorder, height: 1),
-                            Expanded(child: _buildReportContent(type)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ).then((_) {
-                    ref.read(reportSelectedTypeProvider.notifier).state = '';
-                  });
+                      )
+                      .then((_) {
+                        ref.read(reportSelectedTypeProvider.notifier).state =
+                            '';
+                      });
                 }
               : null,
         ),
@@ -111,15 +114,17 @@ class ReportsScreen extends ConsumerWidget {
           final headerText = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _getReportTitle(selectedType),
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkTextPrimary,
+              if (!isMobile) ...[
+                Text(
+                  _getReportTitle(selectedType),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
+                const SizedBox(height: 4),
+              ],
               Text(
                 _getReportSubtitle(selectedType),
                 style: TextStyle(

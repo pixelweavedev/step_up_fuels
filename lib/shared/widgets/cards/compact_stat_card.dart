@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
-import 'package:step_up_fuels/core/theme/spacing.dart';
-import 'package:step_up_fuels/core/theme/typography.dart';
-import 'package:step_up_fuels/shared/widgets/cards/compact_stat_card.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 
-/// A premium, professional stat card for the dashboard.
-///
-/// Shows a KPI metric with a title, value, subtitle, icon, and trend indicator.
-/// Refactored to match the minimalist KPI format with a typography-first layout,
-/// standard margins/padding, a large number, and a muted monochrome icon on the right.
-class StatCard extends StatelessWidget {
-  const StatCard({
+/// A compact stat/KPI card with a restricted height (72-88px) optimized for mobile.
+/// Features a high density, typography-first layout using design tokens.
+class CompactStatCard extends StatelessWidget {
+  const CompactStatCard({
     super.key,
     required this.title,
     required this.value,
@@ -34,71 +29,75 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isMobile) {
-      return CompactStatCard(
-        title: title,
-        value: value,
-        icon: icon,
-        gradientColors: gradientColors,
-        subtitle: subtitle,
-        trend: trend,
-        trendPositive: trendPositive,
-        onTap: onTap,
-      );
-    }
-
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isMobile = context.isMobile;
+
+    final double height = isMobile
+        ? AppMobileTokens.statCardHeight
+        : 104.0; // Restrict height on mobile
+
+    final double cardPadding = isMobile
+        ? AppMobileTokens.cardPadding
+        : 16.0;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: AppSpacing.card(context),
+        height: height,
+        padding: EdgeInsets.all(cardPadding),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : AppColors.lightCard,
-          borderRadius: BorderRadius.circular(10), // 10px standard radius
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 8,
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     title.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
+                      letterSpacing: 0.6,
                       color: isDark
                           ? AppColors.darkTextSecondary
                           : AppColors.lightTextSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8), // 8px spacing system
+                  const SizedBox(height: 2),
                   Text(
                     value,
-                    style: AppTypography.metricValue(context).copyWith(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: isMobile
+                          ? AppMobileTokens.fontSectionTitle
+                          : AppMobileTokens.fontPageTitle,
+                      fontWeight: FontWeight.w700,
                       color: isDark
                           ? AppColors.darkTextPrimary
                           : AppColors.lightTextPrimary,
                     ),
                   ),
-                  if (subtitle != null || trend != null) ...[
-                    const SizedBox(height: 8),
+                  if (!isMobile && (subtitle != null || trend != null)) ...[
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         if (trend != null) ...[
@@ -106,30 +105,30 @@ class StatCard extends StatelessWidget {
                             trendPositive == true
                                 ? Icons.trending_up_rounded
                                 : Icons.trending_down_rounded,
-                            size: 14,
+                            size: 12,
                             color: trendPositive == true
                                 ? AppColors.success
                                 : AppColors.error,
                           ),
-                          const SizedBox(width: 4), // 4px spacing system
+                          const SizedBox(width: 2),
                           Text(
                             trend!,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: trendPositive == true
-                                    ? AppColors.success
-                                    : AppColors.error,
+                                  ? AppColors.success
+                                  : AppColors.error,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                         if (subtitle != null) ...[
-                          if (trend != null) const SizedBox(width: 8),
+                          if (trend != null) const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               subtitle!,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: isDark
                                     ? AppColors.darkTextTertiary
                                     : AppColors.lightTextTertiary,
@@ -144,13 +143,23 @@ class StatCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-            Icon(
-              icon,
-              color: isDark
-                  ? AppColors.darkTextTertiary
-                  : AppColors.lightTextTertiary,
-              size: 24, // Muted monochrome icon
+            const SizedBox(width: 8),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: gradientColors.map((c) => c.withValues(alpha: 0.15)).toList(),
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: gradientColors.first,
+                size: AppMobileTokens.iconSM,
+              ),
             ),
           ],
         ),

@@ -12,6 +12,9 @@ import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
+import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class ProductsScreen extends ConsumerWidget {
@@ -35,15 +38,8 @@ class ProductsScreen extends ConsumerWidget {
                       product.id;
                   Navigator.of(context)
                       .push(
-                        MaterialPageRoute(
-                          builder: (ctx) => Scaffold(
-                            appBar: AppBar(
-                              title: Text(product.name),
-                              backgroundColor: AppColors.darkSurface,
-                              foregroundColor: AppColors.darkTextPrimary,
-                            ),
-                            body: const _ProductDetailView(),
-                          ),
+                        MaterialPageRoute<void>(
+                          builder: (ctx) => const _ProductDetailView(),
                         ),
                       )
                       .then((_) {
@@ -69,6 +65,118 @@ class _ProductMasterList extends ConsumerWidget {
     final productsAsync = ref.watch(productsListProvider);
     final selectedId = ref.watch(selectedProductIdProvider);
     final statusFilter = ref.watch(productStatusFilterProvider);
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return ListPageTemplate(
+        title: 'Products',
+        searchWidget: AppTextField(
+          hint: 'Search code or name...',
+          prefixIcon: Icons.search_rounded,
+          onChanged: (val) {
+            ref.read(productSearchQueryProvider.notifier).state = val;
+          },
+        ),
+        filterWidget: ResponsiveSection(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Show Inactive/Deleted:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                Switch(
+                  value: statusFilter == null || statusFilter == false,
+                  activeThumbColor: AppColors.brandAmber,
+                  onChanged: (val) {
+                    ref.read(productStatusFilterProvider.notifier).state = val
+                        ? null
+                        : true;
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.add_circle_outline,
+              color: AppColors.brandAmber,
+            ),
+            onPressed: () {
+              showDialog<void>(
+                context: context,
+                builder: (context) => const ProductFormDialog(),
+              );
+            },
+            tooltip: 'Add New Product',
+          ),
+        ],
+        body: productsAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: EmptyStateWidget(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'No Products Found',
+                    subtitle: 'Add a new product to configure HSN/GST rates.',
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final product = list[index];
+                final isSelected = product.id == selectedId;
+                final isDeleted = product.deletedAt != null;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: InkWell(
+                    onTap: () {
+                      ref.read(selectedProductIdProvider.notifier).state =
+                          product.id;
+                      if (onMobileTap != null) {
+                        onMobileTap!(product);
+                      }
+                    },
+                    child: _buildProductCard(
+                      context,
+                      product,
+                      isSelected,
+                      isDeleted,
+                    ),
+                  ),
+                );
+              }, childCount: list.length),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+          ),
+          error: (err, st) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                'Error: $err',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ),
+        ),
+        isSliver: true,
+      );
+    }
 
     return Column(
       children: [
@@ -285,6 +393,94 @@ class _ProductMasterList extends ConsumerWidget {
       ],
     );
   }
+
+  Widget _buildProductCard(
+    BuildContext context,
+    Product product,
+    bool isSelected,
+    bool isDeleted,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.darkSurface : AppColors.darkCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isSelected
+              ? AppColors.brandAmber
+              : (isDeleted
+                    ? AppColors.error.withValues(alpha: 0.3)
+                    : AppColors.darkBorder),
+          width: isSelected ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.brandNavyLight,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  product.productCode,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.brandAmber,
+                  ),
+                ),
+              ),
+              Text(
+                'GST: ${(product.gstRate * 100).toInt()}%',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.darkTextSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'HSN: ${product.hsnCode}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.darkTextTertiary,
+                ),
+              ),
+              if (product.currentSellingPrice != null)
+                Text(
+                  '₹${product.currentSellingPrice!.toStringAsFixed(2)} / ${product.unitOfMeasure}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkTextPrimary,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProductDetailView extends ConsumerWidget {
@@ -292,9 +488,11 @@ class _ProductDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isMobile = context.isMobile;
     final selectedId = ref.watch(selectedProductIdProvider);
+
     if (selectedId == null) {
-      return const Center(
+      const emptyWidget = Center(
         child: EmptyStateWidget(
           icon: Icons.inventory_2_rounded,
           title: 'Select a Product',
@@ -302,16 +500,50 @@ class _ProductDetailView extends ConsumerWidget {
               'Choose a product from the left list to view HSN, tax rates, and details.',
         ),
       );
+      return isMobile
+          ? Scaffold(
+              appBar: AppBar(
+                title: const Text('Product Details'),
+                backgroundColor: AppColors.darkSurface,
+                foregroundColor: AppColors.darkTextPrimary,
+              ),
+              body: const SafeArea(child: emptyWidget),
+            )
+          : emptyWidget;
     }
 
     final productAsync = ref.watch(selectedProductProvider);
 
     return productAsync.when(
       data: (product) => _ProductDetailCard(product: product),
-      error: (err, st) => Center(child: Text('Error: $err')),
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.brandAmber),
-      ),
+      error: (err, st) {
+        final errorWidget = Center(child: Text('Error: $err'));
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Error'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: SafeArea(child: errorWidget),
+              )
+            : errorWidget;
+      },
+      loading: () {
+        const loadingWidget = Center(
+          child: CircularProgressIndicator(color: AppColors.brandAmber),
+        );
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Loading...'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: const SafeArea(child: loadingWidget),
+              )
+            : loadingWidget;
+      },
     );
   }
 }
@@ -323,6 +555,61 @@ class _ProductDetailCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDeleted = product.deletedAt != null;
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return DetailPageTemplate(
+        title: product.name,
+        subtitle:
+            'Code: ${product.productCode} • Unit: ${product.unitOfMeasure}',
+        actions: !isDeleted
+            ? [
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.brandAmber,
+                  ),
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (context) => ProductFormDialog(product: product),
+                    );
+                  },
+                ),
+              ]
+            : null,
+        sections: [
+          _buildInfoTile('HSN Code', product.hsnCode, Icons.tag),
+          _buildInfoTile(
+            'GST Rate',
+            '${(product.gstRate * 100).toInt()}%',
+            Icons.percent,
+          ),
+          _buildInfoTile(
+            'CGST Rate',
+            '${(product.cgstRate * 100).toInt()}%',
+            Icons.arrow_downward,
+          ),
+          _buildInfoTile(
+            'SGST Rate',
+            '${(product.sgstRate * 100).toInt()}%',
+            Icons.arrow_downward,
+          ),
+          _buildInfoTile(
+            'IGST Rate',
+            '${(product.igstRate * 100).toInt()}%',
+            Icons.arrow_upward,
+          ),
+          _buildInfoTile(
+            'Current Selling Price',
+            product.currentSellingPrice != null
+                ? '₹${product.currentSellingPrice!.toStringAsFixed(2)} / ${product.unitOfMeasure}'
+                : 'Not configured',
+            Icons.currency_rupee,
+          ),
+        ],
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24),

@@ -32,21 +32,27 @@ class LedgerScreen extends ConsumerWidget {
         master: _LedgerAccountsMasterList(
           onMobileTap: isMobileOrSmall
               ? (LedgerAccount acc) {
-                  ref.read(selectedLedgerAccountIdProvider.notifier).state = acc.id;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) => Scaffold(
-                        appBar: AppBar(
-                          title: Text(acc.name),
-                          backgroundColor: AppColors.darkSurface,
-                          foregroundColor: AppColors.darkTextPrimary,
+                  ref.read(selectedLedgerAccountIdProvider.notifier).state =
+                      acc.id;
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute<void>(
+                          builder: (ctx) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(acc.name),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.darkTextPrimary,
+                            ),
+                            body: const _LedgerAccountDetailView(),
+                          ),
                         ),
-                        body: const _LedgerAccountDetailView(),
-                      ),
-                    ),
-                  ).then((_) {
-                    ref.read(selectedLedgerAccountIdProvider.notifier).state = null;
-                  });
+                      )
+                      .then((_) {
+                        ref
+                                .read(selectedLedgerAccountIdProvider.notifier)
+                                .state =
+                            null;
+                      });
                 }
               : null,
         ),
@@ -365,6 +371,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
     final entriesAsync = ref.watch(ledgerEntriesProvider);
     final fromDate = ref.watch(ledgerStatementDateFromProvider);
     final toDate = ref.watch(ledgerStatementDateToProvider);
+    final isMobile = context.isMobile;
 
     return accountAsync.when(
       data: (account) {
@@ -373,20 +380,22 @@ class _LedgerAccountDetailView extends ConsumerWidget {
             // Detail Header
             Builder(
               builder: (context) {
-                final isMobile = context.isMobileOrSmallTablet;
+                final isMobileOrSmall = context.isMobileOrSmallTablet;
 
                 final headerInfo = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      account.name,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
+                    if (!isMobile) ...[
+                      Text(
+                        account.name,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkTextPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
+                      const SizedBox(height: 4),
+                    ],
                     Text(
                       'Code: ${account.accountCode} | Type: ${account.accountType}',
                       style: TextStyle(
@@ -455,11 +464,15 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                         ),
                         onPressed: () {
                           ref
-                              .read(ledgerStatementDateFromProvider.notifier)
-                              .state = null;
+                                  .read(
+                                    ledgerStatementDateFromProvider.notifier,
+                                  )
+                                  .state =
+                              null;
                           ref
-                              .read(ledgerStatementDateToProvider.notifier)
-                              .state = null;
+                                  .read(ledgerStatementDateToProvider.notifier)
+                                  .state =
+                              null;
                         },
                       ),
                   ],
@@ -467,7 +480,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
 
                 return Padding(
                   padding: const EdgeInsets.all(24.0),
-                  child: isMobile
+                  child: isMobileOrSmall
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -478,10 +491,7 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                         )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            headerInfo,
-                            dateFilters,
-                          ],
+                          children: [headerInfo, dateFilters],
                         ),
                 );
               },
@@ -515,26 +525,54 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                           vertical: 16,
                         ),
                         color: AppColors.brandNavyLight,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildStatItem(
-                              'TOTAL DEBIT',
-                              '₹${totalDebit.toStringAsFixed(2)}',
-                              AppColors.success,
-                            ),
-                            _buildStatItem(
-                              'TOTAL CREDIT',
-                              '₹${totalCredit.toStringAsFixed(2)}',
-                              AppColors.error,
-                            ),
-                            _buildStatItem(
-                              'CLOSING BALANCE',
-                              '₹${netBalance.toStringAsFixed(2)}',
-                              AppColors.brandAmber,
-                            ),
-                          ],
-                        ),
+                        child: isMobile
+                            ? Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildStatItem(
+                                        'TOTAL DEBIT',
+                                        '₹${totalDebit.toStringAsFixed(2)}',
+                                        AppColors.success,
+                                      ),
+                                      _buildStatItem(
+                                        'TOTAL CREDIT',
+                                        '₹${totalCredit.toStringAsFixed(2)}',
+                                        AppColors.error,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildStatItem(
+                                    'CLOSING BALANCE',
+                                    '₹${netBalance.toStringAsFixed(2)}',
+                                    AppColors.brandAmber,
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildStatItem(
+                                    'TOTAL DEBIT',
+                                    '₹${totalDebit.toStringAsFixed(2)}',
+                                    AppColors.success,
+                                  ),
+                                  _buildStatItem(
+                                    'TOTAL CREDIT',
+                                    '₹${totalCredit.toStringAsFixed(2)}',
+                                    AppColors.error,
+                                  ),
+                                  _buildStatItem(
+                                    'CLOSING BALANCE',
+                                    '₹${netBalance.toStringAsFixed(2)}',
+                                    AppColors.brandAmber,
+                                  ),
+                                ],
+                              ),
                       ),
 
                       Expanded(
@@ -551,36 +589,86 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                           columns: const [
                             DataColumn(label: Text('DATE')),
                             DataColumn(label: Text('DESCRIPTION')),
-                            DataColumn(label: Text('DEBIT', textAlign: TextAlign.right)),
-                            DataColumn(label: Text('CREDIT', textAlign: TextAlign.right)),
-                            DataColumn(label: Text('BALANCE', textAlign: TextAlign.right)),
+                            DataColumn(
+                              label: Text('DEBIT', textAlign: TextAlign.right),
+                            ),
+                            DataColumn(
+                              label: Text('CREDIT', textAlign: TextAlign.right),
+                            ),
+                            DataColumn(
+                              label: Text(
+                                'BALANCE',
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
                           ],
-                          rowsBuilder: (context, list) => list.map((entry) => DataRow(
-                            cells: [
-                              DataCell(Text(DateFormat('dd/MM/yyyy').format(entry.entryDate))),
-                              DataCell(Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(entry.description, style: const TextStyle(fontWeight: FontWeight.w500)),
-                                  if (entry.referenceId != null)
-                                    Text(
-                                      'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
-                                      style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10),
+                          rowsBuilder: (context, list) => list
+                              .map(
+                                (entry) => DataRow(
+                                  cells: [
+                                    DataCell(
+                                      Text(
+                                        DateFormat(
+                                          'dd/MM/yyyy',
+                                        ).format(entry.entryDate),
+                                      ),
                                     ),
-                                ],
-                              )),
-                              DataCell(Text(
-                                entry.debitAmount > 0 ? '₹${entry.debitAmount.toStringAsFixed(2)}' : '-',
-                                style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
-                              )),
-                              DataCell(Text(
-                                entry.creditAmount > 0 ? '₹${entry.creditAmount.toStringAsFixed(2)}' : '-',
-                                style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
-                              )),
-                              DataCell(Text('₹${entry.runningBalance.toStringAsFixed(2)}')),
-                            ],
-                          )).toList(),
+                                    DataCell(
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            entry.description,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (entry.referenceId != null)
+                                            Text(
+                                              'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
+                                              style: TextStyle(
+                                                color:
+                                                    AppColors.darkTextTertiary,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        entry.debitAmount > 0
+                                            ? '₹${entry.debitAmount.toStringAsFixed(2)}'
+                                            : '-',
+                                        style: const TextStyle(
+                                          color: AppColors.success,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        entry.creditAmount > 0
+                                            ? '₹${entry.creditAmount.toStringAsFixed(2)}'
+                                            : '-',
+                                        style: const TextStyle(
+                                          color: AppColors.error,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        '₹${entry.runningBalance.toStringAsFixed(2)}',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
                           mobileCardBuilder: (context, entry) => Card(
                             color: AppColors.darkCard,
                             shape: RoundedRectangleBorder(
@@ -593,10 +681,13 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        DateFormat('dd MMM yyyy').format(entry.entryDate),
+                                        DateFormat(
+                                          'dd MMM yyyy',
+                                        ).format(entry.entryDate),
                                         style: TextStyle(
                                           color: AppColors.darkTextTertiary,
                                           fontSize: 12,
@@ -623,38 +714,73 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 12),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text('DEBIT', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          Text(
+                                            'DEBIT',
+                                            style: TextStyle(
+                                              color: AppColors.darkTextTertiary,
+                                              fontSize: 10,
+                                            ),
+                                          ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            entry.debitAmount > 0 ? '₹${entry.debitAmount.toStringAsFixed(2)}' : '₹0.00',
-                                            style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+                                            entry.debitAmount > 0
+                                                ? '₹${entry.debitAmount.toStringAsFixed(2)}'
+                                                : '₹0.00',
+                                            style: const TextStyle(
+                                              color: AppColors.success,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text('CREDIT', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          Text(
+                                            'CREDIT',
+                                            style: TextStyle(
+                                              color: AppColors.darkTextTertiary,
+                                              fontSize: 10,
+                                            ),
+                                          ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            entry.creditAmount > 0 ? '₹${entry.creditAmount.toStringAsFixed(2)}' : '₹0.00',
-                                            style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                                            entry.creditAmount > 0
+                                                ? '₹${entry.creditAmount.toStringAsFixed(2)}'
+                                                : '₹0.00',
+                                            style: const TextStyle(
+                                              color: AppColors.error,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ],
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text('BALANCE', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          Text(
+                                            'BALANCE',
+                                            style: TextStyle(
+                                              color: AppColors.darkTextTertiary,
+                                              fontSize: 10,
+                                            ),
+                                          ),
                                           const SizedBox(height: 2),
                                           Text(
                                             '₹${entry.runningBalance.toStringAsFixed(2)}',
-                                            style: TextStyle(color: AppColors.darkTextPrimary, fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                              color: AppColors.darkTextPrimary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ],
                                       ),

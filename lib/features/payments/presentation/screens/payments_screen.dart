@@ -17,6 +17,8 @@ import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class PaymentsScreen extends ConsumerStatefulWidget {
@@ -41,6 +43,99 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     final paymentsAsync = ref.watch(paymentsListProvider);
     final selectedId = ref.watch(selectedPaymentIdProvider);
     final isMobileOrSmall = context.isMobileOrSmallTablet;
+
+    if (context.isMobile) {
+      final customerFilter = ref.watch(paymentCustomerFilterProvider);
+      final customersAsync = ref.watch(customersListProvider);
+
+      return ListPageTemplate(
+        title: 'Payments',
+        searchWidget: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: AppTextField(
+            hint: 'Search payment no. or reference...',
+            prefixIcon: Icons.search_rounded,
+            controller: _searchCtrl,
+            onChanged: (val) {
+              ref.read(paymentSearchQueryProvider.notifier).state = val;
+            },
+          ),
+        ),
+        filterWidget: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: AppColors.darkSurface,
+              border: Border.all(color: AppColors.darkBorder),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: customersAsync.when(
+              data: (list) => DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                  value: customerFilter,
+                  isExpanded: true,
+                  hint: Text(
+                    'All Customers',
+                    style: TextStyle(color: AppColors.darkTextSecondary),
+                  ),
+                  dropdownColor: AppColors.darkSurface,
+                  items: [
+                    DropdownMenuItem<String?>(
+                      child: Text(
+                        'All Customers',
+                        style: TextStyle(color: AppColors.darkTextPrimary),
+                      ),
+                    ),
+                    ...list.map(
+                      (c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(
+                          c.name,
+                          style: TextStyle(color: AppColors.darkTextPrimary),
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    ref.read(paymentCustomerFilterProvider.notifier).state =
+                        val;
+                  },
+                ),
+              ),
+              loading: () => const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              error: (_, __) => const Text('Error loading customers'),
+            ),
+          ),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showRecordPaymentDialog(context),
+          backgroundColor: AppColors.brandAmber,
+          foregroundColor: AppColors.darkBackground,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text(
+            'Record Receipt',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: paymentsAsync.when(
+          data: (payments) => _buildPaymentsList(payments, selectedId, true),
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.brandAmber),
+          ),
+          error: (e, _) => Center(
+            child: Text(
+              e.toString(),
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ),
+      );
+    }
 
     final masterWidget = Column(
       children: [
@@ -287,15 +382,8 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
               if (isMobileOrSmall) {
                 Navigator.of(context)
                     .push(
-                      MaterialPageRoute(
-                        builder: (ctx) => Scaffold(
-                          appBar: AppBar(
-                            title: Text(payment.paymentNumber),
-                            backgroundColor: AppColors.darkSurface,
-                            foregroundColor: AppColors.darkTextPrimary,
-                          ),
-                          body: _buildDetailPanel(payment.id),
-                        ),
+                      MaterialPageRoute<void>(
+                        builder: (ctx) => _buildDetailPanel(payment.id),
                       ),
                     )
                     .then((_) {
@@ -369,9 +457,66 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     );
   }
 
+  Future<void> _handleReversePayment(
+    BuildContext context,
+    WidgetRef ref,
+    Payment payment,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        title: Text(
+          'Reverse Payment Receipt',
+          style: TextStyle(color: AppColors.darkTextPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to reverse this payment? This will mark the receipt as REVERSED, reverse all invoice allocations, update customer outstanding, and post reversing ledger entries. This action cannot be undone.',
+          style: TextStyle(color: AppColors.darkTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Reverse',
+              style: TextStyle(color: AppColors.darkTextPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      final messenger = ScaffoldMessenger.of(context);
+      try {
+        await ref
+            .read(paymentsListProvider.notifier)
+            .reversePayment(payment.id);
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Payment reversed successfully!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } catch (e) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to reverse payment: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildDetailPanel(String paymentId) {
     final paymentAsync = ref.watch(selectedPaymentProvider);
     final customers = ref.watch(customersListProvider).value ?? [];
+    final isMobile = context.isMobile;
 
     return paymentAsync.when(
       data: (payment) {
@@ -405,6 +550,68 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
           ),
         );
 
+        final bodyWidgets = [
+          _buildDetailRow('Customer', customer.name),
+          _buildDetailRow('Customer Code', customer.customerCode),
+          _buildDetailRow(
+            'Amount Received',
+            '₹${payment.amount.toStringAsFixed(2)}',
+            valueColor: AppColors.brandAmber,
+          ),
+          _buildDetailRow(
+            'Payment Date',
+            DateFormat('dd MMM yyyy').format(payment.paymentDate),
+          ),
+          _buildDetailRow('Payment Mode', payment.paymentMode),
+          _buildDetailRow(
+            'Reference / Txn ID',
+            payment.referenceNumber ?? 'None',
+          ),
+          _buildDetailRow('Depositing Bank', payment.bankName ?? 'N/A'),
+          _buildDetailRow('Notes', payment.notes ?? 'No notes recorded'),
+          _buildDetailRow(
+            'Allocated Invoice ID',
+            payment.invoiceId ?? 'Auto-Allocated / Advance Account',
+          ),
+          _buildDetailRow(
+            'Status',
+            payment.status.displayName,
+            valueColor: payment.status == PaymentStatus.reversed
+                ? AppColors.error
+                : AppColors.success,
+          ),
+          if (payment.status == PaymentStatus.posted) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                foregroundColor: AppColors.error,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              icon: const Icon(Icons.undo_rounded),
+              label: const Text(
+                'Reverse Payment (Audit Rollback)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => _handleReversePayment(context, ref, payment),
+            ),
+          ],
+        ];
+
+        if (isMobile) {
+          return DetailPageTemplate(
+            title: payment.paymentNumber,
+            subtitle:
+                'Recorded on ${DateFormat('dd MMM yyyy, hh:mm a').format(payment.createdAt)}',
+            onBack: () => Navigator.of(context).pop(),
+            sections: bodyWidgets,
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -429,7 +636,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                       Text(
                         'Recorded on ${DateFormat('dd MMM yyyy, hh:mm a').format(payment.createdAt)}',
                         style: TextStyle(
-                          color: AppColors.darkTextTertiary,
+                          color: AppColors.darkTextSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -451,118 +658,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(24),
-                children: [
-                  _buildDetailRow('Customer', customer.name),
-                  _buildDetailRow('Customer Code', customer.customerCode),
-                  _buildDetailRow(
-                    'Amount Received',
-                    '₹${payment.amount.toStringAsFixed(2)}',
-                    valueColor: AppColors.brandAmber,
-                  ),
-                  _buildDetailRow(
-                    'Payment Date',
-                    DateFormat('dd MMM yyyy').format(payment.paymentDate),
-                  ),
-                  _buildDetailRow('Payment Mode', payment.paymentMode),
-                  _buildDetailRow(
-                    'Reference / Txn ID',
-                    payment.referenceNumber ?? 'None',
-                  ),
-                  _buildDetailRow('Depositing Bank', payment.bankName ?? 'N/A'),
-                  _buildDetailRow(
-                    'Notes',
-                    payment.notes ?? 'No notes recorded',
-                  ),
-                  _buildDetailRow(
-                    'Allocated Invoice ID',
-                    payment.invoiceId ?? 'Auto-Allocated / Advance Account',
-                  ),
-                  _buildDetailRow(
-                    'Status',
-                    payment.status.displayName,
-                    valueColor: payment.status == PaymentStatus.reversed
-                        ? AppColors.error
-                        : AppColors.success,
-                  ),
-                  if (payment.status == PaymentStatus.posted) ...[
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error.withValues(alpha: 0.2),
-                        foregroundColor: AppColors.error,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      icon: const Icon(Icons.undo_rounded),
-                      label: const Text(
-                        'Reverse Payment (Audit Rollback)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            backgroundColor: AppColors.darkCard,
-                            title: Text(
-                              'Reverse Payment Receipt',
-                              style: TextStyle(
-                                color: AppColors.darkTextPrimary,
-                              ),
-                            ),
-                            content: Text(
-                              'Are you sure you want to reverse this payment? This will mark the receipt as REVERSED, reverse all invoice allocations, update customer outstanding, and post reversing ledger entries. This action cannot be undone.',
-                              style: TextStyle(
-                                color: AppColors.darkTextSecondary,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.error,
-                                ),
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: Text(
-                                  'Reverse',
-                                  style: TextStyle(
-                                    color: AppColors.darkTextPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          final messenger = ScaffoldMessenger.of(context);
-                          try {
-                            await ref
-                                .read(paymentsListProvider.notifier)
-                                .reversePayment(payment.id);
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('Payment reversed successfully!'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                          } catch (e) {
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to reverse payment: $e'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ],
+                children: bodyWidgets,
               ),
             ),
           ],

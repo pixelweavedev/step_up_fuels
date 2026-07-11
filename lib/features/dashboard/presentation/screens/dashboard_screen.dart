@@ -14,6 +14,7 @@ import 'package:step_up_fuels/features/reports/domain/entities/report_models.dar
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/stat_card.dart';
+import 'package:step_up_fuels/shared/widgets/templates/dashboard_template.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -23,101 +24,170 @@ class DashboardScreen extends ConsumerWidget {
     ref.watch(themeModeProvider);
     final statsAsync = ref.watch(dashboardStatsProvider);
     final expenseAsync = ref.watch(expenseReportProvider);
+    final isMobile = context.isMobile;
 
-    return Scaffold(
-      backgroundColor: AppColors.darkBackground,
-      body: statsAsync.when(
-        data: (stats) => RefreshIndicator(
-          onRefresh: () => ref.read(dashboardStatsProvider.notifier).refresh(),
-          color: AppColors.brandAmber,
-          backgroundColor: AppColors.darkSurface,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverPadding(
-                padding: AppSpacing.page(context),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Row
-                      _buildHeader(context, ref),
-                      const SizedBox(height: 28),
+    return statsAsync.when(
+      data: (stats) {
+        if (isMobile) {
+          return DashboardTemplate(
+            greeting: _buildHeader(context, ref),
+            alerts: stats.lowStockAlerts.isNotEmpty
+                ? [_buildLowStockWarning(stats.lowStockAlerts)]
+                : null,
+            kpis: [
+              StatCard(
+                title: 'Revenue (This Month)',
+                value:
+                    '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
+                icon: Icons.trending_up_rounded,
+                gradientColors: AppColors.gradientRevenue,
+                subtitle: 'Month-to-date sales',
+              ),
+              StatCard(
+                title: 'Outstanding Receivables',
+                value:
+                    '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
+                icon: Icons.account_balance_wallet_outlined,
+                gradientColors: AppColors.gradientOutstanding,
+                subtitle: 'Customer unpaid balance',
+              ),
+              StatCard(
+                title: 'Main Stock (Litres)',
+                value:
+                    '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
+                icon: Icons.local_gas_station_rounded,
+                gradientColors: AppColors.gradientStock,
+                subtitle: 'Terminal storage stock',
+              ),
+              StatCard(
+                title: 'Today Deliveries',
+                value: '${stats.todayDeliveriesCount}',
+                icon: Icons.local_shipping_rounded,
+                gradientColors: AppColors.gradientInvoices,
+                subtitle:
+                    '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
+              ),
+            ],
+            charts: [
+              _buildSalesTrendChart(),
+              _buildExpenseBreakdownChart(expenseAsync),
+              _buildBowserStockLevels(stats.bowserStockLevels),
+            ],
+            recentActivity: _buildRecentInvoices(stats.recentInvoices),
+            onRefresh: () =>
+                ref.read(dashboardStatsProvider.notifier).refresh(),
+          );
+        }
 
-                      // Low Stock Alerts (if any)
-                      if (stats.lowStockAlerts.isNotEmpty) ...[
-                        _buildLowStockWarning(stats.lowStockAlerts),
-                        const SizedBox(height: 24),
+        return Scaffold(
+          backgroundColor: AppColors.darkBackground,
+          body: RefreshIndicator(
+            onRefresh: () =>
+                ref.read(dashboardStatsProvider.notifier).refresh(),
+            color: AppColors.brandAmber,
+            backgroundColor: AppColors.darkSurface,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: AppSpacing.page(context),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header Row
+                        _buildHeader(context, ref),
+                        const SizedBox(height: 28),
+
+                        // Low Stock Alerts (if any)
+                        if (stats.lowStockAlerts.isNotEmpty) ...[
+                          _buildLowStockWarning(stats.lowStockAlerts),
+                          const SizedBox(height: 24),
+                        ],
                       ],
+                    ),
+                  ),
+                ),
+
+                // KPI Cards
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.page(context).left,
+                  ),
+                  sliver: AdaptiveSliverGrid.fixed(
+                    columns: const {
+                      ScreenType.mobile: 1,
+                      ScreenType.smallTablet: 2,
+                      ScreenType.tablet: 2,
+                      ScreenType.desktop: 4,
+                      ScreenType.wideDesktop: 4,
+                    },
+                    childAspectRatio: context.responsiveValue(
+                      desktop: 1.5,
+                      tablet: 1.6,
+                      smallTablet: 1.8,
+                      mobile: 2.2,
+                    ),
+                    children: [
+                      StatCard(
+                        title: 'Revenue (This Month)',
+                        value:
+                            '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
+                        icon: Icons.trending_up_rounded,
+                        gradientColors: AppColors.gradientRevenue,
+                        subtitle: 'Month-to-date sales',
+                      ),
+                      StatCard(
+                        title: 'Outstanding Receivables',
+                        value:
+                            '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
+                        icon: Icons.account_balance_wallet_outlined,
+                        gradientColors: AppColors.gradientOutstanding,
+                        subtitle: 'Customer unpaid balance',
+                      ),
+                      StatCard(
+                        title: 'Main Stock (Litres)',
+                        value:
+                            '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
+                        icon: Icons.local_gas_station_rounded,
+                        gradientColors: AppColors.gradientStock,
+                        subtitle: 'Terminal storage stock',
+                      ),
+                      StatCard(
+                        title: 'Today Deliveries',
+                        value: '${stats.todayDeliveriesCount}',
+                        icon: Icons.local_shipping_rounded,
+                        gradientColors: AppColors.gradientInvoices,
+                        subtitle:
+                            '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
+                      ),
                     ],
                   ),
                 ),
-              ),
 
-              // KPI Cards
-              SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.page(context).left),
-                sliver: AdaptiveSliverGrid.fixed(
-                  columns: const {
-                    ScreenType.mobile: 1,
-                    ScreenType.smallTablet: 2,
-                    ScreenType.tablet: 2,
-                    ScreenType.desktop: 4,
-                    ScreenType.wideDesktop: 4,
-                  },
-                  childAspectRatio: context.responsiveValue(
-                    desktop: 1.5,
-                    tablet: 1.6,
-                    smallTablet: 1.8,
-                    mobile: 2.2,
+                // Charts & Lists Layout
+                SliverPadding(
+                  padding: AppSpacing.page(
+                    context,
+                  ).copyWith(top: AppSpacing.sectionGap(context)),
+                  sliver: SliverToBoxAdapter(
+                    child: _buildChartsLayout(context, stats, expenseAsync),
                   ),
-                  children: [
-                    StatCard(
-                      title: 'Revenue (This Month)',
-                      value: '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
-                      icon: Icons.trending_up_rounded,
-                      gradientColors: AppColors.gradientRevenue,
-                      subtitle: 'Month-to-date sales',
-                    ),
-                    StatCard(
-                      title: 'Outstanding Receivables',
-                      value: '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
-                      icon: Icons.account_balance_wallet_outlined,
-                      gradientColors: AppColors.gradientOutstanding,
-                      subtitle: 'Customer unpaid balance',
-                    ),
-                    StatCard(
-                      title: 'Main Stock (Litres)',
-                      value: '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
-                      icon: Icons.local_gas_station_rounded,
-                      gradientColors: AppColors.gradientStock,
-                      subtitle: 'Terminal storage stock',
-                    ),
-                    StatCard(
-                      title: 'Today Deliveries',
-                      value: '${stats.todayDeliveriesCount}',
-                      icon: Icons.local_shipping_rounded,
-                      gradientColors: AppColors.gradientInvoices,
-                      subtitle: '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
-                    ),
-                  ],
                 ),
-              ),
-
-              // Charts & Lists Layout
-              SliverPadding(
-                padding: AppSpacing.page(context).copyWith(top: AppSpacing.sectionGap(context)),
-                sliver: SliverToBoxAdapter(
-                  child: _buildChartsLayout(context, stats, expenseAsync),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        loading: () => const Center(
+        );
+      },
+      loading: () => Scaffold(
+        backgroundColor: AppColors.darkBackground,
+        body: const Center(
           child: CircularProgressIndicator(color: AppColors.brandAmber),
         ),
-        error: (e, st) => Center(
+      ),
+      error: (e, _) => Scaffold(
+        backgroundColor: AppColors.darkBackground,
+        body: Center(
           child: Text(
             'Error loading dashboard: $e',
             style: const TextStyle(color: AppColors.error),
@@ -627,15 +697,21 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(width: 16),
-        IconButton(
-          icon: const Icon(Icons.refresh_rounded, color: AppColors.brandAmber),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.darkSurface,
-            side: BorderSide(color: AppColors.darkBorder),
+        if (!context.isMobile) ...[
+          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.brandAmber,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.darkSurface,
+              side: BorderSide(color: AppColors.darkBorder),
+            ),
+            onPressed: () =>
+                ref.read(dashboardStatsProvider.notifier).refresh(),
           ),
-          onPressed: () => ref.read(dashboardStatsProvider.notifier).refresh(),
-        ),
+        ],
       ],
     );
   }

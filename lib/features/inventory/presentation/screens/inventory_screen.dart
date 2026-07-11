@@ -14,6 +14,8 @@ import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class InventoryScreen extends ConsumerWidget {
@@ -25,6 +27,109 @@ class InventoryScreen extends ConsumerWidget {
     final locationsAsync = ref.watch(storageLocationsProvider);
     final selectedLocationId = ref.watch(selectedStorageLocationIdProvider);
     final isMobileOrSmall = context.isMobileOrSmallTablet;
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return locationsAsync.when(
+        data: (locations) {
+          if (locations.isEmpty) {
+            return const Scaffold(
+              body: SafeArea(
+                child: EmptyStateWidget(
+                  icon: Icons.local_gas_station_rounded,
+                  title: 'No Storage Locations Found',
+                  subtitle:
+                      'Please seed default settings or register storage locations.',
+                ),
+              ),
+            );
+          }
+
+          return ListPageTemplate(
+            title: 'Locations',
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: AppColors.brandAmber,
+                ),
+                onPressed: () => _showAddLocationDialog(context, ref),
+              ),
+            ],
+            body: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final loc = locations[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  color: AppColors.darkCard,
+                  child: ListTile(
+                    leading: Icon(
+                      loc.type == StorageLocationType.mainStorage
+                          ? Icons.store_rounded
+                          : Icons.local_shipping_rounded,
+                      color: AppColors.brandAmber,
+                    ),
+                    title: Text(
+                      loc.name,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      loc.type == StorageLocationType.mainStorage
+                          ? 'Main Terminal'
+                          : 'Mobile Bowser',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                    onTap: () {
+                      ref
+                              .read(selectedStorageLocationIdProvider.notifier)
+                              .state =
+                          loc.id;
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute<void>(
+                              builder: (ctx) =>
+                                  const _LocationDetailDashboard(),
+                            ),
+                          )
+                          .then((_) {
+                            ref
+                                    .read(
+                                      selectedStorageLocationIdProvider
+                                          .notifier,
+                                    )
+                                    .state =
+                                null;
+                          });
+                    },
+                  ),
+                );
+              }, childCount: locations.length),
+            ),
+            isSliver: true,
+          );
+        },
+        error: (err, st) => Scaffold(
+          body: Center(
+            child: Text(
+              'Error: $err',
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ),
+        loading: () => const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.brandAmber),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -42,7 +147,9 @@ class InventoryScreen extends ConsumerWidget {
           }
 
           // Auto-select first location if none is selected
-          if (selectedLocationId == null && locations.isNotEmpty && !isMobileOrSmall) {
+          if (selectedLocationId == null &&
+              locations.isNotEmpty &&
+              !isMobileOrSmall) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedStorageLocationIdProvider.notifier).state =
                   locations.first.id;
@@ -70,8 +177,7 @@ class InventoryScreen extends ConsumerWidget {
                         Icons.add_circle_outline,
                         color: AppColors.brandAmber,
                       ),
-                      onPressed: () =>
-                          _showAddLocationDialog(context, ref),
+                      onPressed: () => _showAddLocationDialog(context, ref),
                     ),
                   ],
                 ),
@@ -115,29 +221,26 @@ class InventoryScreen extends ConsumerWidget {
                       ),
                       onTap: () {
                         ref
-                            .read(
-                              selectedStorageLocationIdProvider.notifier,
-                            )
-                            .state = loc.id;
+                            .read(selectedStorageLocationIdProvider.notifier)
+                            .state = loc
+                            .id;
                         if (isMobileOrSmall) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (ctx) => Scaffold(
-                                appBar: AppBar(
-                                  title: Text(loc.name),
-                                  backgroundColor: AppColors.darkSurface,
-                                  foregroundColor: AppColors.darkTextPrimary,
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute<void>(
+                                  builder: (ctx) =>
+                                      const _LocationDetailDashboard(),
                                 ),
-                                body: const _LocationDetailDashboard(),
-                              ),
-                            ),
-                          ).then((_) {
-                            ref
-                                .read(
-                                  selectedStorageLocationIdProvider.notifier,
-                                )
-                                .state = null;
-                          });
+                              )
+                              .then((_) {
+                                ref
+                                        .read(
+                                          selectedStorageLocationIdProvider
+                                              .notifier,
+                                        )
+                                        .state =
+                                    null;
+                              });
                         }
                       },
                     );
@@ -281,22 +384,75 @@ class _LocationDetailDashboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locationAsync = ref.watch(selectedStorageLocationProvider);
     final productsAsync = ref.watch(productsListProvider);
+    final isMobile = context.isMobile;
 
     return locationAsync.when(
       data: (location) {
         return productsAsync.when(
           data: (products) {
             if (products.isEmpty) {
-              return const Center(
+              const emptyWidget = Center(
                 child: EmptyStateWidget(
                   icon: Icons.inventory_2_outlined,
                   title: 'No Products Registered',
                   subtitle: 'Please add products first under the Products tab.',
                 ),
               );
+              return isMobile
+                  ? Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Inventory'),
+                        backgroundColor: AppColors.darkSurface,
+                        foregroundColor: AppColors.darkTextPrimary,
+                      ),
+                      body: const SafeArea(child: emptyWidget),
+                    )
+                  : emptyWidget;
             }
 
             final firstProduct = products.first;
+
+            if (isMobile) {
+              return DetailPageTemplate(
+                title: location.name,
+                subtitle: 'Real-Time Balance & Historical Stock Ledger',
+                actions: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.tune_rounded,
+                      color: AppColors.brandAmber,
+                    ),
+                    onPressed: () => _showAdjustmentDialog(
+                      context,
+                      ref,
+                      location,
+                      firstProduct,
+                    ),
+                  ),
+                ],
+                sections: [
+                  _StockBalanceCard(
+                    locationId: location.id,
+                    productId: firstProduct.id,
+                    product: firstProduct,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Inventory Movements Logs',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkTextPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.5,
+                    child: _MovementsList(locationId: location.id),
+                  ),
+                ],
+              );
+            }
 
             return Padding(
               padding: const EdgeInsets.all(24),
@@ -306,7 +462,7 @@ class _LocationDetailDashboard extends ConsumerWidget {
                   // Title Block
                   Builder(
                     builder: (context) {
-                      final isMobile = context.isMobileOrSmallTablet;
+                      final isMobileOrSmall = context.isMobileOrSmallTablet;
                       final titleBlock = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -330,7 +486,9 @@ class _LocationDetailDashboard extends ConsumerWidget {
                       );
 
                       final actionButton = PrimaryButton(
-                        label: isMobile ? 'Adjust Stock' : 'Record Stock Adjustment',
+                        label: isMobileOrSmall
+                            ? 'Adjust Stock'
+                            : 'Record Stock Adjustment',
                         icon: Icons.tune_rounded,
                         onPressed: () => _showAdjustmentDialog(
                           context,
@@ -340,7 +498,7 @@ class _LocationDetailDashboard extends ConsumerWidget {
                         ),
                       );
 
-                      return isMobile
+                      return isMobileOrSmall
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -388,17 +546,66 @@ class _LocationDetailDashboard extends ConsumerWidget {
               ),
             );
           },
-          error: (err, st) => Center(child: Text('Error: $err')),
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.brandAmber),
-          ),
+          error: (err, st) {
+            final errWidget = Center(child: Text('Error: $err'));
+            return isMobile
+                ? Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Error'),
+                      backgroundColor: AppColors.darkSurface,
+                      foregroundColor: AppColors.darkTextPrimary,
+                    ),
+                    body: SafeArea(child: errWidget),
+                  )
+                : errWidget;
+          },
+          loading: () {
+            const loadingWidget = Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            );
+            return isMobile
+                ? Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Loading...'),
+                      backgroundColor: AppColors.darkSurface,
+                      foregroundColor: AppColors.darkTextPrimary,
+                    ),
+                    body: const SafeArea(child: loadingWidget),
+                  )
+                : loadingWidget;
+          },
         );
       },
-      error: (err, st) =>
-          const Center(child: Text('Please select a storage location.')),
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.brandAmber),
-      ),
+      error: (err, st) {
+        const errWidget = Center(
+          child: Text('Please select a storage location.'),
+        );
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Inventory Details'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: const SafeArea(child: errWidget),
+              )
+            : errWidget;
+      },
+      loading: () {
+        const loadingWidget = Center(
+          child: CircularProgressIndicator(color: AppColors.brandAmber),
+        );
+        return isMobile
+            ? Scaffold(
+                appBar: AppBar(
+                  title: const Text('Loading...'),
+                  backgroundColor: AppColors.darkSurface,
+                  foregroundColor: AppColors.darkTextPrimary,
+                ),
+                body: const SafeArea(child: loadingWidget),
+              )
+            : loadingWidget;
+      },
     );
   }
 

@@ -23,6 +23,8 @@ import 'package:step_up_fuels/features/payments/presentation/screens/payments_sc
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
@@ -50,17 +52,90 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final statusFilter = ref.watch(invoiceStatusFilterProvider);
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
+    if (context.isMobile) {
+      return ListPageTemplate(
+        title: 'Invoices',
+        searchWidget: Container(
+          height: 42,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.darkCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.darkBorder),
+          ),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: (v) =>
+                ref.read(invoiceSearchQueryProvider.notifier).state = v,
+            style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Search by invoice number or customer…',
+              hintStyle: TextStyle(
+                color: AppColors.darkTextTertiary,
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: AppColors.darkTextSecondary,
+                size: 20,
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ),
+        filterWidget: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _StatusFilterDropdown(),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildStatSummary(),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _openCreateInvoiceDialog(context),
+          backgroundColor: AppColors.brandAmber,
+          foregroundColor: AppColors.darkBackground,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text(
+            'New Invoice',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: invoicesAsync.when(
+          data: (invoices) => _buildInvoiceList(invoices, selectedId, true),
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.brandAmber),
+          ),
+          error: (e, _) => Center(
+            child: Text(
+              e.toString(),
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+        ),
+      );
+    }
+
     final masterWidget = Column(
       children: [
         _buildHeader(context, statusFilter),
         _buildSearchAndFilters(),
         Expanded(
           child: invoicesAsync.when(
-            data: (invoices) => _buildInvoiceList(invoices, selectedId, isMobileOrSmall),
+            data: (invoices) =>
+                _buildInvoiceList(invoices, selectedId, isMobileOrSmall),
             loading: () => const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.brandAmber,
-              ),
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
             ),
             error: (e, _) => Center(
               child: Text(
@@ -312,10 +387,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
               controller: _searchCtrl,
               onChanged: (v) =>
                   ref.read(invoiceSearchQueryProvider.notifier).state = v,
-              style: TextStyle(
-                color: AppColors.darkTextPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search by invoice number or customer…',
                 hintStyle: TextStyle(
@@ -342,7 +414,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     );
   }
 
-  Widget _buildInvoiceList(List<Invoice> invoices, String? selectedId, bool isMobileOrSmall) {
+  Widget _buildInvoiceList(
+    List<Invoice> invoices,
+    String? selectedId,
+    bool isMobileOrSmall,
+  ) {
     if (invoices.isEmpty) {
       return _EmptyInvoicesPlaceholder(
         onNew: () => _openCreateInvoiceDialog(context),
@@ -362,25 +438,20 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           onTap: () {
             ref.read(selectedInvoiceIdProvider.notifier).state = inv.id;
             if (isMobileOrSmall) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (ctx) => Scaffold(
-                    appBar: AppBar(
-                      title: Text(inv.invoiceNumber),
-                      backgroundColor: AppColors.darkSurface,
-                      foregroundColor: AppColors.darkTextPrimary,
+              Navigator.of(context)
+                  .push(
+                    MaterialPageRoute<void>(
+                      builder: (ctx) => _InvoiceDetailPanel(
+                        invoiceId: inv.id,
+                        onClose: () {
+                          Navigator.of(ctx).pop();
+                        },
+                      ),
                     ),
-                    body: _InvoiceDetailPanel(
-                      invoiceId: inv.id,
-                      onClose: () {
-                        Navigator.of(ctx).pop();
-                      },
-                    ),
-                  ),
-                ),
-              ).then((_) {
-                ref.read(selectedInvoiceIdProvider.notifier).state = null;
-              });
+                  )
+                  .then((_) {
+                    ref.read(selectedInvoiceIdProvider.notifier).state = null;
+                  });
             }
           },
         );
@@ -389,7 +460,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   }
 
   void _openCreateInvoiceDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: AppColors.scrim,
       builder: (_) => const _CreateInvoiceDialog(uuid: _uuid),
@@ -613,10 +684,583 @@ class _DetailContent extends ConsumerWidget {
   final ({Invoice invoice, List<InvoiceItem> items}) detail;
   final VoidCallback onClose;
 
+  Future<void> _handleReceiveFullPayment(
+    BuildContext context,
+    WidgetRef ref,
+    Invoice inv,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.darkCard,
+        title: Text(
+          'Receive Full Payment',
+          style: TextStyle(color: AppColors.darkTextPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to record full receipt of ₹${_fmt(inv.outstanding)} for this invoice?',
+          style: TextStyle(color: AppColors.darkTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandAmber,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Confirm',
+              style: TextStyle(color: AppColors.darkBackground),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      final payment = Payment(
+        id: const Uuid().v4(),
+        paymentNumber: 'PENDING',
+        customerId: inv.customerId,
+        invoiceId: inv.id,
+        amount: inv.outstanding,
+        paymentDate: DateTime.now(),
+        paymentMode: 'BANK_TRANSFER',
+        notes: 'Full payment received directly from Invoice screen.',
+        status: PaymentStatus.posted,
+        createdBy: 'system',
+        createdAt: DateTime.now(),
+        updatedBy: 'system',
+        updatedAt: DateTime.now(),
+        version: 1,
+      );
+      try {
+        await ref
+            .read(paymentsListProvider.notifier)
+            .receivePayment(payment, autoAllocate: false);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Full payment receipt saved successfully!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          ref.invalidate(invoiceDetailProvider(inv.id));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save receipt: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inv = detail.invoice;
     final items = detail.items;
+    final isMobile = context.isMobile;
+
+    final bodyWidgets = [
+      if (isMobile) ...[
+        _DetailCard(
+          label: 'Subtotal',
+          value: '₹${_fmt(inv.subtotal)}',
+          icon: Icons.summarize_outlined,
+          color: AppColors.info,
+          isFullWidth: true,
+        ),
+        const SizedBox(height: 10),
+        _DetailCard(
+          label: 'GST',
+          value: '₹${_fmt(inv.totalGst)}',
+          icon: Icons.percent_rounded,
+          color: AppColors.brandAmber,
+          isFullWidth: true,
+        ),
+        const SizedBox(height: 10),
+        _DetailCard(
+          label: 'Total',
+          value: '₹${_fmt(inv.totalAmount)}',
+          icon: Icons.account_balance_wallet_outlined,
+          color: AppColors.success,
+          isFullWidth: true,
+        ),
+      ] else
+        Row(
+          children: [
+            _DetailCard(
+              label: 'Subtotal',
+              value: '₹${_fmt(inv.subtotal)}',
+              icon: Icons.summarize_outlined,
+              color: AppColors.info,
+            ),
+            const SizedBox(width: 12),
+            _DetailCard(
+              label: 'GST',
+              value: '₹${_fmt(inv.totalGst)}',
+              icon: Icons.percent_rounded,
+              color: AppColors.brandAmber,
+            ),
+            const SizedBox(width: 12),
+            _DetailCard(
+              label: 'Total',
+              value: '₹${_fmt(inv.totalAmount)}',
+              icon: Icons.account_balance_wallet_outlined,
+              color: AppColors.success,
+            ),
+          ],
+        ),
+      const SizedBox(height: 20),
+
+      if (!inv.isInterstate) ...[
+        _GstBreakdownRow('CGST', inv.cgstAmount),
+        _GstBreakdownRow('SGST', inv.sgstAmount),
+      ] else ...[
+        _GstBreakdownRow('IGST', inv.igstAmount),
+      ],
+
+      const SizedBox(height: 20),
+      const _SectionHeader('Invoice Details'),
+      const SizedBox(height: 10),
+      _MetaRow('Customer ID', inv.customerId),
+      _MetaRow('Supply Type', inv.supplyType),
+      _MetaRow('Place of Supply', inv.placeOfSupply),
+      _MetaRow(
+        'GST Type',
+        inv.isInterstate ? 'Interstate (IGST)' : 'Intrastate (CGST+SGST)',
+      ),
+      _MetaRow(
+        'Invoice Date',
+        DateFormat('dd MMM yyyy').format(inv.invoiceDate),
+      ),
+      _MetaRow('Due Date', DateFormat('dd MMM yyyy').format(inv.dueDate)),
+      if (inv.notes != null && inv.notes!.isNotEmpty)
+        _MetaRow('Notes', inv.notes!),
+      if (inv.cancelledReason != null)
+        _MetaRow(
+          'Cancel Reason',
+          inv.cancelledReason!,
+          valueColor: AppColors.error,
+        ),
+
+      const SizedBox(height: 20),
+      const _SectionHeader('Payment Status'),
+      const SizedBox(height: 10),
+      _MetaRow(
+        'Amount Paid',
+        '₹${_fmt(inv.amountPaid)}',
+        valueColor: AppColors.success,
+      ),
+      _MetaRow(
+        'Outstanding',
+        '₹${_fmt(inv.outstanding)}',
+        valueColor: inv.outstanding > 0
+            ? AppColors.statusOverdue
+            : AppColors.success,
+      ),
+
+      if (inv.outstanding > 0 &&
+          (inv.status == InvoiceStatus.posted ||
+              inv.status == InvoiceStatus.partiallyPaid ||
+              inv.status == InvoiceStatus.overdue)) ...[
+        const SizedBox(height: 12),
+        if (isMobile)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brandAmber,
+                  foregroundColor: AppColors.darkBackground,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.payment_rounded, size: 16),
+                label: const Text(
+                  'Record Payment',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => RecordPaymentDialog(
+                      preSelectedCustomerId: inv.customerId,
+                      preSelectedInvoiceId: inv.id,
+                      preFilledAmount: inv.outstanding,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brandAmber,
+                  side: const BorderSide(color: AppColors.brandAmber),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.done_all_rounded, size: 16),
+                label: const Text(
+                  'Receive Full Payment',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _handleReceiveFullPayment(context, ref, inv),
+              ),
+            ],
+          )
+        else
+          Row(
+            children: [
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brandAmber,
+                  foregroundColor: AppColors.darkBackground,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.payment_rounded, size: 16),
+                label: const Text(
+                  'Record Payment',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) => RecordPaymentDialog(
+                      preSelectedCustomerId: inv.customerId,
+                      preSelectedInvoiceId: inv.id,
+                      preFilledAmount: inv.outstanding,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.brandAmber,
+                  side: const BorderSide(color: AppColors.brandAmber),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.done_all_rounded, size: 16),
+                label: const Text(
+                  'Receive Full Payment',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _handleReceiveFullPayment(context, ref, inv),
+              ),
+            ],
+          ),
+      ],
+
+      const SizedBox(height: 24),
+      const _SectionHeader('Payment History'),
+      const SizedBox(height: 10),
+      ref
+          .watch(paymentAllocationsForInvoiceProvider(inv.id))
+          .when(
+            data: (allocs) {
+              if (allocs.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No payments recorded yet for this invoice.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkTextSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                );
+              }
+              final allPayments = ref.watch(paymentsListProvider).value ?? [];
+              return Column(
+                children: allocs.map((alloc) {
+                  final pmt = allPayments.firstWhere(
+                    (p) => p.id == alloc.paymentId,
+                    orElse: () => Payment(
+                      id: '',
+                      paymentNumber: 'Unknown PMT',
+                      customerId: '',
+                      amount: 0,
+                      paymentDate: DateTime.now(),
+                      paymentMode: '',
+                      status: PaymentStatus.posted,
+                      createdBy: '',
+                      createdAt: DateTime.now(),
+                      updatedBy: '',
+                      updatedAt: DateTime.now(),
+                      version: 1,
+                    ),
+                  );
+                  return Card(
+                    color: AppColors.darkSurface,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: AppColors.darkBorder),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: AppColors.success,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  pmt.paymentNumber,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkTextPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Date: ${DateFormat('dd MMM yyyy').format(pmt.paymentDate)} • Mode: ${pmt.paymentMode}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.darkTextSecondary,
+                                  ),
+                                ),
+                                if (pmt.notes != null &&
+                                    pmt.notes!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Note: ${pmt.notes}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.darkTextTertiary,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '₹${_fmt(alloc.allocatedAmount)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkTextPrimary,
+                                ),
+                              ),
+                              Text(
+                                alloc.type.displayName,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: alloc.type == AllocationType.advance
+                                      ? AppColors.brandAmber
+                                      : AppColors.darkTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.brandAmber,
+              ),
+            ),
+            error: (e, _) => Text(
+              'Error loading history: $e',
+              style: const TextStyle(color: AppColors.error, fontSize: 11),
+            ),
+          ),
+
+      const SizedBox(height: 20),
+      _SectionHeader('Line Items (${items.length})'),
+      const SizedBox(height: 10),
+      ...items.map((item) => _LineItemCard(item: item)),
+    ];
+
+    if (isMobile) {
+      return DetailPageTemplate(
+        title: inv.invoiceNumber,
+        subtitle: 'Due: ${DateFormat('dd MMM yyyy').format(inv.dueDate)}',
+        statusWidget: _StatusBadge(inv.status),
+        onBack: onClose,
+        actions: [
+          if (inv.status == InvoiceStatus.draft ||
+              inv.status == InvoiceStatus.verified)
+            IconButton(
+              icon: const Icon(
+                Icons.publish_rounded,
+                color: AppColors.statusPosted,
+              ),
+              tooltip: 'Post',
+              onPressed: () async {
+                try {
+                  await ref
+                      .read(invoicesListProvider.notifier)
+                      .postInvoice(inv.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Invoice posted successfully!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                    ref.invalidate(invoiceDetailProvider(inv.id));
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          if (inv.isCancellable)
+            IconButton(
+              icon: const Icon(Icons.cancel_outlined, color: AppColors.error),
+              tooltip: 'Cancel',
+              onPressed: () => _showCancelDialog(context, ref, inv),
+            ),
+          IconButton(
+            icon: Icon(Icons.print_outlined, color: AppColors.darkTextPrimary),
+            onPressed: () async {
+              final customers = ref.read(customersListProvider).value ?? [];
+              final customer = customers.firstWhere(
+                (c) => c.id == inv.customerId,
+                orElse: () => Customer(
+                  id: inv.customerId,
+                  customerCode: '',
+                  name: 'Unknown Customer',
+                  type: CustomerType.individual,
+                  isActive: true,
+                  creditLimit: 0,
+                  creditDays: 0,
+                  securityDeposit: 0,
+                  defaultGstRate: 0,
+                  emailInvoice: false,
+                  whatsappInvoice: false,
+                  requirePo: false,
+                  requireDc: false,
+                  requireSignature: false,
+                  gstApplicable: false,
+                  eInvoiceRequired: false,
+                  eWayBillRequired: false,
+                  openingBalance: 0,
+                  currentBalance: 0,
+                  createdBy: '',
+                  createdAt: DateTime.now(),
+                  updatedBy: '',
+                  updatedAt: DateTime.now(),
+                  version: 1,
+                ),
+              );
+              await PdfInvoiceGenerator.printInvoice(
+                invoice: inv,
+                items: items,
+                customer: customer,
+              );
+            },
+            tooltip: 'Print Invoice',
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.download_rounded,
+              color: AppColors.darkTextPrimary,
+            ),
+            onPressed: () async {
+              final customers = ref.read(customersListProvider).value ?? [];
+              final customer = customers.firstWhere(
+                (c) => c.id == inv.customerId,
+                orElse: () => Customer(
+                  id: inv.customerId,
+                  customerCode: '',
+                  name: 'Unknown Customer',
+                  type: CustomerType.individual,
+                  isActive: true,
+                  creditLimit: 0,
+                  creditDays: 0,
+                  securityDeposit: 0,
+                  defaultGstRate: 0,
+                  emailInvoice: false,
+                  whatsappInvoice: false,
+                  requirePo: false,
+                  requireDc: false,
+                  requireSignature: false,
+                  gstApplicable: false,
+                  eInvoiceRequired: false,
+                  eWayBillRequired: false,
+                  openingBalance: 0,
+                  currentBalance: 0,
+                  createdBy: '',
+                  createdAt: DateTime.now(),
+                  updatedBy: '',
+                  updatedAt: DateTime.now(),
+                  version: 1,
+                ),
+              );
+              await PdfInvoiceGenerator.downloadInvoice(
+                invoice: inv,
+                items: items,
+                customer: customer,
+              );
+            },
+            tooltip: 'Download PDF',
+          ),
+        ],
+        sections: bodyWidgets,
+      );
+    }
 
     return Column(
       children: [
@@ -786,395 +1430,13 @@ class _DetailContent extends ConsumerWidget {
             ],
           ),
         ),
-
         // Body
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Summary cards
-                Row(
-                  children: [
-                    _DetailCard(
-                      label: 'Subtotal',
-                      value: '₹${_fmt(inv.subtotal)}',
-                      icon: Icons.summarize_outlined,
-                      color: AppColors.info,
-                    ),
-                    const SizedBox(width: 12),
-                    _DetailCard(
-                      label: 'GST',
-                      value: '₹${_fmt(inv.totalGst)}',
-                      icon: Icons.percent_rounded,
-                      color: AppColors.brandAmber,
-                    ),
-                    const SizedBox(width: 12),
-                    _DetailCard(
-                      label: 'Total',
-                      value: '₹${_fmt(inv.totalAmount)}',
-                      icon: Icons.account_balance_wallet_outlined,
-                      color: AppColors.success,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // GST breakdown
-                if (!inv.isInterstate) ...[
-                  _GstBreakdownRow('CGST', inv.cgstAmount),
-                  _GstBreakdownRow('SGST', inv.sgstAmount),
-                ] else ...[
-                  _GstBreakdownRow('IGST', inv.igstAmount),
-                ],
-
-                const SizedBox(height: 20),
-                // Invoice meta
-                const _SectionHeader('Invoice Details'),
-                const SizedBox(height: 10),
-                _MetaRow('Customer ID', inv.customerId),
-                _MetaRow('Supply Type', inv.supplyType),
-                _MetaRow('Place of Supply', inv.placeOfSupply),
-                _MetaRow(
-                  'GST Type',
-                  inv.isInterstate
-                      ? 'Interstate (IGST)'
-                      : 'Intrastate (CGST+SGST)',
-                ),
-                _MetaRow(
-                  'Invoice Date',
-                  DateFormat('dd MMM yyyy').format(inv.invoiceDate),
-                ),
-                _MetaRow(
-                  'Due Date',
-                  DateFormat('dd MMM yyyy').format(inv.dueDate),
-                ),
-                if (inv.notes != null && inv.notes!.isNotEmpty)
-                  _MetaRow('Notes', inv.notes!),
-                if (inv.cancelledReason != null)
-                  _MetaRow(
-                    'Cancel Reason',
-                    inv.cancelledReason!,
-                    valueColor: AppColors.error,
-                  ),
-
-                const SizedBox(height: 20),
-                // Payment status
-                const _SectionHeader('Payment Status'),
-                const SizedBox(height: 10),
-                _MetaRow(
-                  'Amount Paid',
-                  '₹${_fmt(inv.amountPaid)}',
-                  valueColor: AppColors.success,
-                ),
-                _MetaRow(
-                  'Outstanding',
-                  '₹${_fmt(inv.outstanding)}',
-                  valueColor: inv.outstanding > 0
-                      ? AppColors.statusOverdue
-                      : AppColors.success,
-                ),
-
-                if (inv.outstanding > 0 &&
-                    (inv.status == InvoiceStatus.posted ||
-                        inv.status == InvoiceStatus.partiallyPaid ||
-                        inv.status == InvoiceStatus.overdue)) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brandAmber,
-                          foregroundColor: AppColors.darkBackground,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.payment_rounded, size: 16),
-                        label: const Text(
-                          'Record Payment',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => RecordPaymentDialog(
-                              preSelectedCustomerId: inv.customerId,
-                              preSelectedInvoiceId: inv.id,
-                              preFilledAmount: inv.outstanding,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.brandAmber,
-                          side: const BorderSide(color: AppColors.brandAmber),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(Icons.done_all_rounded, size: 16),
-                        label: const Text(
-                          'Receive Full Payment',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              backgroundColor: AppColors.darkCard,
-                              title: Text(
-                                'Receive Full Payment',
-                                style: TextStyle(
-                                  color: AppColors.darkTextPrimary,
-                                ),
-                              ),
-                              content: Text(
-                                'Are you sure you want to record full receipt of ₹${_fmt(inv.outstanding)} for this invoice?',
-                                style: TextStyle(
-                                  color: AppColors.darkTextSecondary,
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.brandAmber,
-                                  ),
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  child: Text(
-                                    'Confirm',
-                                    style: TextStyle(
-                                      color: AppColors.darkBackground,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirm == true) {
-                            final payment = Payment(
-                              id: const Uuid().v4(),
-                              paymentNumber: 'PENDING',
-                              customerId: inv.customerId,
-                              invoiceId: inv.id,
-                              amount: inv.outstanding,
-                              paymentDate: DateTime.now(),
-                              paymentMode: 'BANK_TRANSFER',
-                              notes:
-                                  'Full payment received directly from Invoice screen.',
-                              status: PaymentStatus.posted,
-                              createdBy: 'system',
-                              createdAt: DateTime.now(),
-                              updatedBy: 'system',
-                              updatedAt: DateTime.now(),
-                              version: 1,
-                            );
-                            try {
-                              await ref
-                                  .read(paymentsListProvider.notifier)
-                                  .receivePayment(payment, autoAllocate: false);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Full payment receipt saved successfully!',
-                                    ),
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                );
-                                ref.invalidate(invoiceDetailProvider(inv.id));
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to save receipt: $e'),
-                                    backgroundColor: AppColors.error,
-                                  ),
-                                );
-                              }
-                            }
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 24),
-                const _SectionHeader('Payment History'),
-                const SizedBox(height: 10),
-                ref
-                    .watch(paymentAllocationsForInvoiceProvider(inv.id))
-                    .when(
-                      data: (allocs) {
-                        if (allocs.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(
-                              'No payments recorded yet for this invoice.',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.darkTextSecondary,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          );
-                        }
-                        final allPayments =
-                            ref.watch(paymentsListProvider).value ?? [];
-                        return Column(
-                          children: allocs.map((alloc) {
-                            final pmt = allPayments.firstWhere(
-                              (p) => p.id == alloc.paymentId,
-                              orElse: () => Payment(
-                                id: '',
-                                paymentNumber: 'Unknown PMT',
-                                customerId: '',
-                                amount: 0,
-                                paymentDate: DateTime.now(),
-                                paymentMode: '',
-                                status: PaymentStatus.posted,
-                                createdBy: '',
-                                createdAt: DateTime.now(),
-                                updatedBy: '',
-                                updatedAt: DateTime.now(),
-                                version: 1,
-                              ),
-                            );
-                            return Card(
-                              color: AppColors.darkSurface,
-                              margin: const EdgeInsets.only(bottom: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: AppColors.darkBorder),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.check_circle_outline_rounded,
-                                      color: AppColors.success,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            pmt.paymentNumber,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.darkTextPrimary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'Date: ${DateFormat('dd MMM yyyy').format(pmt.paymentDate)} • Mode: ${pmt.paymentMode}',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color:
-                                                  AppColors.darkTextSecondary,
-                                            ),
-                                          ),
-                                          if (pmt.notes != null &&
-                                              pmt.notes!.isNotEmpty) ...[
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Note: ${pmt.notes}',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color:
-                                                    AppColors.darkTextTertiary,
-                                                fontStyle: FontStyle.italic,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          '₹${_fmt(alloc.allocatedAmount)}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkTextPrimary,
-                                          ),
-                                        ),
-                                        Text(
-                                          alloc.type.displayName,
-                                          style: TextStyle(
-                                            fontSize: 9,
-                                            color:
-                                                alloc.type ==
-                                                    AllocationType.advance
-                                                ? AppColors.brandAmber
-                                                : AppColors.darkTextSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.brandAmber,
-                        ),
-                      ),
-                      error: (e, _) => Text(
-                        'Error loading history: $e',
-                        style: const TextStyle(
-                          color: AppColors.error,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-
-                const SizedBox(height: 20),
-                // Line items
-                _SectionHeader('Line Items (${items.length})'),
-                const SizedBox(height: 10),
-                ...items.map((item) => _LineItemCard(item: item)),
-              ],
+              children: bodyWidgets,
             ),
           ),
         ),
@@ -1184,7 +1446,7 @@ class _DetailContent extends ConsumerWidget {
 
   void _showCancelDialog(BuildContext context, WidgetRef ref, Invoice inv) {
     final reasonCtrl = TextEditingController();
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.darkCard,
@@ -2106,47 +2368,47 @@ class _DetailCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.isFullWidth = false,
   });
 
   final String label;
   final String value;
   final IconData icon;
   final Color color;
+  final bool isFullWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: color.withValues(alpha: 0.7),
-              ),
+    final container = Container(
+      width: isFullWidth ? double.infinity : null,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    return isFullWidth ? container : Expanded(child: container);
   }
 }
 

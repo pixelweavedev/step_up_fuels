@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/responsive/responsive_dimensions.dart';
 import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
 import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/expenses/domain/entities/expense.dart';
@@ -71,7 +72,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     // On mobile/small-tablet: open as a DraggableScrollableSheet.
     // On tablet/desktop: slide in the side panel.
     if (ResponsiveLayout.isMobileOrSmallTablet(context)) {
-      showModalBottomSheet(
+      showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -82,7 +83,9 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
           builder: (ctx, scrollCtrl) => Container(
             decoration: BoxDecoration(
               color: AppColors.darkCard,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               border: Border.all(color: AppColors.darkBorder),
             ),
             child: _PurchaseDetailPanel(
@@ -130,7 +133,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
             child: TabBarView(
               controller: _tabCtrl,
               children: [
-                          // Tab 1: Fuel Purchases
+                // Tab 1: Fuel Purchases
                 Row(
                   children: [
                     Expanded(
@@ -542,6 +545,128 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
       );
     }
 
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: suppliers.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, i) {
+          final spl = suppliers[i];
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.darkCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.darkBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: AppColors.brandNavyLight,
+                      child: Text(
+                        spl.name.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.brandAmber,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            spl.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkTextPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            spl.supplierCode,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 14,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      spl.contactPerson,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.phone_outlined,
+                      size: 14,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      spl.phone,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pin_drop_outlined,
+                      size: 14,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${spl.billingCity ?? ""}, ${spl.billingState ?? ""}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.darkTextTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
     return GridView.builder(
       padding: EdgeInsets.all(ResponsiveSpacing.pageHorizontal(context)),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -856,7 +981,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   // ── Dialogs: Record Purchase ────────────────────────────────────────────────
 
   void _openCreatePurchaseDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: AppColors.scrim,
       builder: (_) => const _CreatePurchaseDialog(uuid: _uuid),
@@ -866,7 +991,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   // ── Dialogs: Add Supplier ───────────────────────────────────────────────────
 
   void _openAddSupplierDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: AppColors.scrim,
       builder: (_) => const _AddSupplierDialog(uuid: _uuid),
@@ -876,7 +1001,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   // ── Dialogs: Log Expense ────────────────────────────────────────────────────
 
   void _openAddExpenseDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierColor: AppColors.scrim,
       builder: (_) => const _AddExpenseDialog(uuid: _uuid),
@@ -916,6 +1041,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
   });
   final String purchaseId;
   final VoidCallback onClose;
+
   /// Optional scroll controller — passed from [DraggableScrollableSheet] on mobile.
   final ScrollController? scrollController;
 
@@ -971,30 +1097,55 @@ class _PurchaseDetailPanel extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _detailCard(
-                        'Subtotal',
-                        '₹${_fmt(detail.purchase.subtotal)}',
-                        Icons.summarize_outlined,
-                        AppColors.info,
-                      ),
-                      const SizedBox(width: 12),
-                      _detailCard(
-                        'Total Taxes',
-                        '₹${_fmt(detail.purchase.cgstAmount + detail.purchase.sgstAmount + detail.purchase.igstAmount)}',
-                        Icons.percent_rounded,
-                        AppColors.brandAmber,
-                      ),
-                      const SizedBox(width: 12),
-                      _detailCard(
-                        'Net Payable',
-                        '₹${_fmt(detail.purchase.totalAmount)}',
-                        Icons.account_balance_wallet_outlined,
-                        AppColors.success,
-                      ),
-                    ],
-                  ),
+                  if (context.isMobile) ...[
+                    _detailCard(
+                      'Subtotal',
+                      '₹${_fmt(detail.purchase.subtotal)}',
+                      Icons.summarize_outlined,
+                      AppColors.info,
+                      isFullWidth: true,
+                    ),
+                    const SizedBox(height: 10),
+                    _detailCard(
+                      'Total Taxes',
+                      '₹${_fmt(detail.purchase.cgstAmount + detail.purchase.sgstAmount + detail.purchase.igstAmount)}',
+                      Icons.percent_rounded,
+                      AppColors.brandAmber,
+                      isFullWidth: true,
+                    ),
+                    const SizedBox(height: 10),
+                    _detailCard(
+                      'Net Payable',
+                      '₹${_fmt(detail.purchase.totalAmount)}',
+                      Icons.account_balance_wallet_outlined,
+                      AppColors.success,
+                      isFullWidth: true,
+                    ),
+                  ] else
+                    Row(
+                      children: [
+                        _detailCard(
+                          'Subtotal',
+                          '₹${_fmt(detail.purchase.subtotal)}',
+                          Icons.summarize_outlined,
+                          AppColors.info,
+                        ),
+                        const SizedBox(width: 12),
+                        _detailCard(
+                          'Total Taxes',
+                          '₹${_fmt(detail.purchase.cgstAmount + detail.purchase.sgstAmount + detail.purchase.igstAmount)}',
+                          Icons.percent_rounded,
+                          AppColors.brandAmber,
+                        ),
+                        const SizedBox(width: 12),
+                        _detailCard(
+                          'Net Payable',
+                          '₹${_fmt(detail.purchase.totalAmount)}',
+                          Icons.account_balance_wallet_outlined,
+                          AppColors.success,
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 20),
                   _sectionHeader('Procurement Information'),
                   const SizedBox(height: 10),
@@ -1086,39 +1237,43 @@ class _PurchaseDetailPanel extends ConsumerWidget {
     );
   }
 
-  Widget _detailCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: color.withValues(alpha: 0.7),
-              ),
+  Widget _detailCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color, {
+    bool isFullWidth = false,
+  }) {
+    final container = Container(
+      width: isFullWidth ? double.infinity : null,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+
+    return isFullWidth ? container : Expanded(child: container);
   }
 
   Widget _sectionHeader(String title) {

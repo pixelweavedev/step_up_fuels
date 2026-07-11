@@ -12,6 +12,7 @@ import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class DriversScreen extends ConsumerWidget {
@@ -21,6 +22,77 @@ class DriversScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
     final driversAsync = ref.watch(driversListProvider);
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      return ListPageTemplate(
+        title: 'Drivers Directory',
+        searchWidget: AppTextField(
+          hint: 'Search driver name, phone, license...',
+          prefixIcon: Icons.search_rounded,
+          onChanged: (val) {
+            ref.read(driverSearchQueryProvider.notifier).state = val;
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.person_add_alt_1_rounded,
+              color: AppColors.brandAmber,
+            ),
+            onPressed: () {
+              showDialog<void>(
+                context: context,
+                builder: (context) => const DriverFormDialog(),
+              );
+            },
+            tooltip: 'Add New Driver',
+          ),
+        ],
+        body: driversAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: EmptyStateWidget(
+                    icon: Icons.badge_outlined,
+                    title: 'No Drivers Found',
+                    subtitle:
+                        'Register a driver profile to manage assignments.',
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final driver = list[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _DriverGridCard(driver: driver),
+                );
+              }, childCount: list.length),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+          ),
+          error: (err, st) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                'Error: $err',
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ),
+        ),
+        isSliver: true,
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -32,7 +104,7 @@ class DriversScreen extends ConsumerWidget {
             // Header
             Builder(
               builder: (context) {
-                final isMobile = context.isMobileOrSmallTablet;
+                final isMobileOrSmall = context.isMobileOrSmallTablet;
 
                 final headerText = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,16 +139,13 @@ class DriversScreen extends ConsumerWidget {
                   },
                 );
 
-                return isMobile
+                return isMobileOrSmall
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           headerText,
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: actionButton,
-                          ),
+                          SizedBox(width: double.infinity, child: actionButton),
                         ],
                       )
                     : Row(
@@ -300,7 +369,10 @@ class _DriverGridCard extends ConsumerWidget {
                 ),
               ],
             ),
-            const Spacer(),
+            if (context.isMobile)
+              const SizedBox(height: 16)
+            else
+              const Spacer(),
             Divider(color: AppColors.darkBorder, height: 1),
             const SizedBox(height: 12),
 

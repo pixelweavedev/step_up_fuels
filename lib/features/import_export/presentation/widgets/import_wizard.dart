@@ -216,7 +216,7 @@ class _ImportWizardState extends State<ImportWizard> {
             } else {
               // Ask strategy dialog for duplicate rows
               if (summary.conflictRows > 0) {
-                showDialog(
+                showDialog<void>(
                   context: context,
                   builder: (context) => ConflictStrategyDialog(
                     onSelected: (strategy) {
