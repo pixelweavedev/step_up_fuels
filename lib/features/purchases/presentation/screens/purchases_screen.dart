@@ -31,7 +31,7 @@ class PurchasesScreen extends ConsumerStatefulWidget {
 }
 
 class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabCtrl;
   final _searchCtrl = TextEditingController();
   late AnimationController _panelAnimCtrl;
