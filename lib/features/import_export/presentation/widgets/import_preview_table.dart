@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/services/import_export/models/import_result.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class ImportPreviewTable extends StatelessWidget {
   const ImportPreviewTable({super.key, required this.rows});
@@ -28,7 +28,6 @@ class ImportPreviewTable extends StatelessWidget {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
             child: DataTable(
               headingRowColor: WidgetStateProperty.all(
                 isDark ? AppColors.darkThemeBorder : AppColors.lightBackground,

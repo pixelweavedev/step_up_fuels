@@ -9,6 +9,38 @@ enum ExportHistoryStatus { success, failed, inProgress }
 
 /// A single entry in the export/import history log.
 class ExportHistoryEntry {
+
+  factory ExportHistoryEntry.fromJson(Map<String, dynamic> json) =>
+      ExportHistoryEntry(
+        id: json['id'] as String,
+        entityName: json['entityName'] as String,
+        entityLabel: json['entityLabel'] as String,
+        format: ExportFormat.values.firstWhere(
+          (f) => f.name == json['format'],
+          orElse: () => ExportFormat.csv,
+        ),
+        mode: ExportMode.values.firstWhere(
+          (m) => m.name == json['mode'],
+          orElse: () => ExportMode.data,
+        ),
+        type: ExportHistoryType.values.firstWhere(
+          (t) => t.name == json['type'],
+          orElse: () => ExportHistoryType.export,
+        ),
+        status: ExportHistoryStatus.values.firstWhere(
+          (s) => s.name == json['status'],
+          orElse: () => ExportHistoryStatus.success,
+        ),
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        rowCount: json['rowCount'] as int? ?? 0,
+        filePath: json['filePath'] as String?,
+        fileName: json['fileName'] as String?,
+        errorMessage: json['errorMessage'] as String?,
+        importedCount: json['importedCount'] as int?,
+        skippedCount: json['skippedCount'] as int?,
+        updatedCount: json['updatedCount'] as int?,
+        errorCount: json['errorCount'] as int?,
+      );
   const ExportHistoryEntry({
     required this.id,
     required this.entityName,
@@ -65,36 +97,4 @@ class ExportHistoryEntry {
     if (updatedCount != null) 'updatedCount': updatedCount,
     if (errorCount != null) 'errorCount': errorCount,
   };
-
-  factory ExportHistoryEntry.fromJson(Map<String, dynamic> json) =>
-      ExportHistoryEntry(
-        id: json['id'] as String,
-        entityName: json['entityName'] as String,
-        entityLabel: json['entityLabel'] as String,
-        format: ExportFormat.values.firstWhere(
-          (f) => f.name == json['format'],
-          orElse: () => ExportFormat.csv,
-        ),
-        mode: ExportMode.values.firstWhere(
-          (m) => m.name == json['mode'],
-          orElse: () => ExportMode.data,
-        ),
-        type: ExportHistoryType.values.firstWhere(
-          (t) => t.name == json['type'],
-          orElse: () => ExportHistoryType.export,
-        ),
-        status: ExportHistoryStatus.values.firstWhere(
-          (s) => s.name == json['status'],
-          orElse: () => ExportHistoryStatus.success,
-        ),
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        rowCount: json['rowCount'] as int? ?? 0,
-        filePath: json['filePath'] as String?,
-        fileName: json['fileName'] as String?,
-        errorMessage: json['errorMessage'] as String?,
-        importedCount: json['importedCount'] as int?,
-        skippedCount: json['skippedCount'] as int?,
-        updatedCount: json['updatedCount'] as int?,
-        errorCount: json['errorCount'] as int?,
-      );
 }

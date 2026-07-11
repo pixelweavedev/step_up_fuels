@@ -203,7 +203,7 @@ class DashboardScreen extends ConsumerWidget {
         // Desktop: 4 per row. Tablet: 2 per row. Mobile: 2 per row (fills width).
         final device = ResponsiveLayout.device(context);
         final columns = device == DeviceType.desktop ? 4 : 2;
-        final spacing = 16.0;
+        const spacing = 16.0;
         final cardWidth =
             (raints.maxWidth - spacing * (columns - 1)) / columns;
 

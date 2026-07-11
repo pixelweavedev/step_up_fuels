@@ -24,7 +24,7 @@ class AppNavigationRail extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSmall = ResponsiveLayout.isSmallTablet(context);
 
-    final items = AppNavItems.all;
+    const items = AppNavItems.all;
 
     // Resolve selected index from the current route.
     int selectedIndex = items.indexWhere(
@@ -37,7 +37,6 @@ class AppNavigationRail extends StatelessWidget {
     return NavigationRail(
       backgroundColor: isDark ? AppColors.darkThemeSidebar : Colors.white,
       selectedIndex: selectedIndex,
-      extended: false,
       // Icon-only on small tablet; icon + selected-label on regular tablet.
       labelType: isSmall
           ? NavigationRailLabelType.none

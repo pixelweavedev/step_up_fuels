@@ -7,12 +7,11 @@ import 'package:step_up_fuels/features/inventory/domain/entities/storage_locatio
 import 'package:step_up_fuels/features/inventory/presentation/providers/inventory_provider.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 
 class InventoryScreen extends ConsumerWidget {
   const InventoryScreen({super.key});

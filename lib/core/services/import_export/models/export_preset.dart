@@ -8,6 +8,26 @@ import 'package:step_up_fuels/core/services/import_export/models/export_mode.dar
 /// so that common exports (e.g. "Accounting Export", "GST Report") can be
 /// reproduced with one click.
 class ExportPreset {
+
+  factory ExportPreset.fromJson(Map<String, dynamic> json) => ExportPreset(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    entityName: json['entityName'] as String,
+    format: ExportFormat.values.firstWhere(
+      (f) => f.name == json['format'],
+      orElse: () => ExportFormat.csv,
+    ),
+    mode: ExportMode.values.firstWhere(
+      (m) => m.name == json['mode'],
+      orElse: () => ExportMode.data,
+    ),
+    visibleColumnKeys: List<String>.from(json['visibleColumnKeys'] as List),
+    filter: ExportFilter.fromJson(json['filter'] as Map<String, dynamic>),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    updatedAt: json['updatedAt'] != null
+        ? DateTime.tryParse(json['updatedAt'] as String)
+        : null,
+  );
   const ExportPreset({
     required this.id,
     required this.name,
@@ -61,24 +81,4 @@ class ExportPreset {
     'createdAt': createdAt.toIso8601String(),
     if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
   };
-
-  factory ExportPreset.fromJson(Map<String, dynamic> json) => ExportPreset(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    entityName: json['entityName'] as String,
-    format: ExportFormat.values.firstWhere(
-      (f) => f.name == json['format'],
-      orElse: () => ExportFormat.csv,
-    ),
-    mode: ExportMode.values.firstWhere(
-      (m) => m.name == json['mode'],
-      orElse: () => ExportMode.data,
-    ),
-    visibleColumnKeys: List<String>.from(json['visibleColumnKeys'] as List),
-    filter: ExportFilter.fromJson(json['filter'] as Map<String, dynamic>),
-    createdAt: DateTime.parse(json['createdAt'] as String),
-    updatedAt: json['updatedAt'] != null
-        ? DateTime.tryParse(json['updatedAt'] as String)
-        : null,
-  );
 }

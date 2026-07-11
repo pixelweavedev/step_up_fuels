@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_preset.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class PresetManager extends StatefulWidget {
   const PresetManager({
@@ -75,7 +75,7 @@ class _PresetManagerState extends State<PresetManager> {
             )
           else ...[
             DropdownButtonFormField<ExportPreset>(
-              value: widget.selectedPreset,
+              initialValue: widget.selectedPreset,
               hint: const Text('Select a Preset'),
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),

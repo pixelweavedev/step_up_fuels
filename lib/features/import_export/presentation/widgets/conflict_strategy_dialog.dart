@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/services/import_export/models/import_result.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class ConflictStrategyDialog extends StatefulWidget {
   const ConflictStrategyDialog({
@@ -86,15 +86,15 @@ class _ConflictStrategyDialogState extends State<ConflictStrategyDialog> {
                 color: isDark ? AppColors.darkThemeBorder : AppColors.lightBackground,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Row(
+              child: const Row(
                 children: [
                   Checkbox.adaptive(
                     value: true,
                     onChanged: null,
                     activeColor: AppColors.brandAmber,
                   ),
-                  const SizedBox(width: 6),
-                  const Expanded(
+                  SizedBox(width: 6),
+                  Expanded(
                     child: Text(
                       'Apply this strategy to all duplicate conflicts detected in this import',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),

@@ -38,7 +38,6 @@ class CustomerExportAdapter extends ExportAdapter<Customer> {
       label: 'Customer Code',
       group: 'Identity',
       getValue: (c) => c.customerCode,
-      type: ColumnType.text,
       importable: true,
       required: true,
       importAliases: ['code', 'cust code', 'account code'],
@@ -48,7 +47,6 @@ class CustomerExportAdapter extends ExportAdapter<Customer> {
       label: 'Name',
       group: 'Identity',
       getValue: (c) => c.name,
-      type: ColumnType.text,
       importable: true,
       required: true,
       importAliases: ['customer name', 'account name', 'client name', 'full name'],
@@ -135,7 +133,6 @@ class CustomerExportAdapter extends ExportAdapter<Customer> {
         ].where((p) => p != null && p.isNotEmpty).toList();
         return parts.join(', ');
       },
-      importable: false,
     ),
     ExportColumn<Customer>(
       key: 'billing_city',

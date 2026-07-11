@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_filter.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class ExportFilterPanel extends StatelessWidget {
   const ExportFilterPanel({
@@ -237,7 +237,7 @@ class ExportFilterPanel extends StatelessWidget {
         if (filter.dateFrom != null)
           IconButton(
             icon: const Icon(Icons.clear, size: 18),
-            onPressed: () => onChange(filter.copyWith(dateTo: null)),
+            onPressed: () => onChange(filter.copyWith()),
           ),
       ],
     );

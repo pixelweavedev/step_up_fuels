@@ -6,8 +6,8 @@ import 'package:step_up_fuels/core/constants/app_constants.dart';
 import 'package:step_up_fuels/core/constants/ui_constants.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/shared/widgets/navigation/app_nav_items.dart';
-import 'package:step_up_fuels/shared/widgets/sidebar/sidebar_item_widget.dart';
 import 'package:step_up_fuels/shared/widgets/sidebar/sidebar_item_model.dart';
+import 'package:step_up_fuels/shared/widgets/sidebar/sidebar_item_widget.dart';
 
 /// The application sidebar — desktop navigation.
 ///

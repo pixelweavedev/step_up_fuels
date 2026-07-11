@@ -9,12 +9,11 @@ import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/presentation/providers/invoices_provider.dart';
 import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 
 class PaymentsScreen extends ConsumerStatefulWidget {
   const PaymentsScreen({super.key});

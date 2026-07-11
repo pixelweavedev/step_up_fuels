@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_adapter.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_format.dart';
 import 'package:step_up_fuels/core/services/import_export/models/import_result.dart';
-import 'package:step_up_fuels/features/import_export/presentation/widgets/validation_summary_card.dart';
-import 'package:step_up_fuels/features/import_export/presentation/widgets/import_preview_table.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/import_export/presentation/widgets/conflict_strategy_dialog.dart';
+import 'package:step_up_fuels/features/import_export/presentation/widgets/import_preview_table.dart';
+import 'package:step_up_fuels/features/import_export/presentation/widgets/validation_summary_card.dart';
 
 class ImportWizard extends StatefulWidget {
   const ImportWizard({
@@ -75,8 +75,8 @@ class _ImportWizardState extends State<ImportWizard> {
   }
 
   Widget _buildStepIndicator(int stepNumber, String label, bool isActive) {
-    final activeColor = AppColors.brandAmber;
-    final inactiveColor = Colors.grey;
+    const activeColor = AppColors.brandAmber;
+    const inactiveColor = Colors.grey;
 
     return Row(
       children: [

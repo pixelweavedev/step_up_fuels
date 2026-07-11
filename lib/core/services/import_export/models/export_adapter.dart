@@ -125,7 +125,7 @@ abstract class ExportAdapter<T> {
     final dateStr =
         '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
     final modeStr = mode == ExportMode.report ? '_report' : '';
-    return '${entityName}${modeStr}_$dateStr.$extension';
+    return '$entityName${modeStr}_$dateStr.$extension';
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

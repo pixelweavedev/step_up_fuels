@@ -97,7 +97,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkThemeSidebar : Colors.white,
               border: Border(
-                right: BorderSide(color: AppColors.darkBorder, width: 1),
+                right: BorderSide(color: AppColors.darkBorder),
               ),
             ),
             child: const AppNavigationRail(),
@@ -106,7 +106,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           Expanded(
             child: Column(
               children: [
-                _TopBar(isSidebarCollapsed: true),
+                const _TopBar(isSidebarCollapsed: true),
                 Divider(
                   height: 1,
                   thickness: 1,

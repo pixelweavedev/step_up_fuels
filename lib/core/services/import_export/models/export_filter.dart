@@ -2,6 +2,22 @@
 ///
 /// Entity adapters use only the filters relevant to their domain.
 class ExportFilter {
+
+  factory ExportFilter.fromJson(Map<String, dynamic> json) => ExportFilter(
+    dateFrom: json['dateFrom'] != null
+        ? DateTime.tryParse(json['dateFrom'] as String)
+        : null,
+    dateTo: json['dateTo'] != null
+        ? DateTime.tryParse(json['dateTo'] as String)
+        : null,
+    customerId: json['customerId'] as String?,
+    status: json['status'] as String?,
+    paymentMode: json['paymentMode'] as String?,
+    driverId: json['driverId'] as String?,
+    vehicleId: json['vehicleId'] as String?,
+    outstandingOnly: json['outstandingOnly'] as bool? ?? false,
+    activeOnly: json['activeOnly'] as bool? ?? false,
+  );
   const ExportFilter({
     this.dateFrom,
     this.dateTo,
@@ -109,20 +125,4 @@ class ExportFilter {
     'outstandingOnly': outstandingOnly,
     'activeOnly': activeOnly,
   };
-
-  factory ExportFilter.fromJson(Map<String, dynamic> json) => ExportFilter(
-    dateFrom: json['dateFrom'] != null
-        ? DateTime.tryParse(json['dateFrom'] as String)
-        : null,
-    dateTo: json['dateTo'] != null
-        ? DateTime.tryParse(json['dateTo'] as String)
-        : null,
-    customerId: json['customerId'] as String?,
-    status: json['status'] as String?,
-    paymentMode: json['paymentMode'] as String?,
-    driverId: json['driverId'] as String?,
-    vehicleId: json['vehicleId'] as String?,
-    outstandingOnly: json['outstandingOnly'] as bool? ?? false,
-    activeOnly: json['activeOnly'] as bool? ?? false,
-  );
 }

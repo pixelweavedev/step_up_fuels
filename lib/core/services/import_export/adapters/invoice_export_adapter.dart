@@ -35,7 +35,6 @@ class InvoiceExportAdapter extends ExportAdapter<Invoice> {
       key: 'invoice_number',
       label: 'Invoice No.',
       getValue: (i) => i.invoiceNumber,
-      importable: false,
     ),
     ExportColumn<Invoice>(
       key: 'invoice_date',

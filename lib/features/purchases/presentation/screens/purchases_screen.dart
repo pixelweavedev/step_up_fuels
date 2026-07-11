@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,9 +19,8 @@ import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase_i
 import 'package:step_up_fuels/features/purchases/domain/entities/supplier.dart';
 import 'package:step_up_fuels/features/purchases/presentation/providers/purchases_provider.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class PurchasesScreen extends ConsumerStatefulWidget {
   const PurchasesScreen({super.key});

@@ -18,9 +18,8 @@ import 'package:step_up_fuels/features/payments/presentation/providers/payments_
 import 'package:step_up_fuels/features/payments/presentation/screens/payments_screen.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:uuid/uuid.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
   const InvoicesScreen({super.key});

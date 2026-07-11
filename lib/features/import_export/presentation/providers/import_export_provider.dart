@@ -288,7 +288,7 @@ class ImportExportNotifier extends StateNotifier<ImportExportState> {
   }
 
   void resetImport() {
-    state = state.copyWith(validationSummary: null);
+    state = state.copyWith();
   }
 }
 

@@ -7,12 +7,11 @@ import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
+import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 
 class DriversScreen extends ConsumerWidget {
   const DriversScreen({super.key});
