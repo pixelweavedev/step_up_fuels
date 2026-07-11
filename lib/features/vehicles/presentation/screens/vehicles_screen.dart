@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
@@ -21,28 +25,49 @@ class VehiclesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
+    final selectedId = ref.watch(selectedVehicleIdProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left: Vehicle list sidebar
-          Container(
-            width: 380,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.darkBorder)),
-            ),
-            child: const _VehicleMasterList(),
-          ),
-          // Right: Detail view
-          const Expanded(child: _VehicleDetailView()),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: _VehicleMasterList(
+          onMobileTap: isMobileOrSmall
+              ? (vehicle) {
+                  ref.read(selectedVehicleIdProvider.notifier).state =
+                      vehicle.id;
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (ctx) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(vehicle.registrationNumber),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.darkTextPrimary,
+                            ),
+                            body: const _VehicleDetailView(),
+                          ),
+                        ),
+                      )
+                      .then((_) {
+                        ref.read(selectedVehicleIdProvider.notifier).state =
+                            null;
+                      });
+                }
+              : null,
+        ),
+        detail: const _VehicleDetailView(),
       ),
     );
   }
 }
 
 class _VehicleMasterList extends ConsumerWidget {
-  const _VehicleMasterList();
+  const _VehicleMasterList({this.onMobileTap});
+
+  final void Function(Vehicle vehicle)? onMobileTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -140,8 +165,10 @@ class _VehicleMasterList extends ConsumerWidget {
                 );
               }
 
-              // Auto-select first vehicle if none is selected
-              if (selectedId == null && list.isNotEmpty) {
+              // Auto-select first vehicle if none is selected (only on desktop/tablet)
+              if (selectedId == null &&
+                  list.isNotEmpty &&
+                  !context.isMobileOrSmallTablet) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ref.read(selectedVehicleIdProvider.notifier).state =
                       list.first.id;
@@ -165,6 +192,9 @@ class _VehicleMasterList extends ConsumerWidget {
                       onTap: () {
                         ref.read(selectedVehicleIdProvider.notifier).state =
                             vehicle.id;
+                        if (onMobileTap != null) {
+                          onMobileTap!(vehicle);
+                        }
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
@@ -444,20 +474,95 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
           const SizedBox(height: 16),
 
           // Info Widgets (Live stock & Active Driver)
-          Row(
+          AdaptiveFormRow(
             children: [
               // Live stock widget
-              Expanded(
-                child: productsAsync.when(
-                  data: (prods) {
-                    if (prods.isEmpty) return const SizedBox();
-                    final firstProd = prods.first;
-                    final stockAsync = ref.watch(
-                      stockBalanceProvider((
-                        locationId: vehicle.id,
-                        productId: firstProd.id,
-                      )),
-                    );
+              productsAsync.when(
+                data: (prods) {
+                  if (prods.isEmpty) return const SizedBox();
+                  final firstProd = prods.first;
+                  final stockAsync = ref.watch(
+                    stockBalanceProvider((
+                      locationId: vehicle.id,
+                      productId: firstProd.id,
+                    )),
+                  );
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.gas_meter_outlined,
+                          color: AppColors.brandAmber,
+                          size: 30,
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'LIVE BOWSER FUEL STOCK',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppColors.darkTextTertiary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            stockAsync.when(
+                              data: (stock) => Text(
+                                '${stock.toStringAsFixed(2)} LTRS',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.brandAmber,
+                                ),
+                              ),
+                              error: (_, __) => const Text(
+                                'N/A',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.error,
+                                ),
+                              ),
+                              loading: () => const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                error: (_, __) => const SizedBox(),
+                loading: () => const SizedBox(),
+              ),
+
+              // Active driver widget
+              assignmentsAsync.when(
+                data: (assignments) {
+                  final activeAssignment = assignments.firstWhere(
+                    (a) => a.isActive,
+                    orElse: () => DriverAssignment(
+                      id: '',
+                      driverId: '',
+                      vehicleId: '',
+                      assignedAt: DateTime.now(),
+                      isActive: false,
+                    ),
+                  );
+
+                  if (!activeAssignment.isActive) {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -467,9 +572,9 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.gas_meter_outlined,
-                            color: AppColors.brandAmber,
+                          Icon(
+                            Icons.badge_outlined,
+                            color: AppColors.darkTextTertiary,
                             size: 30,
                           ),
                           const SizedBox(width: 16),
@@ -477,36 +582,19 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'LIVE BOWSER FUEL STOCK',
+                                'CURRENT ASSIGNED DRIVER',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: AppColors.darkTextTertiary,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              stockAsync.when(
-                                data: (stock) => Text(
-                                  '${stock.toStringAsFixed(2)} LTRS',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.brandAmber,
-                                  ),
-                                ),
-                                error: (_, __) => const Text(
-                                  'N/A',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.error,
-                                  ),
-                                ),
-                                loading: () => const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                              Text(
+                                'Not Assigned',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkTextSecondary,
                                 ),
                               ),
                             ],
@@ -514,29 +602,14 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                         ],
                       ),
                     );
-                  },
-                  error: (_, __) => const SizedBox(),
-                  loading: () => const SizedBox(),
-                ),
-              ),
-              const SizedBox(width: 16),
+                  }
 
-              // Active driver widget
-              Expanded(
-                child: assignmentsAsync.when(
-                  data: (assignments) {
-                    final activeAssignment = assignments.firstWhere(
-                      (a) => a.isActive,
-                      orElse: () => DriverAssignment(
-                        id: '',
-                        driverId: '',
-                        vehicleId: '',
-                        assignedAt: DateTime.now(),
-                        isActive: false,
-                      ),
-                    );
+                  final driverAsync = ref.watch(
+                    driverByIdProvider(activeAssignment.driverId),
+                  );
 
-                    if (!activeAssignment.isActive) {
+                  return driverAsync.when(
+                    data: (driver) {
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -546,9 +619,9 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.badge_outlined,
-                              color: AppColors.darkTextTertiary,
+                              color: AppColors.brandAmber,
                               size: 30,
                             ),
                             const SizedBox(width: 16),
@@ -564,88 +637,40 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Not Assigned',
+                                  driver.name,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.darkTextSecondary,
+                                    color: AppColors.darkTextPrimary,
                                   ),
                                 ),
+                                if (driver.phone.isNotEmpty)
+                                  Text(
+                                    'Mob: ${driver.phone}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.darkTextSecondary,
+                                    ),
+                                  ),
                               ],
                             ),
                           ],
                         ),
                       );
-                    }
-
-                    final driverAsync = ref.watch(
-                      driverByIdProvider(activeAssignment.driverId),
-                    );
-
-                    return driverAsync.when(
-                      data: (driver) {
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.darkCard,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.darkBorder),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.badge_outlined,
-                                color: AppColors.brandAmber,
-                                size: 30,
-                              ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'CURRENT ASSIGNED DRIVER',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.darkTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    driver.name,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkTextPrimary,
-                                    ),
-                                  ),
-                                  if (driver.phone.isNotEmpty)
-                                    Text(
-                                      'Mob: ${driver.phone}',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.darkTextSecondary,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      error: (_, __) => const SizedBox(),
-                      loading: () => const SizedBox(
-                        height: 60,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.brandAmber,
-                          ),
+                    },
+                    error: (_, __) => const SizedBox(),
+                    loading: () => const SizedBox(
+                      height: 60,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.brandAmber,
                         ),
                       ),
-                    );
-                  },
-                  error: (_, __) => const SizedBox(),
-                  loading: () => const SizedBox(),
-                ),
+                    ),
+                  );
+                },
+                error: (_, __) => const SizedBox(),
+                loading: () => const SizedBox(),
               ),
             ],
           ),

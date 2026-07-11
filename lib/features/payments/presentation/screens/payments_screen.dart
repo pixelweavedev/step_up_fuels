@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
@@ -22,44 +26,13 @@ class PaymentsScreen extends ConsumerStatefulWidget {
   ConsumerState<PaymentsScreen> createState() => _PaymentsScreenState();
 }
 
-class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
-    with TickerProviderStateMixin {
+class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
   final _searchCtrl = TextEditingController();
-  late final AnimationController _panelAnim;
-  late final Animation<double> _panelSlide;
-  bool _showDetail = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _panelAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _panelSlide = CurvedAnimation(
-      parent: _panelAnim,
-      curve: Curves.easeOutCubic,
-    );
-  }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
-    _panelAnim.dispose();
     super.dispose();
-  }
-
-  void _openDetail(String id) {
-    ref.read(selectedPaymentIdProvider.notifier).state = id;
-    setState(() => _showDetail = true);
-    _panelAnim.forward(from: 0);
-  }
-
-  void _closeDetail() {
-    _panelAnim.reverse().then((_) {
-      setState(() => _showDetail = false);
-      ref.read(selectedPaymentIdProvider.notifier).state = null;
-    });
   }
 
   @override
@@ -67,92 +40,107 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
     ref.watch(themeModeProvider);
     final paymentsAsync = ref.watch(paymentsListProvider);
     final selectedId = ref.watch(selectedPaymentIdProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
+
+    final masterWidget = Column(
+      children: [
+        _buildHeader(context),
+        _buildSearchAndFilters(),
+        Expanded(
+          child: paymentsAsync.when(
+            data: (payments) =>
+                _buildPaymentsList(payments, selectedId, isMobileOrSmall),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.brandAmber),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                e.toString(),
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left panel: payments list
-          Expanded(
-            flex: _showDetail ? 5 : 1,
-            child: Column(
-              children: [
-                _buildHeader(context),
-                _buildSearchAndFilters(),
-                Expanded(
-                  child: paymentsAsync.when(
-                    data: (payments) =>
-                        _buildPaymentsList(payments, selectedId),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.brandAmber,
-                      ),
-                    ),
-                    error: (e, _) => Center(
-                      child: Text(
-                        e.toString(),
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Right panel: payment details
-          if (_showDetail && selectedId != null)
-            SizeTransition(
-              axis: Axis.horizontal,
-              sizeFactor: _panelSlide,
-              child: Container(
-                width: 480,
-                decoration: BoxDecoration(
-                  color: AppColors.darkSurface,
-                  border: Border(left: BorderSide(color: AppColors.darkBorder)),
-                ),
-                child: _buildDetailPanel(selectedId),
-              ),
-            ),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: masterWidget,
+        detail: _buildDetailPanel(selectedId ?? ''),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
+    final isNarrow = context.isMobileOrSmallTablet;
     return Padding(
       padding: const EdgeInsets.all(24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Payments',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.darkTextPrimary,
+      child: isNarrow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Payments',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.darkTextPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Record and track customer receipts & allocations',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.darkTextSecondary,
+                const SizedBox(height: 4),
+                Text(
+                  'Record and track customer receipts & allocations',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.darkTextSecondary,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          PrimaryButton(
-            label: 'Record Receipt',
-            icon: Icons.add_rounded,
-            onPressed: () => _showRecordPaymentDialog(context),
-          ),
-        ],
-      ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: PrimaryButton(
+                    label: 'Record Receipt',
+                    icon: Icons.add_rounded,
+                    onPressed: () => _showRecordPaymentDialog(context),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payments',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Record and track customer receipts & allocations',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                PrimaryButton(
+                  label: 'Record Receipt',
+                  icon: Icons.add_rounded,
+                  onPressed: () => _showRecordPaymentDialog(context),
+                ),
+              ],
+            ),
     );
   }
 
@@ -162,19 +150,16 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-      child: Row(
+      child: AdaptiveFormRow(
         children: [
-          Expanded(
-            child: AppTextField(
-              hint: 'Search payment no. or transaction reference...',
-              prefixIcon: Icons.search_rounded,
-              controller: _searchCtrl,
-              onChanged: (val) {
-                ref.read(paymentSearchQueryProvider.notifier).state = val;
-              },
-            ),
+          AppTextField(
+            hint: 'Search payment no. or reference...',
+            prefixIcon: Icons.search_rounded,
+            controller: _searchCtrl,
+            onChanged: (val) {
+              ref.read(paymentSearchQueryProvider.notifier).state = val;
+            },
           ),
-          const SizedBox(width: 16),
           // Customer Filter Dropdown
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -184,34 +169,37 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
               borderRadius: BorderRadius.circular(8),
             ),
             child: customersAsync.when(
-              data: (list) => DropdownButton<String?>(
-                value: customerFilter,
-                hint: Text(
-                  'All Customers',
-                  style: TextStyle(color: AppColors.darkTextSecondary),
-                ),
-                dropdownColor: AppColors.darkSurface,
-                underline: const SizedBox(),
-                items: [
-                  DropdownMenuItem<String?>(
-                    child: Text(
-                      'All Customers',
-                      style: TextStyle(color: AppColors.darkTextPrimary),
-                    ),
+              data: (list) => DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                  value: customerFilter,
+                  isExpanded: true,
+                  hint: Text(
+                    'All Customers',
+                    style: TextStyle(color: AppColors.darkTextSecondary),
                   ),
-                  ...list.map(
-                    (c) => DropdownMenuItem(
-                      value: c.id,
+                  dropdownColor: AppColors.darkSurface,
+                  items: [
+                    DropdownMenuItem<String?>(
                       child: Text(
-                        c.name,
+                        'All Customers',
                         style: TextStyle(color: AppColors.darkTextPrimary),
                       ),
                     ),
-                  ),
-                ],
-                onChanged: (val) {
-                  ref.read(paymentCustomerFilterProvider.notifier).state = val;
-                },
+                    ...list.map(
+                      (c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(
+                          c.name,
+                          style: TextStyle(color: AppColors.darkTextPrimary),
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: (val) {
+                    ref.read(paymentCustomerFilterProvider.notifier).state =
+                        val;
+                  },
+                ),
               ),
               loading: () => const SizedBox(
                 width: 20,
@@ -226,7 +214,11 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
     );
   }
 
-  Widget _buildPaymentsList(List<Payment> payments, String? selectedId) {
+  Widget _buildPaymentsList(
+    List<Payment> payments,
+    String? selectedId,
+    bool isMobileOrSmall,
+  ) {
     if (payments.isEmpty) {
       return const EmptyStateWidget(
         title: 'No Payments Found',
@@ -287,7 +279,27 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
             ),
           ),
           child: ListTile(
-            onTap: () => _openDetail(payment.id),
+            onTap: () {
+              ref.read(selectedPaymentIdProvider.notifier).state = payment.id;
+              if (isMobileOrSmall) {
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (ctx) => Scaffold(
+                          appBar: AppBar(
+                            title: Text(payment.paymentNumber),
+                            backgroundColor: AppColors.darkSurface,
+                            foregroundColor: AppColors.darkTextPrimary,
+                          ),
+                          body: _buildDetailPanel(payment.id),
+                        ),
+                      ),
+                    )
+                    .then((_) {
+                      ref.read(selectedPaymentIdProvider.notifier).state = null;
+                    });
+              }
+            },
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 12,
@@ -598,6 +610,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen>
       context: context,
       builder: (context) => const RecordPaymentDialog(),
     );
+  }
+
+  void _closeDetail() {
+    ref.read(selectedPaymentIdProvider.notifier).state = null;
   }
 }
 

@@ -1,11 +1,13 @@
 import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
-import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_grid.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/spacing.dart';
 import 'package:step_up_fuels/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
@@ -29,30 +31,87 @@ class DashboardScreen extends ConsumerWidget {
           onRefresh: () => ref.read(dashboardStatsProvider.notifier).refresh(),
           color: AppColors.brandAmber,
           backgroundColor: AppColors.darkSurface,
-          child: SingleChildScrollView(
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: ResponsiveSpacing.pageEdgeInsets(context),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header Row
-                _buildHeader(context, ref),
-                const SizedBox(height: 28),
+            slivers: [
+              SliverPadding(
+                padding: AppSpacing.page(context),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row
+                      _buildHeader(context, ref),
+                      const SizedBox(height: 28),
 
-                // Low Stock Alerts (if any)
-                if (stats.lowStockAlerts.isNotEmpty) ...[
-                  _buildLowStockWarning(stats.lowStockAlerts),
-                  const SizedBox(height: 24),
-                ],
+                      // Low Stock Alerts (if any)
+                      if (stats.lowStockAlerts.isNotEmpty) ...[
+                        _buildLowStockWarning(stats.lowStockAlerts),
+                        const SizedBox(height: 24),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
 
-                // KPI Cards
-                _buildKpiGrid(stats),
-                const SizedBox(height: 32),
+              // KPI Cards
+              SliverPadding(
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.page(context).left),
+                sliver: AdaptiveSliverGrid.fixed(
+                  columns: const {
+                    ScreenType.mobile: 1,
+                    ScreenType.smallTablet: 2,
+                    ScreenType.tablet: 2,
+                    ScreenType.desktop: 4,
+                    ScreenType.wideDesktop: 4,
+                  },
+                  childAspectRatio: context.responsiveValue(
+                    desktop: 1.5,
+                    tablet: 1.6,
+                    smallTablet: 1.8,
+                    mobile: 2.2,
+                  ),
+                  children: [
+                    StatCard(
+                      title: 'Revenue (This Month)',
+                      value: '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
+                      icon: Icons.trending_up_rounded,
+                      gradientColors: AppColors.gradientRevenue,
+                      subtitle: 'Month-to-date sales',
+                    ),
+                    StatCard(
+                      title: 'Outstanding Receivables',
+                      value: '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
+                      icon: Icons.account_balance_wallet_outlined,
+                      gradientColors: AppColors.gradientOutstanding,
+                      subtitle: 'Customer unpaid balance',
+                    ),
+                    StatCard(
+                      title: 'Main Stock (Litres)',
+                      value: '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
+                      icon: Icons.local_gas_station_rounded,
+                      gradientColors: AppColors.gradientStock,
+                      subtitle: 'Terminal storage stock',
+                    ),
+                    StatCard(
+                      title: 'Today Deliveries',
+                      value: '${stats.todayDeliveriesCount}',
+                      icon: Icons.local_shipping_rounded,
+                      gradientColors: AppColors.gradientInvoices,
+                      subtitle: '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
+                    ),
+                  ],
+                ),
+              ),
 
-                // Charts & Lists Layout — side-by-side on desktop, stacked on tablet/mobile
-                _buildChartsLayout(context, stats, expenseAsync),
-              ],
-            ),
+              // Charts & Lists Layout
+              SliverPadding(
+                padding: AppSpacing.page(context).copyWith(top: AppSpacing.sectionGap(context)),
+                sliver: SliverToBoxAdapter(
+                  child: _buildChartsLayout(context, stats, expenseAsync),
+                ),
+              ),
+            ],
           ),
         ),
         loading: () => const Center(
@@ -74,8 +133,8 @@ class DashboardScreen extends ConsumerWidget {
     DashboardStats stats,
     AsyncValue<Map<String, double>> expenseAsync,
   ) {
-    final isNarrow = ResponsiveLayout.isNarrow(context);
-    final spacing = ResponsiveSpacing.sectionSpacing(context);
+    final isNarrow = context.isTabletOrNarrow;
+    final spacing = AppSpacing.sectionGap(context);
 
     final leftColumn = Column(
       children: [
@@ -110,154 +169,6 @@ class DashboardScreen extends ConsumerWidget {
         SizedBox(width: spacing),
         Expanded(flex: 2, child: rightColumn),
       ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: AppColors.darkTextPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Real-time business performance & logistics insights',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.darkTextSecondary,
-              ),
-            ),
-          ],
-        ),
-        IconButton(
-          icon: const Icon(Icons.refresh_rounded, color: AppColors.brandAmber),
-          style: IconButton.styleFrom(
-            backgroundColor: AppColors.darkSurface,
-            side: BorderSide(color: AppColors.darkBorder),
-          ),
-          onPressed: () => ref.read(dashboardStatsProvider.notifier).refresh(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLowStockWarning(List<LowStockAlert> alerts) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: AppColors.error,
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Low Stock Warning (${alerts.length})',
-                style: const TextStyle(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...alerts.map(
-            (a) => Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                '• ${a.locationName} is running low on ${a.productName}. Current: ${a.currentStock.toStringAsFixed(0)} Ltrs (Threshold: ${a.threshold.toStringAsFixed(0)} Ltrs)',
-                style: TextStyle(
-                  color: AppColors.darkTextPrimary,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKpiGrid(DashboardStats stats) {
-    return LayoutBuilder(
-      builder: (context, raints) {
-        // Desktop: 4 per row. Tablet: 2 per row. Mobile: 2 per row (fills width).
-        final device = ResponsiveLayout.device(context);
-        final columns = device == DeviceType.desktop ? 4 : 2;
-        const spacing = 16.0;
-        final cardWidth =
-            (raints.maxWidth - spacing * (columns - 1)) / columns;
-
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [
-            SizedBox(
-              width: cardWidth,
-              child: StatCard(
-                title: 'Revenue (This Month)',
-                value:
-                    '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
-                icon: Icons.trending_up_rounded,
-                gradientColors: AppColors.gradientRevenue,
-                subtitle: 'Month-to-date sales',
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: StatCard(
-                title: 'Outstanding Receivables',
-                value:
-                    '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
-                icon: Icons.account_balance_wallet_outlined,
-                gradientColors: AppColors.gradientOutstanding,
-                subtitle: 'Customer unpaid balance',
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: StatCard(
-                title: 'Main Stock (Litres)',
-                value:
-                    '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
-                icon: Icons.local_gas_station_rounded,
-                gradientColors: AppColors.gradientStock,
-                subtitle: 'Terminal storage stock',
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: StatCard(
-                title: 'Today Deliveries',
-                value: '${stats.todayDeliveriesCount}',
-                icon: Icons.local_shipping_rounded,
-                gradientColors: AppColors.gradientInvoices,
-                subtitle:
-                    '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -685,6 +596,90 @@ class DashboardScreen extends ConsumerWidget {
               }),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppColors.darkTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Real-time business performance & logistics insights',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
+          ],
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh_rounded, color: AppColors.brandAmber),
+          style: IconButton.styleFrom(
+            backgroundColor: AppColors.darkSurface,
+            side: BorderSide(color: AppColors.darkBorder),
+          ),
+          onPressed: () => ref.read(dashboardStatsProvider.notifier).refresh(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLowStockWarning(List<LowStockAlert> alerts) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: AppColors.error,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Low Stock Warning (${alerts.length})',
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...alerts.map(
+            (a) => Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                '• ${a.locationName} is running low on ${a.productName}. Current: ${a.currentStock.toStringAsFixed(0)} Ltrs (Threshold: ${a.threshold.toStringAsFixed(0)} Ltrs)',
+                style: TextStyle(
+                  color: AppColors.darkTextPrimary,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

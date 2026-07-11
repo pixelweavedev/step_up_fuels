@@ -3,7 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_table.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/features/ledger/domain/entities/ledger_account.dart';
+import 'package:step_up_fuels/features/ledger/domain/entities/ledger_entry.dart';
 import 'package:step_up_fuels/features/ledger/presentation/providers/ledger_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
@@ -16,39 +22,51 @@ class LedgerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
     final selectedId = ref.watch(selectedLedgerAccountIdProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left side: Master list of Ledger Accounts
-          Container(
-            width: 380,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.darkBorder)),
-            ),
-            child: const _LedgerAccountsMasterList(),
-          ),
-
-          // Right side: Detail view / Statement
-          Expanded(
-            child: selectedId == null
-                ? const EmptyStateWidget(
-                    title: 'Select a Ledger Account',
-                    subtitle:
-                        'Select an account from the Chart of Accounts to view its statement.',
-                    icon: Icons.account_balance_wallet_outlined,
-                  )
-                : const _LedgerAccountDetailView(),
-          ),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: _LedgerAccountsMasterList(
+          onMobileTap: isMobileOrSmall
+              ? (LedgerAccount acc) {
+                  ref.read(selectedLedgerAccountIdProvider.notifier).state = acc.id;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => Scaffold(
+                        appBar: AppBar(
+                          title: Text(acc.name),
+                          backgroundColor: AppColors.darkSurface,
+                          foregroundColor: AppColors.darkTextPrimary,
+                        ),
+                        body: const _LedgerAccountDetailView(),
+                      ),
+                    ),
+                  ).then((_) {
+                    ref.read(selectedLedgerAccountIdProvider.notifier).state = null;
+                  });
+                }
+              : null,
+        ),
+        detail: selectedId == null
+            ? const EmptyStateWidget(
+                title: 'Select a Ledger Account',
+                subtitle:
+                    'Select an account from the Chart of Accounts to view its statement.',
+                icon: Icons.account_balance_wallet_outlined,
+              )
+            : const _LedgerAccountDetailView(),
       ),
     );
   }
 }
 
 class _LedgerAccountsMasterList extends ConsumerStatefulWidget {
-  const _LedgerAccountsMasterList();
+  const _LedgerAccountsMasterList({this.onMobileTap});
+
+  final void Function(LedgerAccount account)? onMobileTap;
 
   @override
   ConsumerState<_LedgerAccountsMasterList> createState() =>
@@ -157,6 +175,9 @@ class _LedgerAccountsMasterListState
                     onTap: () {
                       ref.read(selectedLedgerAccountIdProvider.notifier).state =
                           acc.id;
+                      if (widget.onMobileTap != null) {
+                        widget.onMobileTap!(acc);
+                      }
                     },
                     selected: isSelected,
                     selectedTileColor: AppColors.brandNavyMid,
@@ -506,192 +527,134 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                         ),
                       ),
 
-                      // Entries headers
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        color: AppColors.darkSurface,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'DATE',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkTextTertiary,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 5,
-                              child: Text(
-                                'DESCRIPTION',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkTextTertiary,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'DEBIT',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkTextTertiary,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'CREDIT',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkTextTertiary,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                'BALANCE',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkTextTertiary,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Entries lines
                       Expanded(
-                        child: entries.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'No ledger entries recorded in this period.',
-                                  style: TextStyle(
-                                    color: AppColors.darkTextTertiary,
-                                  ),
-                                ),
-                              )
-                            : ListView.separated(
-                                itemCount: entries.length,
-                                separatorBuilder: (context, index) => Divider(
-                                  color: AppColors.darkBorder,
-                                  height: 1,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final entry = entries[index];
-
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24.0,
-                                      vertical: 14.0,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            DateFormat(
-                                              'dd/MM/yyyy',
-                                            ).format(entry.entryDate),
-                                            style: TextStyle(
-                                              color:
-                                                  AppColors.darkTextSecondary,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 5,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                entry.description,
-                                                style: TextStyle(
-                                                  color:
-                                                      AppColors.darkTextPrimary,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              if (entry.referenceId !=
-                                                  null) ...[
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
-                                                  style: TextStyle(
-                                                    color: AppColors
-                                                        .darkTextTertiary,
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            entry.debitAmount > 0
-                                                ? '₹${entry.debitAmount.toStringAsFixed(2)}'
-                                                : '-',
-                                            style: const TextStyle(
-                                              color: AppColors.success,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            entry.creditAmount > 0
-                                                ? '₹${entry.creditAmount.toStringAsFixed(2)}'
-                                                : '-',
-                                            style: const TextStyle(
-                                              color: AppColors.error,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            '₹${entry.runningBalance.toStringAsFixed(2)}',
-                                            style: TextStyle(
-                                              color: AppColors.darkTextPrimary,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                        child: AdaptiveTable<LedgerEntry>(
+                          items: entries,
+                          noItemsPlaceholder: Center(
+                            child: Text(
+                              'No ledger entries recorded in this period.',
+                              style: TextStyle(
+                                color: AppColors.darkTextTertiary,
                               ),
+                            ),
+                          ),
+                          columns: const [
+                            DataColumn(label: Text('DATE')),
+                            DataColumn(label: Text('DESCRIPTION')),
+                            DataColumn(label: Text('DEBIT', textAlign: TextAlign.right)),
+                            DataColumn(label: Text('CREDIT', textAlign: TextAlign.right)),
+                            DataColumn(label: Text('BALANCE', textAlign: TextAlign.right)),
+                          ],
+                          rowsBuilder: (context, list) => list.map((entry) => DataRow(
+                            cells: [
+                              DataCell(Text(DateFormat('dd/MM/yyyy').format(entry.entryDate))),
+                              DataCell(Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(entry.description, style: const TextStyle(fontWeight: FontWeight.w500)),
+                                  if (entry.referenceId != null)
+                                    Text(
+                                      'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
+                                      style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10),
+                                    ),
+                                ],
+                              )),
+                              DataCell(Text(
+                                entry.debitAmount > 0 ? '₹${entry.debitAmount.toStringAsFixed(2)}' : '-',
+                                style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+                              )),
+                              DataCell(Text(
+                                entry.creditAmount > 0 ? '₹${entry.creditAmount.toStringAsFixed(2)}' : '-',
+                                style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                              )),
+                              DataCell(Text('₹${entry.runningBalance.toStringAsFixed(2)}')),
+                            ],
+                          )).toList(),
+                          mobileCardBuilder: (context, entry) => Card(
+                            color: AppColors.darkCard,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(color: AppColors.darkBorder),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        DateFormat('dd MMM yyyy').format(entry.entryDate),
+                                        style: TextStyle(
+                                          color: AppColors.darkTextTertiary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      if (entry.referenceId != null)
+                                        Text(
+                                          'Ref: ${entry.referenceType}',
+                                          style: TextStyle(
+                                            color: AppColors.darkTextTertiary,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    entry.description,
+                                    style: TextStyle(
+                                      color: AppColors.darkTextPrimary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('DEBIT', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            entry.debitAmount > 0 ? '₹${entry.debitAmount.toStringAsFixed(2)}' : '₹0.00',
+                                            style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('CREDIT', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            entry.creditAmount > 0 ? '₹${entry.creditAmount.toStringAsFixed(2)}' : '₹0.00',
+                                            style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('BALANCE', style: TextStyle(color: AppColors.darkTextTertiary, fontSize: 10)),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '₹${entry.runningBalance.toStringAsFixed(2)}',
+                                            style: TextStyle(color: AppColors.darkTextPrimary, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   );

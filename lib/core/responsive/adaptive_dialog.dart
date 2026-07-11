@@ -1,27 +1,14 @@
-/// Adaptive dialog helper.
-///
-/// On desktop/tablet: shows a standard centred [AlertDialog].
-/// On mobile:         shows a full-screen [Scaffold]-based page.
-///
-/// Usage:
-/// ```dart
-/// AdaptiveDialog.show(
-///   context: context,
-///   title: 'Add Supplier',
-///   content: AddSupplierForm(),
-///   actions: [...],
-/// );
-/// ```
-library;
-
 import 'package:flutter/material.dart';
-import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/spacing.dart';
 
+/// Centered dialog on desktop/tablet, and a full-screen scaffold on mobile.
 class AdaptiveDialog {
   AdaptiveDialog._();
 
-  /// Shows a dialog centred on desktop/tablet, or a full-screen page on mobile.
+  /// Shows a dialog centered on desktop/tablet, or a full-screen page on mobile.
   static Future<T?> show<T>({
     required BuildContext context,
     required String title,
@@ -30,7 +17,7 @@ class AdaptiveDialog {
     double? maxWidth,
     bool barrierDismissible = true,
   }) {
-    if (ResponsiveLayout.isMobile(context)) {
+    if (context.isMobile) {
       return _showFullScreenPage<T>(
         context: context,
         title: title,
@@ -48,7 +35,7 @@ class AdaptiveDialog {
     );
   }
 
-  // ── Centred desktop/tablet dialog ─────────────────────────────────────────
+  // ── Centered desktop/tablet dialog ─────────────────────────────────────────
 
   static Future<T?> _showCentredDialog<T>({
     required BuildContext context,
@@ -58,6 +45,8 @@ class AdaptiveDialog {
     double? maxWidth,
     bool barrierDismissible = true,
   }) {
+    final computedMaxWidth = maxWidth ?? AppDimensions.dialogMaxWidth(context);
+
     return showDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
@@ -65,7 +54,7 @@ class AdaptiveDialog {
         backgroundColor: AppColors.darkSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth ?? 640),
+          constraints: BoxConstraints(maxWidth: computedMaxWidth),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -153,7 +142,7 @@ class AdaptiveDialog {
                 : null,
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.dialog(ctx),
             child: content,
           ),
         ),

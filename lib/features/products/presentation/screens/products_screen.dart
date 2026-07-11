@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_grid.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
@@ -16,28 +20,49 @@ class ProductsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
+    final selectedId = ref.watch(selectedProductIdProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left side: Product master list (380px wide)
-          Container(
-            width: 380,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.darkBorder)),
-            ),
-            child: const _ProductMasterList(),
-          ),
-          // Right side: Detail view
-          const Expanded(child: _ProductDetailView()),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: _ProductMasterList(
+          onMobileTap: isMobileOrSmall
+              ? (product) {
+                  ref.read(selectedProductIdProvider.notifier).state =
+                      product.id;
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (ctx) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(product.name),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.darkTextPrimary,
+                            ),
+                            body: const _ProductDetailView(),
+                          ),
+                        ),
+                      )
+                      .then((_) {
+                        ref.read(selectedProductIdProvider.notifier).state =
+                            null;
+                      });
+                }
+              : null,
+        ),
+        detail: const _ProductDetailView(),
       ),
     );
   }
 }
 
 class _ProductMasterList extends ConsumerWidget {
-  const _ProductMasterList();
+  const _ProductMasterList({this.onMobileTap});
+
+  final void Function(Product product)? onMobileTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -151,6 +176,9 @@ class _ProductMasterList extends ConsumerWidget {
                       onTap: () {
                         ref.read(selectedProductIdProvider.notifier).state =
                             product.id;
+                        if (onMobileTap != null) {
+                          onMobileTap!(product);
+                        }
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
@@ -387,11 +415,22 @@ class _ProductDetailCard extends ConsumerWidget {
 
           // Details Grid
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
-              childAspectRatio: 2.5,
+            child: AdaptiveGrid.fixed(
+              columns: const {
+                ScreenType.mobile: 1,
+                ScreenType.smallTablet: 2,
+                ScreenType.tablet: 2,
+                ScreenType.desktop: 2,
+                ScreenType.wideDesktop: 2,
+              },
+              childAspectRatio: context.responsiveValue(
+                desktop: 2.5,
+                tablet: 2.3,
+                smallTablet: 2.2,
+                mobile: 3.0,
+              ),
+              spacing: 24,
+              runSpacing: 24,
               children: [
                 _buildInfoTile('HSN Code', product.hsnCode, Icons.tag),
                 _buildInfoTile(

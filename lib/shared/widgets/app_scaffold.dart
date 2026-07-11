@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:step_up_fuels/app/router/route_names.dart';
 import 'package:step_up_fuels/core/constants/ui_constants.dart';
-import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_scaffold.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/navigation/app_bottom_nav.dart';
@@ -13,12 +13,6 @@ import 'package:step_up_fuels/shared/widgets/sidebar/sidebar_widget.dart';
 
 /// Root application shell — chooses the correct navigation chrome based on
 /// screen width and delegates content to the GoRouter [child].
-///
-/// Desktop  (≥ 1100 px): collapsible [SidebarWidget] + top bar + content.
-/// Tablet   (900–1100 px): [AppNavigationRail] (icon + label) + content.
-/// SmTablet (600–900 px): [AppNavigationRail] (icon only) + content.
-/// Mobile   (<  600 px): AppBar + [AppBottomNav] + full-width content;
-///                        Drawer holds all secondary nav items.
 class AppScaffold extends ConsumerStatefulWidget {
   const AppScaffold({super.key, required this.child});
 
@@ -33,106 +27,46 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final device = ResponsiveLayout.device(context);
-
-    switch (device) {
-      case DeviceType.desktop:
-        return _buildDesktopShell(context);
-      case DeviceType.tablet:
-      case DeviceType.smallTablet:
-        return _buildRailShell(context);
-      case DeviceType.mobile:
-        return _buildMobileShell(context);
-    }
-  }
-
-  // ── Desktop Shell ──────────────────────────────────────────────────────────
-
-  Widget _buildDesktopShell(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Row(
+    final isDark = theme.brightness == Brightness.dark;
+
+    final navContainerDecoration = BoxDecoration(
+      color: isDark ? AppColors.darkThemeSidebar : Colors.white,
+      border: Border(
+        right: BorderSide(color: AppColors.darkBorder),
+      ),
+    );
+
+    return AdaptiveScaffold(
+      body: widget.child,
+      desktopSidebar: SidebarWidget(
+        isCollapsed: _isSidebarCollapsed,
+        onToggleCollapse: () =>
+            setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
+      ),
+      tabletNavigationRail: Container(
+        decoration: navContainerDecoration,
+        child: const AppNavigationRail(),
+      ),
+      smallTabletNavigationRail: Container(
+        decoration: navContainerDecoration,
+        child: const AppNavigationRail(),
+      ),
+      mobileBottomNavBar: const AppBottomNav(),
+      mobileAppBar: _MobileAppBar(ref: ref),
+      mobileDrawer: _buildDrawer(context, isDark),
+      topBar: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SidebarWidget(
-            isCollapsed: _isSidebarCollapsed,
-            onToggleCollapse: () =>
-                setState(() => _isSidebarCollapsed = !_isSidebarCollapsed),
-          ),
-          VerticalDivider(
-            width: 1,
+          _TopBar(isSidebarCollapsed: _isSidebarCollapsed),
+          Divider(
+            height: 1,
             thickness: 1,
             color: theme.colorScheme.outline,
           ),
-          Expanded(
-            child: Column(
-              children: [
-                _TopBar(isSidebarCollapsed: _isSidebarCollapsed),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: theme.colorScheme.outline,
-                ),
-                Expanded(child: widget.child),
-              ],
-            ),
-          ),
         ],
       ),
-    );
-  }
-
-  // ── Tablet / Small-Tablet Shell (NavigationRail) ───────────────────────────
-
-  Widget _buildRailShell(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Row(
-        children: [
-          // Navigation Rail
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkThemeSidebar : Colors.white,
-              border: Border(
-                right: BorderSide(color: AppColors.darkBorder),
-              ),
-            ),
-            child: const AppNavigationRail(),
-          ),
-          // Content
-          Expanded(
-            child: Column(
-              children: [
-                const _TopBar(isSidebarCollapsed: true),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: theme.colorScheme.outline,
-                ),
-                Expanded(child: widget.child),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Mobile Shell ───────────────────────────────────────────────────────────
-
-  Widget _buildMobileShell(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: _MobileAppBar(ref: ref),
-      drawer: _buildDrawer(context, isDark),
-      body: widget.child,
-      bottomNavigationBar: const AppBottomNav(),
     );
   }
 

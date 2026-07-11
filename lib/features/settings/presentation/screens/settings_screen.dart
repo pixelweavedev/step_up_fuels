@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/settings/domain/entities/company_profile.dart';
@@ -408,69 +409,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildTextField(
-                    label: 'Company Name',
-                    controller: _companyNameController,
-                    validator: (v) => v!.isEmpty ? 'Name required' : null,
-                  ),
+                _buildTextField(
+                  label: 'Company Name',
+                  controller: _companyNameController,
+                  validator: (v) => v!.isEmpty ? 'Name required' : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'GSTIN',
-                    controller: _gstinController,
-                    validator: (v) {
-                      if (v!.isEmpty) return 'GSTIN required';
-                      final reg = RegExp(
-                        r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
-                      );
+                _buildTextField(
+                  label: 'GSTIN',
+                  controller: _gstinController,
+                  validator: (v) {
+                    if (v!.isEmpty) return 'GSTIN required';
+                    final reg = RegExp(
+                      r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+                    );
+                    if (!reg.hasMatch(v.toUpperCase())) {
+                      return 'Invalid GSTIN format';
+                    }
+                    return null;
+                  },
+                ),
+                _buildTextField(
+                  label: 'PAN (Optional)',
+                  controller: _panController,
+                  validator: (v) {
+                    if (v != null && v.isNotEmpty) {
+                      final reg = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
                       if (!reg.hasMatch(v.toUpperCase())) {
-                        return 'Invalid GSTIN format';
+                        return 'Invalid PAN';
                       }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'PAN (Optional)',
-                    controller: _panController,
-                    validator: (v) {
-                      if (v != null && v.isNotEmpty) {
-                        final reg = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
-                        if (!reg.hasMatch(v.toUpperCase())) {
-                          return 'Invalid PAN';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Email Address',
-                    controller: _emailController,
-                    validator: (v) =>
-                        !v!.contains('@') ? 'Invalid email' : null,
-                  ),
+                _buildTextField(
+                  label: 'Email Address',
+                  controller: _emailController,
+                  validator: (v) =>
+                      !v!.contains('@') ? 'Invalid email' : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Contact Phone',
-                    controller: _phoneController,
-                    validator: (v) => v!.length < 10 ? 'Invalid phone' : null,
-                  ),
+                _buildTextField(
+                  label: 'Contact Phone',
+                  controller: _phoneController,
+                  validator: (v) => v!.length < 10 ? 'Invalid phone' : null,
                 ),
               ],
             ),
@@ -491,51 +478,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildTextField(
-                    label: 'Bank Name',
-                    controller: _bankNameController,
-                    validator: (v) => v!.isEmpty ? 'Bank required' : null,
-                  ),
+                _buildTextField(
+                  label: 'Bank Name',
+                  controller: _bankNameController,
+                  validator: (v) => v!.isEmpty ? 'Bank required' : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Branch Name',
-                    controller: _bankBranchController,
-                    validator: (v) => v!.isEmpty ? 'Branch required' : null,
-                  ),
+                _buildTextField(
+                  label: 'Branch Name',
+                  controller: _bankBranchController,
+                  validator: (v) => v!.isEmpty ? 'Branch required' : null,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Bank Account Number',
-                    controller: _bankAccountController,
-                    validator: (v) =>
-                        v!.isEmpty ? 'Account number required' : null,
-                  ),
+                _buildTextField(
+                  label: 'Bank Account Number',
+                  controller: _bankAccountController,
+                  validator: (v) =>
+                      v!.isEmpty ? 'Account number required' : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'IFSC Code',
-                    controller: _bankIfscController,
-                    validator: (v) {
-                      if (v!.isEmpty) return 'IFSC required';
-                      final reg = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
-                      if (!reg.hasMatch(v.toUpperCase())) {
-                        return 'Invalid IFSC code';
-                      }
-                      return null;
-                    },
-                  ),
+                _buildTextField(
+                  label: 'IFSC Code',
+                  controller: _bankIfscController,
+                  validator: (v) {
+                    if (v!.isEmpty) return 'IFSC required';
+                    final reg = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
+                    if (!reg.hasMatch(v.toUpperCase())) {
+                      return 'Invalid IFSC code';
+                    }
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -585,26 +561,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Invoice Prefix',
-                    controller: _prefixController,
-                    validator: (v) => v!.isEmpty ? 'Prefix required' : null,
-                  ),
+                _buildTextField(
+                  label: 'Invoice Prefix',
+                  controller: _prefixController,
+                  validator: (v) => v!.isEmpty ? 'Prefix required' : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Starting Sequence Number',
-                    controller: _startNumberController,
-                    validator: (v) {
-                      if (v!.isEmpty) return 'Number required';
-                      if (int.tryParse(v) == null) return 'Must be digits';
-                      return null;
-                    },
-                  ),
+                _buildTextField(
+                  label: 'Starting Sequence Number',
+                  controller: _startNumberController,
+                  validator: (v) {
+                    if (v!.isEmpty) return 'Number required';
+                    if (int.tryParse(v) == null) return 'Must be digits';
+                    return null;
+                  },
                 ),
               ],
             ),
@@ -676,41 +647,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Default Paper Size',
-                      labelStyle: TextStyle(color: AppColors.darkTextSecondary),
-                      filled: true,
-                      fillColor: AppColors.darkSurface,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    dropdownColor: AppColors.darkSurface,
-                    style: const TextStyle(color: Colors.white),
-                    initialValue: _selectedPaperSize,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'A4',
-                        child: Text('A4 (Standard)'),
-                      ),
-                      DropdownMenuItem(value: 'LETTER', child: Text('Letter')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          _selectedPaperSize = val;
-                        });
-                      }
-                    },
-                  ),
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Default Paper Size',
+                labelStyle: TextStyle(color: AppColors.darkTextSecondary),
+                filled: true,
+                fillColor: AppColors.darkSurface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 16),
-                const Spacer(),
+              ),
+              dropdownColor: AppColors.darkSurface,
+              style: const TextStyle(color: Colors.white),
+              initialValue: _selectedPaperSize,
+              items: const [
+                DropdownMenuItem(
+                  value: 'A4',
+                  child: Text('A4 (Standard)'),
+                ),
+                DropdownMenuItem(value: 'LETTER', child: Text('Letter')),
               ],
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    _selectedPaperSize = val;
+                  });
+                }
+              },
             ),
             const SizedBox(height: 24),
             Text(
@@ -722,46 +685,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            AdaptiveFormRow(
               children: [
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Margin Top',
-                    controller: _marginTopController,
-                    validator: (v) => double.tryParse(v ?? '') == null
-                        ? 'Must be double'
-                        : null,
-                  ),
+                _buildTextField(
+                  label: 'Margin Top',
+                  controller: _marginTopController,
+                  validator: (v) => double.tryParse(v ?? '') == null
+                      ? 'Must be double'
+                      : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Margin Bottom',
-                    controller: _marginBottomController,
-                    validator: (v) => double.tryParse(v ?? '') == null
-                        ? 'Must be double'
-                        : null,
-                  ),
+                _buildTextField(
+                  label: 'Margin Bottom',
+                  controller: _marginBottomController,
+                  validator: (v) => double.tryParse(v ?? '') == null
+                      ? 'Must be double'
+                      : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Margin Left',
-                    controller: _marginLeftController,
-                    validator: (v) => double.tryParse(v ?? '') == null
-                        ? 'Must be double'
-                        : null,
-                  ),
+                _buildTextField(
+                  label: 'Margin Left',
+                  controller: _marginLeftController,
+                  validator: (v) => double.tryParse(v ?? '') == null
+                      ? 'Must be double'
+                      : null,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    label: 'Margin Right',
-                    controller: _marginRightController,
-                    validator: (v) => double.tryParse(v ?? '') == null
-                        ? 'Must be double'
-                        : null,
-                  ),
+                _buildTextField(
+                  label: 'Margin Right',
+                  controller: _marginRightController,
+                  validator: (v) => double.tryParse(v ?? '') == null
+                      ? 'Must be double'
+                      : null,
                 ),
               ],
             ),

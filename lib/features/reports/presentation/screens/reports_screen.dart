@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/reports/data/exporters/excel_exporter.dart';
 import 'package:step_up_fuels/features/reports/data/exporters/pdf_report_generator.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
@@ -19,31 +22,49 @@ class ReportsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
     final selectedType = ref.watch(reportSelectedTypeProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
+
+    final detailWidget = Column(
+      children: [
+        _buildFilterHeader(context, ref),
+        Divider(color: AppColors.darkBorder, height: 1),
+        Expanded(child: _buildReportContent(selectedType)),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // Left sidebar for reports menu
-          Container(
-            width: 280,
-            decoration: BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.darkBorder)),
-            ),
-            child: const _ReportsSidebar(),
-          ),
-
-          // Right workspace area
-          Expanded(
-            child: Column(
-              children: [
-                _buildFilterHeader(context, ref),
-                Divider(color: AppColors.darkBorder, height: 1),
-                Expanded(child: _buildReportContent(selectedType)),
-              ],
-            ),
-          ),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedType.isNotEmpty,
+        master: _ReportsSidebar(
+          onMobileTap: isMobileOrSmall
+              ? (type) {
+                  ref.read(reportSelectedTypeProvider.notifier).state = type;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => Scaffold(
+                        appBar: AppBar(
+                          title: Text(_getReportTitle(type)),
+                          backgroundColor: AppColors.darkSurface,
+                          foregroundColor: AppColors.darkTextPrimary,
+                        ),
+                        body: Column(
+                          children: [
+                            _buildFilterHeader(ctx, ref),
+                            Divider(color: AppColors.darkBorder, height: 1),
+                            Expanded(child: _buildReportContent(type)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ).then((_) {
+                    ref.read(reportSelectedTypeProvider.notifier).state = '';
+                  });
+                }
+              : null,
+        ),
+        detail: detailWidget,
       ),
     );
   }
@@ -443,7 +464,9 @@ class ReportsScreen extends ConsumerWidget {
 }
 
 class _ReportsSidebar extends ConsumerWidget {
-  const _ReportsSidebar();
+  const _ReportsSidebar({this.onMobileTap});
+
+  final void Function(String type)? onMobileTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -545,7 +568,12 @@ class _ReportsSidebar extends ConsumerWidget {
   ) {
     final isSelected = type == current;
     return ListTile(
-      onTap: () => ref.read(reportSelectedTypeProvider.notifier).state = type,
+      onTap: () {
+        ref.read(reportSelectedTypeProvider.notifier).state = type;
+        if (onMobileTap != null) {
+          onMobileTap!(type);
+        }
+      },
       selected: isSelected,
       selectedTileColor: AppColors.brandNavyMid,
       leading: Icon(

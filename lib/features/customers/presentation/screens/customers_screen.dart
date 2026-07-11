@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_grid.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
-import 'package:step_up_fuels/core/responsive/responsive_dimensions.dart';
-import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
-import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/spacing.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/core/utils/number_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
@@ -35,21 +36,37 @@ class CustomersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
     final selectedId = ref.watch(selectedCustomerIdProvider);
-    final isMobileOrSmall = ResponsiveLayout.isMobileOrSmallTablet(context);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       body: AdaptiveMasterDetail(
-        masterWidth: ResponsiveDimensions.masterListWidth(context),
+        masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
         master: _CustomerMasterList(
           // On mobile/small tablet the detail is pushed as a new page.
           onMobileTap: isMobileOrSmall
-              ? (customer) => AdaptiveMasterDetail.openDetail(
-                    context,
-                    title: customer.name,
-                    detail: _CustomerDetailScaffold(customer: customer),
-                  )
+              ? (customer) {
+                  ref.read(selectedCustomerIdProvider.notifier).state =
+                      customer.id;
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (ctx) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(customer.name),
+                              backgroundColor: AppColors.darkSurface,
+                              foregroundColor: AppColors.darkTextPrimary,
+                            ),
+                            body: const _CustomerDetailView(),
+                          ),
+                        ),
+                      )
+                      .then((_) {
+                        ref.read(selectedCustomerIdProvider.notifier).state =
+                            null;
+                      });
+                }
               : null,
         ),
         detail: const _CustomerDetailView(),
@@ -222,6 +239,9 @@ class _CustomerMasterList extends ConsumerWidget {
                       onTap: () {
                         ref.read(selectedCustomerIdProvider.notifier).state =
                             customer.id;
+                        if (onMobileTap != null) {
+                          onMobileTap!(customer);
+                        }
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
@@ -444,8 +464,8 @@ class _CustomerDetailScaffoldState
   Widget build(BuildContext context) {
     final customer = widget.customer;
     final isDeleted = customer.deletedAt != null;
-    final overviewWidth = ResponsiveDimensions.customerOverviewColumnWidth(context);
-    final isNarrow = ResponsiveLayout.isMobileOrSmallTablet(context);
+    final overviewWidth = AppDimensions.customerOverviewWidth(context);
+    final isNarrow = context.isMobileOrSmallTablet;
 
     // The inner detail content — overview + tabbed panel.
     // On narrow screens these stack vertically.
@@ -469,9 +489,7 @@ class _CustomerDetailScaffoldState
             width: overviewWidth,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(color: AppColors.darkBorder),
-              ),
+              border: Border(right: BorderSide(color: AppColors.darkBorder)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,7 +567,7 @@ class _CustomerDetailScaffoldState
     Customer customer,
     bool isDeleted,
   ) {
-    final isNarrow = ResponsiveLayout.isMobileOrSmallTablet(context);
+    final isNarrow = context.isMobileOrSmallTablet;
     return Container(
       padding: EdgeInsets.all(isNarrow ? 16 : 24),
       decoration: BoxDecoration(
@@ -609,7 +627,9 @@ class _CustomerDetailScaffoldState
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: isDeleted ? AppColors.error : AppColors.success,
+                          color: isDeleted
+                              ? AppColors.error
+                              : AppColors.success,
                         ),
                       ),
                     ),
@@ -675,7 +695,10 @@ class _CustomerDetailScaffoldState
             // Compact icon-only actions on narrow screens
             if (!isDeleted) ...[
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.brandAmber,
+                ),
                 tooltip: 'Edit',
                 onPressed: () => showDialog(
                   context: context,
@@ -694,23 +717,47 @@ class _CustomerDetailScaffoldState
   Widget _buildOverviewItems(BuildContext context, Customer customer) {
     return Column(
       children: [
-        _buildOverviewItem('GSTIN', customer.gstin ?? 'Not Provided', Icons.receipt_long_outlined),
+        _buildOverviewItem(
+          'GSTIN',
+          customer.gstin ?? 'Not Provided',
+          Icons.receipt_long_outlined,
+        ),
         const SizedBox(height: 12),
-        _buildOverviewItem('PAN', customer.pan ?? 'Not Provided', Icons.payment_outlined),
+        _buildOverviewItem(
+          'PAN',
+          customer.pan ?? 'Not Provided',
+          Icons.payment_outlined,
+        ),
         const SizedBox(height: 12),
-        _buildOverviewItem('Credit Limit', NumberUtils.formatCurrency(customer.creditLimit), Icons.currency_rupee_outlined),
+        _buildOverviewItem(
+          'Credit Limit',
+          NumberUtils.formatCurrency(customer.creditLimit),
+          Icons.currency_rupee_outlined,
+        ),
         const SizedBox(height: 12),
-        _buildOverviewItem('Credit Days', '${customer.creditDays} Days', Icons.calendar_today_outlined),
+        _buildOverviewItem(
+          'Credit Days',
+          '${customer.creditDays} Days',
+          Icons.calendar_today_outlined,
+        ),
         const SizedBox(height: 12),
-        _buildOverviewItem('Created On', AppDateUtils.toDisplay(customer.createdAt), Icons.calendar_month_outlined),
+        _buildOverviewItem(
+          'Created On',
+          AppDateUtils.toDisplay(customer.createdAt),
+          Icons.calendar_month_outlined,
+        ),
       ],
     );
   }
 
   // ── Helper: stacked overview panel for mobile ──────────────────────────────
 
-  Widget _buildOverviewPanel(BuildContext context, Customer customer, {bool isNarrow = false}) {
-    final h = ResponsiveSpacing.pageHorizontal(context);
+  Widget _buildOverviewPanel(
+    BuildContext context,
+    Customer customer, {
+    bool isNarrow = false,
+  }) {
+    final h = AppSpacing.page(context).left;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: h, vertical: 16),
       decoration: BoxDecoration(
@@ -733,12 +780,20 @@ class _CustomerDetailScaffoldState
             const SizedBox(height: 12),
             Text(
               'Notes',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkTextSecondary),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkTextSecondary,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               customer.notes!,
-              style: TextStyle(fontSize: 12, color: AppColors.darkTextSecondary, height: 1.5),
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.darkTextSecondary,
+                height: 1.5,
+              ),
             ),
           ],
         ],
@@ -758,7 +813,10 @@ class _CustomerDetailScaffoldState
           unselectedLabelColor: AppColors.darkTextSecondary,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          labelStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           tabs: const [
             Tab(text: 'Sites'),
             Tab(text: 'Contacts'),
@@ -1075,9 +1133,7 @@ class _CustomerDetailScaffoldState
                   );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: list.length,
                   itemBuilder: (context, index) {
                     final contact = list[index];
@@ -2039,48 +2095,52 @@ class _CustomerDetailScaffoldState
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
+              child: AdaptiveGrid.fixed(
+                columns: const {
+                  ScreenType.mobile: 2,
+                  ScreenType.smallTablet: 2,
+                  ScreenType.tablet: 2,
+                  ScreenType.desktop: 4,
+                  ScreenType.wideDesktop: 4,
+                },
+                childAspectRatio: context.responsiveValue(
+                  desktop: 2.3,
+                  tablet: 2.2,
+                  smallTablet: 2.0,
+                  mobile: 1.8,
+                ),
+                spacing: 12,
+                runSpacing: 12,
                 children: [
-                  Expanded(
-                    child: _KpiCard(
-                      title: 'Total Invoiced',
-                      value:
-                          '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
-                      icon: Icons.receipt_long_rounded,
-                      color: AppColors.info,
-                    ),
+                  _KpiCard(
+                    title: 'Total Invoiced',
+                    value:
+                        '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
+                    icon: Icons.receipt_long_rounded,
+                    color: AppColors.info,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _KpiCard(
-                      title: 'Total Paid',
-                      value:
-                          '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
-                      icon: Icons.check_circle_rounded,
-                      color: AppColors.success,
-                    ),
+                  _KpiCard(
+                    title: 'Total Paid',
+                    value:
+                        '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
+                    icon: Icons.check_circle_rounded,
+                    color: AppColors.success,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _KpiCard(
-                      title: 'Outstanding',
-                      value:
-                          '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
-                      icon: Icons.warning_amber_rounded,
-                      color: totalOutstanding > 0
-                          ? AppColors.error
-                          : AppColors.success,
-                    ),
+                  _KpiCard(
+                    title: 'Outstanding',
+                    value:
+                        '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
+                    icon: Icons.warning_amber_rounded,
+                    color: totalOutstanding > 0
+                        ? AppColors.error
+                        : AppColors.success,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _KpiCard(
-                      title: 'Advance Balance',
-                      value:
-                          '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
-                      icon: Icons.account_balance_wallet_rounded,
-                      color: AppColors.brandAmber,
-                    ),
+                  _KpiCard(
+                    title: 'Advance Balance',
+                    value:
+                        '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
+                    icon: Icons.account_balance_wallet_rounded,
+                    color: AppColors.brandAmber,
                   ),
                 ],
               ),

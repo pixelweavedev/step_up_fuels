@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/inventory/domain/entities/stock_adjustment.dart';
 import 'package:step_up_fuels/features/inventory/domain/entities/storage_location.dart';
@@ -21,6 +24,7 @@ class InventoryScreen extends ConsumerWidget {
     ref.watch(themeModeProvider);
     final locationsAsync = ref.watch(storageLocationsProvider);
     final selectedLocationId = ref.watch(selectedStorageLocationIdProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -38,106 +42,116 @@ class InventoryScreen extends ConsumerWidget {
           }
 
           // Auto-select first location if none is selected
-          if (selectedLocationId == null && locations.isNotEmpty) {
+          if (selectedLocationId == null && locations.isNotEmpty && !isMobileOrSmall) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedStorageLocationIdProvider.notifier).state =
                   locations.first.id;
             });
           }
 
-          return Row(
+          final masterWidget = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left: locations sidebar list
-              Container(
-                width: 320,
-                decoration: BoxDecoration(
-                  border: Border(
-                    right: BorderSide(color: AppColors.darkBorder),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Locations',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextPrimary,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.add_circle_outline,
-                              color: AppColors.brandAmber,
-                            ),
-                            onPressed: () =>
-                                _showAddLocationDialog(context, ref),
-                          ),
-                        ],
+                    Text(
+                      'Locations',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
                       ),
                     ),
-                    Divider(color: AppColors.darkBorder, height: 1),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: locations.length,
-                        itemBuilder: (context, index) {
-                          final loc = locations[index];
-                          final isSelected = loc.id == selectedLocationId;
-                          return ListTile(
-                            selected: isSelected,
-                            selectedTileColor: AppColors.darkSurface,
-                            leading: Icon(
-                              loc.type == StorageLocationType.mainStorage
-                                  ? Icons.store_rounded
-                                  : Icons.local_shipping_rounded,
-                              color: isSelected
-                                  ? AppColors.brandAmber
-                                  : AppColors.darkTextSecondary,
-                            ),
-                            title: Text(
-                              loc.name,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? AppColors.brandAmber
-                                    : AppColors.darkTextPrimary,
-                              ),
-                            ),
-                            subtitle: Text(
-                              loc.type == StorageLocationType.mainStorage
-                                  ? 'Main Terminal'
-                                  : 'Mobile Bowser',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.darkTextSecondary,
-                              ),
-                            ),
-                            onTap: () {
-                              ref
-                                  .read(
-                                    selectedStorageLocationIdProvider.notifier,
-                                  )
-                                  .state = loc
-                                  .id;
-                            },
-                          );
-                        },
+                    IconButton(
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: AppColors.brandAmber,
                       ),
+                      onPressed: () =>
+                          _showAddLocationDialog(context, ref),
                     ),
                   ],
                 ),
               ),
-
-              // Right: Selected location dashboard & movements
-              const Expanded(child: _LocationDetailDashboard()),
+              Divider(color: AppColors.darkBorder, height: 1),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: locations.length,
+                  itemBuilder: (context, index) {
+                    final loc = locations[index];
+                    final isSelected = loc.id == selectedLocationId;
+                    return ListTile(
+                      selected: isSelected,
+                      selectedTileColor: AppColors.darkSurface,
+                      leading: Icon(
+                        loc.type == StorageLocationType.mainStorage
+                            ? Icons.store_rounded
+                            : Icons.local_shipping_rounded,
+                        color: isSelected
+                            ? AppColors.brandAmber
+                            : AppColors.darkTextSecondary,
+                      ),
+                      title: Text(
+                        loc.name,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected
+                              ? AppColors.brandAmber
+                              : AppColors.darkTextPrimary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        loc.type == StorageLocationType.mainStorage
+                            ? 'Main Terminal'
+                            : 'Mobile Bowser',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.darkTextSecondary,
+                        ),
+                      ),
+                      onTap: () {
+                        ref
+                            .read(
+                              selectedStorageLocationIdProvider.notifier,
+                            )
+                            .state = loc.id;
+                        if (isMobileOrSmall) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (ctx) => Scaffold(
+                                appBar: AppBar(
+                                  title: Text(loc.name),
+                                  backgroundColor: AppColors.darkSurface,
+                                  foregroundColor: AppColors.darkTextPrimary,
+                                ),
+                                body: const _LocationDetailDashboard(),
+                              ),
+                            ),
+                          ).then((_) {
+                            ref
+                                .read(
+                                  selectedStorageLocationIdProvider.notifier,
+                                )
+                                .state = null;
+                          });
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
             ],
+          );
+
+          return AdaptiveMasterDetail(
+            masterWidth: AppDimensions.masterListWidth(context),
+            hasSelection: selectedLocationId != null,
+            master: masterWidget,
+            detail: const _LocationDetailDashboard(),
           );
         },
         error: (err, st) => Center(

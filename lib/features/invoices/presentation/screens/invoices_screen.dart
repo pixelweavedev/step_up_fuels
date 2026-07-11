@@ -3,7 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
@@ -28,45 +31,14 @@ class InvoicesScreen extends ConsumerStatefulWidget {
   ConsumerState<InvoicesScreen> createState() => _InvoicesScreenState();
 }
 
-class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
-    with TickerProviderStateMixin {
+class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   final _searchCtrl = TextEditingController();
-  late final AnimationController _panelAnim;
-  late final Animation<double> _panelSlide;
-  bool _showDetail = false;
   static const _uuid = Uuid();
-
-  @override
-  void initState() {
-    super.initState();
-    _panelAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _panelSlide = CurvedAnimation(
-      parent: _panelAnim,
-      curve: Curves.easeOutCubic,
-    );
-  }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
-    _panelAnim.dispose();
     super.dispose();
-  }
-
-  void _openDetail(String id) {
-    ref.read(selectedInvoiceIdProvider.notifier).state = id;
-    setState(() => _showDetail = true);
-    _panelAnim.forward(from: 0);
-  }
-
-  void _closeDetail() {
-    _panelAnim.reverse().then((_) {
-      setState(() => _showDetail = false);
-      ref.read(selectedInvoiceIdProvider.notifier).state = null;
-    });
   }
 
   @override
@@ -75,56 +47,43 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
     final invoicesAsync = ref.watch(invoicesListProvider);
     final selectedId = ref.watch(selectedInvoiceIdProvider);
     final statusFilter = ref.watch(invoiceStatusFilterProvider);
+    final isMobileOrSmall = context.isMobileOrSmallTablet;
+
+    final masterWidget = Column(
+      children: [
+        _buildHeader(context, statusFilter),
+        _buildSearchAndFilters(),
+        Expanded(
+          child: invoicesAsync.when(
+            data: (invoices) => _buildInvoiceList(invoices, selectedId, isMobileOrSmall),
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.brandAmber,
+              ),
+            ),
+            error: (e, _) => Center(
+              child: Text(
+                e.toString(),
+                style: const TextStyle(color: AppColors.error),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
-      body: Row(
-        children: [
-          // ── Left Panel: List ───────────────────────────────────────────────
-          Expanded(
-            flex: _showDetail ? 5 : 1,
-            child: Column(
-              children: [
-                _buildHeader(context, statusFilter),
-                _buildSearchAndFilters(),
-                Expanded(
-                  child: invoicesAsync.when(
-                    data: (invoices) => _buildInvoiceList(invoices, selectedId),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.brandAmber,
-                      ),
-                    ),
-                    error: (e, _) => Center(
-                      child: Text(
-                        e.toString(),
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Right Panel: Detail ────────────────────────────────────────────
-          if (_showDetail && selectedId != null)
-            SizeTransition(
-              axis: Axis.horizontal,
-              sizeFactor: _panelSlide,
-              child: Container(
-                width: 520,
-                decoration: BoxDecoration(
-                  color: AppColors.darkCard,
-                  border: Border(left: BorderSide(color: AppColors.darkBorder)),
-                ),
-                child: _InvoiceDetailPanel(
-                  invoiceId: selectedId,
-                  onClose: _closeDetail,
-                ),
-              ),
-            ),
-        ],
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context),
+        hasSelection: selectedId != null,
+        master: masterWidget,
+        detail: _InvoiceDetailPanel(
+          invoiceId: selectedId ?? '',
+          onClose: () {
+            ref.read(selectedInvoiceIdProvider.notifier).state = null;
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateInvoiceDialog(context),
@@ -140,51 +99,101 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
   }
 
   Widget _buildHeader(BuildContext context, InvoiceStatus? statusFilter) {
+    final isNarrow = context.isMobileOrSmallTablet;
     return Container(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 0),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: AppColors.gradientInvoices,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.receipt_long_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Invoices',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkTextPrimary,
+      child: isNarrow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: AppColors.gradientInvoices,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Invoices',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                        Text(
+                          'GST-compliant tax invoices',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Text(
-                'GST-compliant tax invoices',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.darkTextSecondary,
+                const SizedBox(height: 16),
+                _buildStatSummary(),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: AppColors.gradientInvoices,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          _buildStatSummary(),
-        ],
-      ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Invoices',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    Text(
+                      'GST-compliant tax invoices',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                _buildStatSummary(),
+              ],
+            ),
     );
   }
 
@@ -209,29 +218,33 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
             )
             .fold<double>(0, (s, i) => s + i.totalAmount);
 
-        return Row(
-          children: [
-            _statChip(
-              'Total',
-              total.toString(),
-              Icons.description_outlined,
-              AppColors.brandAmber,
-            ),
-            const SizedBox(width: 12),
-            _statChip(
-              'Outstanding',
-              '₹${_fmt(outstanding)}',
-              Icons.account_balance_wallet_outlined,
-              AppColors.statusOverdue,
-            ),
-            const SizedBox(width: 12),
-            _statChip(
-              'Revenue',
-              '₹${_fmt(totalRevenue)}',
-              Icons.trending_up_rounded,
-              AppColors.success,
-            ),
-          ],
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _statChip(
+                'Total',
+                total.toString(),
+                Icons.description_outlined,
+                AppColors.brandAmber,
+              ),
+              const SizedBox(width: 12),
+              _statChip(
+                'Outstanding',
+                '₹${_fmt(outstanding)}',
+                Icons.account_balance_wallet_outlined,
+                AppColors.statusOverdue,
+              ),
+              const SizedBox(width: 12),
+              _statChip(
+                'Revenue',
+                '₹${_fmt(totalRevenue)}',
+                Icons.trending_up_rounded,
+                AppColors.success,
+              ),
+            ],
+          ),
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -326,7 +339,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
     );
   }
 
-  Widget _buildInvoiceList(List<Invoice> invoices, String? selectedId) {
+  Widget _buildInvoiceList(List<Invoice> invoices, String? selectedId, bool isMobileOrSmall) {
     if (invoices.isEmpty) {
       return _EmptyInvoicesPlaceholder(
         onNew: () => _openCreateInvoiceDialog(context),
@@ -343,7 +356,30 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen>
         return _InvoiceListTile(
           invoice: inv,
           isSelected: isSelected,
-          onTap: () => _openDetail(inv.id),
+          onTap: () {
+            ref.read(selectedInvoiceIdProvider.notifier).state = inv.id;
+            if (isMobileOrSmall) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => Scaffold(
+                    appBar: AppBar(
+                      title: Text(inv.invoiceNumber),
+                      backgroundColor: AppColors.darkSurface,
+                      foregroundColor: AppColors.darkTextPrimary,
+                    ),
+                    body: _InvoiceDetailPanel(
+                      invoiceId: inv.id,
+                      onClose: () {
+                        Navigator.of(ctx).pop();
+                      },
+                    ),
+                  ),
+                ),
+              ).then((_) {
+                ref.read(selectedInvoiceIdProvider.notifier).state = null;
+              });
+            }
+          },
         );
       },
     );

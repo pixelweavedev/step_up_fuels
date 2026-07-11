@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/spacing.dart';
+import 'package:step_up_fuels/core/theme/typography.dart';
 
 /// A premium, professional stat card for the dashboard.
 ///
@@ -36,7 +38,7 @@ class StatCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(24), // 24px spacing as per design system
+        padding: AppSpacing.card(context),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : AppColors.lightCard,
           borderRadius: BorderRadius.circular(10), // 10px standard radius
@@ -58,6 +60,7 @@ class StatCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     title.toUpperCase(),
@@ -73,17 +76,14 @@ class StatCard extends StatelessWidget {
                   const SizedBox(height: 8), // 8px spacing system
                   Text(
                     value,
-                    style: TextStyle(
-                      fontSize: 32, // Display Large
-                      fontWeight: FontWeight.w700,
+                    style: AppTypography.metricValue(context).copyWith(
                       color: isDark
                           ? AppColors.darkTextPrimary
                           : AppColors.lightTextPrimary,
-                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   if (subtitle != null || trend != null) ...[
-                    const SizedBox(height: 12), // 12px spacing system
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         if (trend != null) ...[
@@ -102,21 +102,24 @@ class StatCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               color: trendPositive == true
-                                  ? AppColors.success
-                                  : AppColors.error,
+                                    ? AppColors.success
+                                    : AppColors.error,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                         if (subtitle != null) ...[
                           if (trend != null) const SizedBox(width: 8),
-                          Text(
-                            subtitle!,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark
-                                  ? AppColors.darkTextTertiary
-                                  : AppColors.lightTextTertiary,
+                          Expanded(
+                            child: Text(
+                              subtitle!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.darkTextTertiary
+                                    : AppColors.lightTextTertiary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
