@@ -254,25 +254,27 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                 ),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Purchases & Expenses',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkTextPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Purchases & Expenses',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Manage supplier fuel procurements and operational overhead cost logs',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.darkTextSecondary,
+                    Text(
+                      'Manage supplier fuel procurements and operational overhead cost logs',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.darkTextSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
@@ -29,10 +30,11 @@ class DriversScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+            Builder(
+              builder: (context) {
+                final isMobile = context.isMobileOrSmallTablet;
+
+                final headerText = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -52,8 +54,9 @@ class DriversScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
-                ),
-                PrimaryButton(
+                );
+
+                final actionButton = PrimaryButton(
                   label: 'Add Driver',
                   icon: Icons.person_add_alt_1_rounded,
                   onPressed: () {
@@ -62,8 +65,29 @@ class DriversScreen extends ConsumerWidget {
                       builder: (context) => const DriverFormDialog(),
                     );
                   },
-                ),
-              ],
+                );
+
+                return isMobile
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          headerText,
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: actionButton,
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: headerText),
+                          const SizedBox(width: 16),
+                          actionButton,
+                        ],
+                      );
+              },
             ),
             const SizedBox(height: 24),
 

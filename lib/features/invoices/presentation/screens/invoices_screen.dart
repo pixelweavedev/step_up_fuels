@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
@@ -125,25 +126,27 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Invoices',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkTextPrimary,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Invoices',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkTextPrimary,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'GST-compliant tax invoices',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.darkTextSecondary,
+                          Text(
+                            'GST-compliant tax invoices',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.darkTextSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -170,27 +173,29 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Invoices',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Invoices',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkTextPrimary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'GST-compliant tax invoices',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.darkTextSecondary,
+                      Text(
+                        'GST-compliant tax invoices',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.darkTextSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 16),
                 _buildStatSummary(),
               ],
             ),
@@ -292,46 +297,44 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
   Widget _buildSearchAndFilters() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 16, 28, 8),
-      child: Row(
+      child: AdaptiveFormRow(
+        spacing: 12,
         children: [
           // Search
-          Expanded(
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.darkCard,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.darkBorder),
+          Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.darkCard,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.darkBorder),
+            ),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (v) =>
+                  ref.read(invoiceSearchQueryProvider.notifier).state = v,
+              style: TextStyle(
+                color: AppColors.darkTextPrimary,
+                fontSize: 14,
               ),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) =>
-                    ref.read(invoiceSearchQueryProvider.notifier).state = v,
-                style: TextStyle(
-                  color: AppColors.darkTextPrimary,
+              decoration: InputDecoration(
+                hintText: 'Search by invoice number or customer…',
+                hintStyle: TextStyle(
+                  color: AppColors.darkTextTertiary,
                   fontSize: 14,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Search by invoice number or customer…',
-                  hintStyle: TextStyle(
-                    color: AppColors.darkTextTertiary,
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search_rounded,
-                    color: AppColors.darkTextSecondary,
-                    size: 20,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: AppColors.darkTextSecondary,
+                  size: 20,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
           // Status filter
           _StatusFilterDropdown(),
         ],
@@ -505,12 +508,15 @@ class _InvoiceListTile extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          invoice.invoiceNumber,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkTextPrimary,
+                        Flexible(
+                          child: Text(
+                            invoice.invoiceNumber,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkTextPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -533,6 +539,7 @@ class _InvoiceListTile extends ConsumerWidget {
                         fontSize: 11,
                         color: AppColors.darkTextTertiary,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

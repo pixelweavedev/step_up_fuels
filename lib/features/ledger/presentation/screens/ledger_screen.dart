@@ -371,110 +371,120 @@ class _LedgerAccountDetailView extends ConsumerWidget {
         return Column(
           children: [
             // Detail Header
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        account.name,
+            Builder(
+              builder: (context) {
+                final isMobile = context.isMobileOrSmallTablet;
+
+                final headerInfo = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      account.name,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Code: ${account.accountCode} | Type: ${account.accountType}',
+                      style: TextStyle(
+                        color: AppColors.darkTextSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                );
+
+                final dateFilters = Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.date_range_rounded,
+                        size: 16,
+                        color: AppColors.brandAmber,
+                      ),
+                      label: Text(
+                        fromDate == null
+                            ? 'From Date'
+                            : DateFormat('dd/MM/yyyy').format(fromDate),
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
                           color: AppColors.darkTextPrimary,
+                          fontSize: 12,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Code: ${account.accountCode} | Type: ${account.accountType}',
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.darkBorder),
+                      ),
+                      onPressed: () => _selectDateFrom(context, ref, fromDate),
+                    ),
+                    Text(
+                      'to',
+                      style: TextStyle(color: AppColors.darkTextSecondary),
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.date_range_rounded,
+                        size: 16,
+                        color: AppColors.brandAmber,
+                      ),
+                      label: Text(
+                        toDate == null
+                            ? 'To Date'
+                            : DateFormat('dd/MM/yyyy').format(toDate),
                         style: TextStyle(
-                          color: AppColors.darkTextSecondary,
-                          fontSize: 13,
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 12,
                         ),
                       ),
-                    ],
-                  ),
-                  // Date filters
-                  Row(
-                    children: [
-                      OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.darkBorder),
+                      ),
+                      onPressed: () => _selectDateTo(context, ref, toDate),
+                    ),
+                    if (fromDate != null || toDate != null)
+                      IconButton(
                         icon: const Icon(
-                          Icons.date_range_rounded,
-                          size: 16,
-                          color: AppColors.brandAmber,
+                          Icons.clear_rounded,
+                          color: AppColors.error,
+                          size: 20,
                         ),
-                        label: Text(
-                          fromDate == null
-                              ? 'From Date'
-                              : DateFormat('dd/MM/yyyy').format(fromDate),
-                          style: TextStyle(
-                            color: AppColors.darkTextPrimary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppColors.darkBorder),
-                        ),
-                        onPressed: () =>
-                            _selectDateFrom(context, ref, fromDate),
+                        onPressed: () {
+                          ref
+                              .read(ledgerStatementDateFromProvider.notifier)
+                              .state = null;
+                          ref
+                              .read(ledgerStatementDateToProvider.notifier)
+                              .state = null;
+                        },
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'to',
-                        style: TextStyle(color: AppColors.darkTextSecondary),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton.icon(
-                        icon: const Icon(
-                          Icons.date_range_rounded,
-                          size: 16,
-                          color: AppColors.brandAmber,
+                  ],
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: isMobile
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            headerInfo,
+                            const SizedBox(height: 16),
+                            dateFilters,
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            headerInfo,
+                            dateFilters,
+                          ],
                         ),
-                        label: Text(
-                          toDate == null
-                              ? 'To Date'
-                              : DateFormat('dd/MM/yyyy').format(toDate),
-                          style: TextStyle(
-                            color: AppColors.darkTextPrimary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppColors.darkBorder),
-                        ),
-                        onPressed: () => _selectDateTo(context, ref, toDate),
-                      ),
-                      if (fromDate != null || toDate != null) ...[
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.clear_rounded,
-                            color: AppColors.error,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            ref
-                                    .read(
-                                      ledgerStatementDateFromProvider.notifier,
-                                    )
-                                    .state =
-                                null;
-                            ref
-                                    .read(
-                                      ledgerStatementDateToProvider.notifier,
-                                    )
-                                    .state =
-                                null;
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
+                );
+              },
             ),
 
             Divider(color: AppColors.darkBorder, height: 1),

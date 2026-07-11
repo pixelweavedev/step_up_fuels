@@ -304,10 +304,10 @@ class _LocationDetailDashboard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title Block
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+                  Builder(
+                    builder: (context) {
+                      final isMobile = context.isMobileOrSmallTablet;
+                      final titleBlock = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -327,22 +327,40 @@ class _LocationDetailDashboard extends ConsumerWidget {
                             ),
                           ),
                         ],
-                      ),
-                      Row(
-                        children: [
-                          PrimaryButton(
-                            label: 'Record Stock Adjustment',
-                            icon: Icons.tune_rounded,
-                            onPressed: () => _showAdjustmentDialog(
-                              context,
-                              ref,
-                              location,
-                              firstProduct,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      );
+
+                      final actionButton = PrimaryButton(
+                        label: isMobile ? 'Adjust Stock' : 'Record Stock Adjustment',
+                        icon: Icons.tune_rounded,
+                        onPressed: () => _showAdjustmentDialog(
+                          context,
+                          ref,
+                          location,
+                          firstProduct,
+                        ),
+                      );
+
+                      return isMobile
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                titleBlock,
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: actionButton,
+                                ),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: titleBlock),
+                                const SizedBox(width: 16),
+                                actionButton,
+                              ],
+                            );
+                    },
                   ),
                   const SizedBox(height: 24),
 
