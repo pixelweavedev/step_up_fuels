@@ -604,27 +604,30 @@ class DashboardScreen extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Dashboard',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: AppColors.darkTextPrimary,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Dashboard',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.darkTextPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Real-time business performance & logistics insights',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.darkTextSecondary,
+              const SizedBox(height: 4),
+              Text(
+                'Real-time business performance & logistics insights',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.darkTextSecondary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 16),
         IconButton(
           icon: const Icon(Icons.refresh_rounded, color: AppColors.brandAmber),
           style: IconButton.styleFrom(

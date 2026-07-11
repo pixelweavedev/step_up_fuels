@@ -113,27 +113,30 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Payments',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.darkTextPrimary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payments',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkTextPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Record and track customer receipts & allocations',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.darkTextSecondary,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Record and track customer receipts & allocations',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.darkTextSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 16),
                 PrimaryButton(
                   label: 'Record Receipt',
                   icon: Icons.add_rounded,

@@ -104,10 +104,11 @@ class ReportsScreen extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
+      child: Builder(
+        builder: (context) {
+          final isMobile = context.isMobileOrSmallTablet;
+
+          final headerText = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -127,10 +128,14 @@ class ReportsScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-          Row(
+          );
+
+          final actionButtons = Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (needsDateRange) ...[
+              if (needsDateRange)
                 OutlinedButton.icon(
                   icon: const Icon(
                     Icons.date_range_rounded,
@@ -146,9 +151,7 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                   onPressed: selectDateRange,
                 ),
-                const SizedBox(width: 16),
-              ],
-              if (selectedType == 'gst') ...[
+              if (selectedType == 'gst')
                 ElevatedButton.icon(
                   icon: const Icon(Icons.table_view_rounded, size: 16),
                   label: const Text('Export Excel (GSTR-1)'),
@@ -158,8 +161,6 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                   onPressed: () => _exportToExcel(context, ref),
                 ),
-                const SizedBox(width: 12),
-              ],
               ElevatedButton.icon(
                 icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
                 label: const Text('Print / PDF'),
@@ -170,8 +171,26 @@ class ReportsScreen extends ConsumerWidget {
                 onPressed: () => _printPdf(ref),
               ),
             ],
-          ),
-        ],
+          );
+
+          return isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    headerText,
+                    const SizedBox(height: 16),
+                    actionButtons,
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: headerText),
+                    const SizedBox(width: 16),
+                    actionButtons,
+                  ],
+                );
+        },
       ),
     );
   }
