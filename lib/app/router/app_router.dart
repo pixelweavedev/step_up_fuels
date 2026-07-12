@@ -13,6 +13,7 @@ import 'package:step_up_fuels/features/payments/presentation/screens/payments_sc
 import 'package:step_up_fuels/features/products/presentation/screens/products_screen.dart';
 import 'package:step_up_fuels/features/purchases/presentation/screens/purchases_screen.dart';
 import 'package:step_up_fuels/features/reports/presentation/screens/reports_screen.dart';
+import 'package:step_up_fuels/features/settings/presentation/screens/settings_screen.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/screens/vehicles_screen.dart';
 import 'package:step_up_fuels/shared/widgets/app_scaffold.dart';
 
