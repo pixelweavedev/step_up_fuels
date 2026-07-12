@@ -6,7 +6,9 @@ import 'package:step_up_fuels/features/inventory/domain/entities/storage_locatio
 
 abstract class InventoryRepository {
   // Storage Locations
-  Future<Result<List<StorageLocation>>> getStorageLocations({bool includeDeleted = false});
+  Future<Result<List<StorageLocation>>> getStorageLocations({
+    bool includeDeleted = false,
+  });
   Future<Result<StorageLocation>> getStorageLocationById(String id);
   Future<Result<void>> saveStorageLocation(StorageLocation location);
   Future<Result<void>> softDeleteStorageLocation(String id);
@@ -20,7 +22,10 @@ abstract class InventoryRepository {
     DateTime? start,
     DateTime? end,
   });
-  Future<Result<double>> getCurrentStock({required String locationId, required String productId});
+  Future<Result<double>> getCurrentStock({
+    required String locationId,
+    required String productId,
+  });
 
   // Adjustments
   Future<Result<void>> saveStockAdjustment(StockAdjustment adjustment);
@@ -30,7 +35,9 @@ abstract class InventoryRepository {
   });
 
   // Reconciliations
-  Future<Result<void>> saveReconciliation(DailyStockReconciliation reconciliation);
+  Future<Result<void>> saveReconciliation(
+    DailyStockReconciliation reconciliation,
+  );
   Future<Result<List<DailyStockReconciliation>>> getReconciliations({
     String? locationId,
     DateTime? start,

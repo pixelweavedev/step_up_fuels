@@ -77,17 +77,17 @@ class InventoryMovement extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        productId,
-        sourceLocationId,
-        destinationLocationId,
-        type,
-        quantity,
-        referenceId,
-        referenceType,
-        movementDate,
-        notes,
-        createdAt,
-        createdBy,
-      ];
+    id,
+    productId,
+    sourceLocationId,
+    destinationLocationId,
+    type,
+    quantity,
+    referenceId,
+    referenceType,
+    movementDate,
+    notes,
+    createdAt,
+    createdBy,
+  ];
 }

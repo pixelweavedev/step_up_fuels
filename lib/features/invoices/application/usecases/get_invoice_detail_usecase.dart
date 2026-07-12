@@ -7,7 +7,9 @@ class GetInvoiceDetailUseCase {
   GetInvoiceDetailUseCase(this._repo);
   final InvoiceRepository _repo;
 
-  Future<Result<({Invoice invoice, List<InvoiceItem> items})>> call(String id) async {
+  Future<Result<({Invoice invoice, List<InvoiceItem> items})>> call(
+    String id,
+  ) async {
     final invoiceResult = await _repo.getById(id);
     return invoiceResult.when(
       success: (invoice) async {

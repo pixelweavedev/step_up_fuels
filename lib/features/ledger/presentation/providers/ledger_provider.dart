@@ -15,8 +15,8 @@ final ledgerStatementDateToProvider = StateProvider<DateTime?>((ref) => null);
 
 final ledgerAccountsListProvider =
     AsyncNotifierProvider<LedgerAccountsListNotifier, List<LedgerAccount>>(
-  LedgerAccountsListNotifier.new,
-);
+      LedgerAccountsListNotifier.new,
+    );
 
 class LedgerAccountsListNotifier extends AsyncNotifier<List<LedgerAccount>> {
   @override
@@ -41,7 +41,9 @@ class LedgerAccountsListNotifier extends AsyncNotifier<List<LedgerAccount>> {
 
 final selectedLedgerAccountIdProvider = StateProvider<String?>((ref) => null);
 
-final selectedLedgerAccountProvider = Provider<AsyncValue<LedgerAccount>>((ref) {
+final selectedLedgerAccountProvider = Provider<AsyncValue<LedgerAccount>>((
+  ref,
+) {
   final selectedId = ref.watch(selectedLedgerAccountIdProvider);
   if (selectedId == null) return const AsyncValue.loading();
 

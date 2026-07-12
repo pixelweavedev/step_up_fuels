@@ -12,8 +12,8 @@ class AdaptiveGrid extends StatelessWidget {
     this.runSpacing = 16.0,
     this.childAspectRatio = 1.0,
     this.padding = EdgeInsets.zero,
-  })  : _columns = columns,
-        _maxExtent = null;
+  }) : _columns = columns,
+       _maxExtent = null;
 
   /// Grid that scales columns automatically based on a maximum item width constraint.
   const AdaptiveGrid.maxExtent({
@@ -24,8 +24,8 @@ class AdaptiveGrid extends StatelessWidget {
     this.runSpacing = 16.0,
     this.childAspectRatio = 1.0,
     this.padding = EdgeInsets.zero,
-  })  : _columns = null,
-        _maxExtent = maxExtent;
+  }) : _columns = null,
+       _maxExtent = maxExtent;
 
   final List<Widget> children;
   final double spacing;
@@ -89,8 +89,8 @@ class AdaptiveSliverGrid extends StatelessWidget {
     this.spacing = 16.0,
     this.runSpacing = 16.0,
     this.childAspectRatio = 1.0,
-  })  : _columns = columns,
-        _maxExtent = null;
+  }) : _columns = columns,
+       _maxExtent = null;
 
   /// Sliver grid that scales columns automatically based on a maximum item width constraint.
   const AdaptiveSliverGrid.maxExtent({
@@ -100,8 +100,8 @@ class AdaptiveSliverGrid extends StatelessWidget {
     this.spacing = 16.0,
     this.runSpacing = 16.0,
     this.childAspectRatio = 1.0,
-  })  : _columns = null,
-        _maxExtent = maxExtent;
+  }) : _columns = null,
+       _maxExtent = maxExtent;
 
   final List<Widget> children;
   final double spacing;

@@ -13,13 +13,19 @@ class InventoryRepositoryImpl implements InventoryRepository {
   final InventoryDao _dao;
 
   @override
-  Future<Result<List<StorageLocation>>> getStorageLocations({bool includeDeleted = false}) async {
+  Future<Result<List<StorageLocation>>> getStorageLocations({
+    bool includeDeleted = false,
+  }) async {
     try {
-      final rows = await _dao.getStorageLocations(includeDeleted: includeDeleted);
+      final rows = await _dao.getStorageLocations(
+        includeDeleted: includeDeleted,
+      );
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -28,11 +34,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
     try {
       final row = await _dao.getStorageLocationById(id);
       if (row == null) {
-        return const Result.failure(NotFoundFailure(message: 'Storage location not found'));
+        return const Result.failure(
+          NotFoundFailure(message: 'Storage location not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -42,7 +52,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _dao.saveStorageLocation(location.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -52,7 +64,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _dao.softDeleteStorageLocation(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -62,7 +76,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _dao.restoreStorageLocation(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -72,7 +88,9 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _dao.recordMovement(movement.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -93,17 +111,27 @@ class InventoryRepositoryImpl implements InventoryRepository {
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<double>> getCurrentStock({required String locationId, required String productId}) async {
+  Future<Result<double>> getCurrentStock({
+    required String locationId,
+    required String productId,
+  }) async {
     try {
-      final stock = await _dao.getCurrentStock(locationId: locationId, productId: productId);
+      final stock = await _dao.getCurrentStock(
+        locationId: locationId,
+        productId: productId,
+      );
       return Result.success(stock);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -113,28 +141,42 @@ class InventoryRepositoryImpl implements InventoryRepository {
       await _dao.saveStockAdjustment(adjustment.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<List<StockAdjustment>>> getAdjustments({String? locationId, String? productId}) async {
+  Future<Result<List<StockAdjustment>>> getAdjustments({
+    String? locationId,
+    String? productId,
+  }) async {
     try {
-      final rows = await _dao.getAdjustments(locationId: locationId, productId: productId);
+      final rows = await _dao.getAdjustments(
+        locationId: locationId,
+        productId: productId,
+      );
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<void>> saveReconciliation(DailyStockReconciliation reconciliation) async {
+  Future<Result<void>> saveReconciliation(
+    DailyStockReconciliation reconciliation,
+  ) async {
     try {
       await _dao.saveReconciliation(reconciliation.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -145,11 +187,17 @@ class InventoryRepositoryImpl implements InventoryRepository {
     DateTime? end,
   }) async {
     try {
-      final rows = await _dao.getReconciliations(locationId: locationId, start: start, end: end);
+      final rows = await _dao.getReconciliations(
+        locationId: locationId,
+        start: start,
+        end: end,
+      );
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

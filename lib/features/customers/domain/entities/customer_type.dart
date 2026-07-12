@@ -6,8 +6,8 @@ enum CustomerType {
 
   /// Returns the display name of the customer type.
   String get displayName => switch (this) {
-        CustomerType.company => 'Company',
-        CustomerType.individual => 'Individual',
-        CustomerType.government => 'Government',
-      };
+    CustomerType.company => 'Company',
+    CustomerType.individual => 'Individual',
+    CustomerType.government => 'Government',
+  };
 }

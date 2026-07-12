@@ -1,9 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum StorageLocationType {
-  mainStorage,
-  bowser,
-}
+enum StorageLocationType { mainStorage, bowser }
 
 extension StorageLocationTypeExtension on StorageLocationType {
   String get value {
@@ -80,17 +77,17 @@ class StorageLocation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        type,
-        vehicleId,
-        isActive,
-        createdBy,
-        createdAt,
-        updatedBy,
-        updatedAt,
-        deletedAt,
-        version,
-        tenantId,
-      ];
+    id,
+    name,
+    type,
+    vehicleId,
+    isActive,
+    createdBy,
+    createdAt,
+    updatedBy,
+    updatedAt,
+    deletedAt,
+    version,
+    tenantId,
+  ];
 }

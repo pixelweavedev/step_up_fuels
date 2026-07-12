@@ -18,7 +18,10 @@ abstract class PurchaseRepository {
   });
   Future<Result<FuelPurchase>> getPurchaseById(String id);
   Future<Result<List<FuelPurchaseItem>>> getPurchaseItems(String purchaseId);
-  Future<Result<void>> savePurchase(FuelPurchase purchase, List<FuelPurchaseItem> items);
+  Future<Result<void>> savePurchase(
+    FuelPurchase purchase,
+    List<FuelPurchaseItem> items,
+  );
   Future<Result<void>> markPurchaseAsPaid(
     String purchaseId, {
     required String paymentMode,

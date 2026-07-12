@@ -27,7 +27,7 @@ class UiConstants {
   static const double radiusXLarge = 20.0;
 
   // ── Elevation ─────────────────────────────────────────────────────────────
-  static const double elevationCard = 0.0;    // Flat cards with border
+  static const double elevationCard = 0.0; // Flat cards with border
   static const double elevationDialog = 8.0;
   static const double elevationDropdown = 4.0;
 

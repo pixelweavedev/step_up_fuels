@@ -29,12 +29,17 @@ class AppColors {
   static const Color darkThemeTextTertiary = Color(0xFF64748B);
 
   // ── Theme Backgrounds (dynamic getters for inline widget colors) ───────────
-  static Color get darkBackground => isDark ? darkThemeBackground : const Color(0xFFF6F2EB);
-  static Color get darkSurface => isDark ? darkThemeSurface : const Color(0xFFFFFFFF);
+  static Color get darkBackground =>
+      isDark ? darkThemeBackground : const Color(0xFFF6F2EB);
+  static Color get darkSurface =>
+      isDark ? darkThemeSurface : const Color(0xFFFFFFFF);
   static Color get darkCard => isDark ? darkThemeCard : const Color(0xFFFFFFFF);
-  static Color get darkSidebar => isDark ? darkThemeSidebar : const Color(0xFFFFFFFF);
-  static Color get darkBorder => isDark ? darkThemeBorder : const Color(0xFFE6E2DA);
-  static Color get darkBorderLight => isDark ? darkThemeBorderLight : const Color(0xFFF5F1EA);
+  static Color get darkSidebar =>
+      isDark ? darkThemeSidebar : const Color(0xFFFFFFFF);
+  static Color get darkBorder =>
+      isDark ? darkThemeBorder : const Color(0xFFE6E2DA);
+  static Color get darkBorderLight =>
+      isDark ? darkThemeBorderLight : const Color(0xFFF5F1EA);
 
   // ── Light Theme Fallbacks (unused or unified) ──────────────────────────────
   static const Color lightBackground = Color(0xFFF6F2EB);
@@ -45,10 +50,14 @@ class AppColors {
   static const Color lightBorderFocus = Color(0xFFC8C2B9);
 
   // ── Text colors ────────────────────────────────────────────────────────────
-  static Color get darkTextPrimary => isDark ? darkThemeTextPrimary : const Color(0xFF1A1A1A);
-  static Color get darkTextSecondary => isDark ? darkThemeTextSecondary : const Color(0xFF475569);
-  static Color get darkTextTertiary => isDark ? darkThemeTextTertiary : const Color(0xFF94A3B8);
-  static Color get darkTextDisabled => isDark ? const Color(0xFF475569) : const Color(0xFFC8C2B9);
+  static Color get darkTextPrimary =>
+      isDark ? darkThemeTextPrimary : const Color(0xFF1A1A1A);
+  static Color get darkTextSecondary =>
+      isDark ? darkThemeTextSecondary : const Color(0xFF475569);
+  static Color get darkTextTertiary =>
+      isDark ? darkThemeTextTertiary : const Color(0xFF94A3B8);
+  static Color get darkTextDisabled =>
+      isDark ? const Color(0xFF475569) : const Color(0xFFC8C2B9);
 
   static const Color lightTextPrimary = Color(0xFF1A1A1A);
   static const Color lightTextSecondary = Color(0xFF475569);
@@ -56,9 +65,12 @@ class AppColors {
   static const Color lightTextDisabled = Color(0xFFC8C2B9);
 
   // ── Sidebar Text ──────────────────────────────────────────────────────────
-  static Color get sidebarTextInactive => isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-  static Color get sidebarTextActive => isDark ? const Color(0xFFF8FAFC) : const Color(0xFFD07A28);
-  static Color get sidebarIconInactive => isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+  static Color get sidebarTextInactive =>
+      isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+  static Color get sidebarTextActive =>
+      isDark ? const Color(0xFFF8FAFC) : const Color(0xFFD07A28);
+  static Color get sidebarIconInactive =>
+      isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
   static Color get sidebarIconActive => brandAmber;
   static Color get sidebarActiveIndicator => brandAmber;
 
@@ -91,13 +103,27 @@ class AppColors {
   static const Color statusCancelled = Color(0xFF4B5563);
 
   // ── Stat Card Gradients ────────────────────────────────────────────────────
-  static const List<Color> gradientRevenue = [Color(0xFF2563EB), Color(0xFF1E40AF)];
-  static const List<Color> gradientOutstanding = [Color(0xFFD07A28), Color(0xFFB05F19)];
-  static const List<Color> gradientStock = [Color(0xFF2E7D32), Color(0xFF1B5E20)];
-  static const List<Color> gradientInvoices = [Color(0xFF7C3AED), Color(0xFF5B21B6)];
+  static const List<Color> gradientRevenue = [
+    Color(0xFF2563EB),
+    Color(0xFF1E40AF),
+  ];
+  static const List<Color> gradientOutstanding = [
+    Color(0xFFD07A28),
+    Color(0xFFB05F19),
+  ];
+  static const List<Color> gradientStock = [
+    Color(0xFF2E7D32),
+    Color(0xFF1B5E20),
+  ];
+  static const List<Color> gradientInvoices = [
+    Color(0xFF7C3AED),
+    Color(0xFF5B21B6),
+  ];
 
   // ── Overlay / Scrim ────────────────────────────────────────────────────────
   static const Color scrim = Color(0x80000000);
-  static Color get shimmerBase => isDark ? const Color(0xFF1F2937) : const Color(0xFFEAE5DB);
-  static Color get shimmerHighlight => isDark ? const Color(0xFF273244) : const Color(0xFFF6F3EC);
+  static Color get shimmerBase =>
+      isDark ? const Color(0xFF1F2937) : const Color(0xFFEAE5DB);
+  static Color get shimmerHighlight =>
+      isDark ? const Color(0xFF273244) : const Color(0xFFF6F3EC);
 }

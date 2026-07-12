@@ -27,7 +27,9 @@ class ExportHistoryList extends StatelessWidget {
             Icon(
               Icons.history_toggle_off_rounded,
               size: 40,
-              color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextDisabled,
+              color: isDark
+                  ? AppColors.darkThemeTextTertiary
+                  : AppColors.lightTextDisabled,
             ),
             const SizedBox(height: 8),
             const Text(
@@ -39,7 +41,9 @@ class ExportHistoryList extends StatelessWidget {
               'Imports and exports will show up here.',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                color: isDark
+                    ? AppColors.darkThemeTextTertiary
+                    : AppColors.lightTextTertiary,
               ),
             ),
           ],
@@ -64,7 +68,10 @@ class ExportHistoryList extends StatelessWidget {
         }
 
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -82,7 +89,10 @@ class ExportHistoryList extends StatelessWidget {
             children: [
               Text(
                 '${entry.entityLabel} ${isImport ? 'Import' : 'Export'}',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -111,13 +121,21 @@ class ExportHistoryList extends StatelessWidget {
                   '${entry.rowCount} rows • ${entry.format.label} • ${DateFormat('dd MMM yyyy, hh:mm a').format(entry.timestamp)}',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? AppColors.darkThemeTextSecondary : AppColors.lightTextSecondary,
+                    color: isDark
+                        ? AppColors.darkThemeTextSecondary
+                        : AppColors.lightTextSecondary,
                   ),
                 ),
-                if (isImport && entry.status == ExportHistoryStatus.success && (entry.errorCount ?? 0) > 0)
+                if (isImport &&
+                    entry.status == ExportHistoryStatus.success &&
+                    (entry.errorCount ?? 0) > 0)
                   Text(
                     '${entry.importedCount ?? 0} imported, ${entry.errorCount ?? 0} errors',
-                    style: const TextStyle(fontSize: 10, color: AppColors.error, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.error,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),

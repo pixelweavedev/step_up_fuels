@@ -10,7 +10,9 @@ class ImportExportStorage {
 
   static Future<File> _getFile(String fileName) async {
     final docsDir = await getApplicationDocumentsDirectory();
-    final folder = Directory(p.join(docsDir.path, 'StepUpFuels', 'import_export'));
+    final folder = Directory(
+      p.join(docsDir.path, 'StepUpFuels', 'import_export'),
+    );
     if (!await folder.exists()) {
       await folder.create(recursive: true);
     }
@@ -25,7 +27,9 @@ class ImportExportStorage {
       if (!await file.exists()) return [];
       final content = await file.readAsString();
       final decoded = jsonDecode(content) as List;
-      return decoded.map((e) => ExportPreset.fromJson(e as Map<String, dynamic>)).toList();
+      return decoded
+          .map((e) => ExportPreset.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -47,7 +51,9 @@ class ImportExportStorage {
       if (!await file.exists()) return [];
       final content = await file.readAsString();
       final decoded = jsonDecode(content) as List;
-      return decoded.map((e) => ExportHistoryEntry.fromJson(e as Map<String, dynamic>)).toList();
+      return decoded
+          .map((e) => ExportHistoryEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
       return [];
     }

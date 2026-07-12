@@ -6,7 +6,9 @@ class GetStorageLocationsUseCase {
   GetStorageLocationsUseCase(this._repository);
   final InventoryRepository _repository;
 
-  Future<Result<List<StorageLocation>>> call({bool includeDeleted = false}) async {
+  Future<Result<List<StorageLocation>>> call({
+    bool includeDeleted = false,
+  }) async {
     return _repository.getStorageLocations(includeDeleted: includeDeleted);
   }
 }

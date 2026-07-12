@@ -31,17 +31,17 @@ class DailyStockReconciliation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        storageLocationId,
-        reconciliationDate,
-        openingStock,
-        quantityReceived,
-        quantityDispensed,
-        bookStock,
-        physicalStock,
-        variance,
-        status,
-        performedBy,
-        createdAt,
-      ];
+    id,
+    storageLocationId,
+    reconciliationDate,
+    openingStock,
+    quantityReceived,
+    quantityDispensed,
+    bookStock,
+    physicalStock,
+    variance,
+    status,
+    performedBy,
+    createdAt,
+  ];
 }

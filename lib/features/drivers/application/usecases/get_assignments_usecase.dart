@@ -6,7 +6,10 @@ class GetAssignmentsUseCase {
   GetAssignmentsUseCase(this._repository);
   final DriverRepository _repository;
 
-  Future<Result<List<DriverAssignment>>> call({String? driverId, String? vehicleId}) async {
+  Future<Result<List<DriverAssignment>>> call({
+    String? driverId,
+    String? vehicleId,
+  }) async {
     return _repository.getAssignments(driverId: driverId, vehicleId: vehicleId);
   }
 }

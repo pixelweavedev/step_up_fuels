@@ -16,20 +16,25 @@ class NumberUtils {
     decimalDigits: 2,
   );
 
-  static final NumberFormat _quantityFormat = NumberFormat('#,##,##0.000', 'en_IN');
+  static final NumberFormat _quantityFormat = NumberFormat(
+    '#,##,##0.000',
+    'en_IN',
+  );
   static final NumberFormat _percentFormat = NumberFormat('#0.00', 'en_IN');
 
   /// Format as Indian Rupee: ₹1,23,456.00
   static String formatCurrency(double amount) => _inrFormat.format(amount);
 
   /// Format without symbol: 1,23,456.00
-  static String formatAmount(double amount) => _inrNoSymbol.format(amount).trim();
+  static String formatAmount(double amount) =>
+      _inrNoSymbol.format(amount).trim();
 
   /// Format quantity with 3 decimal places: 1,234.500
   static String formatQuantity(double qty) => _quantityFormat.format(qty);
 
   /// Format as percentage: 18.00%
-  static String formatPercent(double rate) => '${_percentFormat.format(rate * 100)}%';
+  static String formatPercent(double rate) =>
+      '${_percentFormat.format(rate * 100)}%';
 
   /// Convert a double amount to Indian words.
   ///
@@ -49,13 +54,38 @@ class NumberUtils {
     if (number == 0) return 'Zero';
 
     const ones = [
-      '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight',
-      'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen',
-      'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen',
+      '',
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+      'Seven',
+      'Eight',
+      'Nine',
+      'Ten',
+      'Eleven',
+      'Twelve',
+      'Thirteen',
+      'Fourteen',
+      'Fifteen',
+      'Sixteen',
+      'Seventeen',
+      'Eighteen',
+      'Nineteen',
     ];
     const tens = [
-      '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty',
-      'Sixty', 'Seventy', 'Eighty', 'Ninety',
+      '',
+      '',
+      'Twenty',
+      'Thirty',
+      'Forty',
+      'Fifty',
+      'Sixty',
+      'Seventy',
+      'Eighty',
+      'Ninety',
     ];
 
     String words = '';

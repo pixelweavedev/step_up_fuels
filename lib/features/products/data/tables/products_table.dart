@@ -9,7 +9,8 @@ class Products extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get hsnCode => text()(); // e.g. 2710
   TextColumn get unitOfMeasure => text()(); // KL, LTRS
-  RealColumn get gstRate => real().withDefault(const Constant(0.18))(); // e.g. 0.18 for 18%
+  RealColumn get gstRate =>
+      real().withDefault(const Constant(0.18))(); // e.g. 0.18 for 18%
   RealColumn get cgstRate => real().withDefault(const Constant(0.09))();
   RealColumn get sgstRate => real().withDefault(const Constant(0.09))();
   RealColumn get igstRate => real().withDefault(const Constant(0.18))();

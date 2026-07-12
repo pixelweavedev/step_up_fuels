@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Screen types matching adaptive Material 3 design layout sizes.
-enum ScreenType {
-  mobile,
-  smallTablet,
-  tablet,
-  desktop,
-  wideDesktop,
-}
+enum ScreenType { mobile, smallTablet, tablet, desktop, wideDesktop }
 
 /// Breakpoint width thresholds configuration.
 class Breakpoints {

@@ -78,7 +78,10 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
           tabs: const [
             Tab(icon: Icon(Icons.upload_outlined), text: 'Export Hub'),
             Tab(icon: Icon(Icons.download_outlined), text: 'Import Wizard'),
-            Tab(icon: Icon(Icons.history_rounded), text: 'Data Exchange History'),
+            Tab(
+              icon: Icon(Icons.history_rounded),
+              text: 'Data Exchange History',
+            ),
           ],
         ),
       ),
@@ -136,7 +139,13 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
               : Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildModeAndFormatSection(state, notifier, isDark)),
+                    Expanded(
+                      child: _buildModeAndFormatSection(
+                        state,
+                        notifier,
+                        isDark,
+                      ),
+                    ),
                     const SizedBox(width: 16),
                     Expanded(child: _buildPresetSection(state, notifier)),
                   ],
@@ -158,12 +167,17 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
               icon: const Icon(Icons.download_rounded),
               label: Text(
                 'Generate & Export ${state.selectedAdapter.entityLabel}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandAmber,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ),
@@ -204,9 +218,13 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
     );
   }
 
-  Widget _buildPresetSection(ImportExportState state, ImportExportNotifier notifier) {
-    final filteredPresets =
-        state.presets.where((p) => p.entityName == state.selectedAdapter.entityName).toList();
+  Widget _buildPresetSection(
+    ImportExportState state,
+    ImportExportNotifier notifier,
+  ) {
+    final filteredPresets = state.presets
+        .where((p) => p.entityName == state.selectedAdapter.entityName)
+        .toList();
 
     return PresetManager(
       presets: filteredPresets,
@@ -249,7 +267,9 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
                 '$count of ${cols.length} columns selected',
                 style: TextStyle(
                   fontSize: 11,
-                  color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                  color: isDark
+                      ? AppColors.darkThemeTextTertiary
+                      : AppColors.lightTextTertiary,
                 ),
               ),
             ],
@@ -297,7 +317,9 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
               Icon(
                 Icons.lock_outline_rounded,
                 size: 48,
-                color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                color: isDark
+                    ? AppColors.darkThemeTextTertiary
+                    : AppColors.lightTextTertiary,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -309,7 +331,9 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
                 'Transactional tables like ${state.selectedAdapter.entityLabel} are audit-sensitive and read-only. For data integrity, manual imports are disabled.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppColors.darkThemeTextSecondary : AppColors.lightTextSecondary,
+                  color: isDark
+                      ? AppColors.darkThemeTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -320,7 +344,10 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
                   final customerAdapter = ExportAdapterRegistry.all.first;
                   notifier.selectAdapter(customerAdapter);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.brandAmber, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brandAmber,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('Select Customers Master Data'),
               ),
             ],
@@ -366,7 +393,10 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
             selectedImportFilePath: state.selectedImportFilePath,
             onUpload: notifier.runImportValidation,
             onProceed: (strategy, dryRun) {
-              notifier.executeImport(conflictStrategy: strategy, dryRun: dryRun);
+              notifier.executeImport(
+                conflictStrategy: strategy,
+                dryRun: dryRun,
+              );
             },
             onReset: notifier.resetImport,
             onDownloadLog: _downloadImportLog,
@@ -399,7 +429,10 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving template: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Error saving template: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -408,7 +441,8 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
   Future<void> _downloadImportLog(ImportResult result) async {
     try {
       final logCsv = result.toLogCsv();
-      final defaultName = 'import_audit_log_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final defaultName =
+          'import_audit_log_${DateTime.now().millisecondsSinceEpoch}.csv';
       final path = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Import Audit Log',
         fileName: defaultName,
@@ -428,7 +462,10 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving log: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Error saving log: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -471,22 +508,28 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
                 // Reconstruct log result from entry stats
                 final logCsv = StringBuffer();
                 logCsv.writeln('Row,Status,Message,EntityId,EntityLabel');
-                logCsv.writeln('1,SUCCESS,Historical import finished successfully,${entry.id},${entry.entityLabel}');
+                logCsv.writeln(
+                  '1,SUCCESS,Historical import finished successfully,${entry.id},${entry.entityLabel}',
+                );
                 // Simple save file picker for log
-                FilePicker.platform.saveFile(
-                  dialogTitle: 'Save History Log',
-                  fileName: 'import_log_${entry.id}.csv',
-                  type: FileType.custom,
-                  allowedExtensions: ['csv'],
-                ).then((path) {
-                  if (path != null) {
-                    File(path).writeAsString(logCsv.toString()).then((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Log saved successfully to $path')),
-                      );
+                FilePicker.platform
+                    .saveFile(
+                      dialogTitle: 'Save History Log',
+                      fileName: 'import_log_${entry.id}.csv',
+                      type: FileType.custom,
+                      allowedExtensions: ['csv'],
+                    )
+                    .then((path) {
+                      if (path != null) {
+                        File(path).writeAsString(logCsv.toString()).then((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Log saved successfully to $path'),
+                            ),
+                          );
+                        });
+                      }
                     });
-                  }
-                });
               },
             ),
           ],

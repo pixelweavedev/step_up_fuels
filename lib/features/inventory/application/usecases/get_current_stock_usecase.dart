@@ -5,7 +5,13 @@ class GetCurrentStockUseCase {
   GetCurrentStockUseCase(this._service);
   final InventoryService _service;
 
-  Future<Result<double>> call({required String locationId, required String productId}) async {
-    return _service.getCurrentStock(locationId: locationId, productId: productId);
+  Future<Result<double>> call({
+    required String locationId,
+    required String productId,
+  }) async {
+    return _service.getCurrentStock(
+      locationId: locationId,
+      productId: productId,
+    );
   }
 }

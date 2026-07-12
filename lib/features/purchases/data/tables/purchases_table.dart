@@ -17,7 +17,8 @@ class FuelPurchases extends Table {
   RealColumn get totalAmount => real()(); // Total purchase amount
   TextColumn get paymentStatus => text()(); // UNPAID, PARTIALLY_PAID, PAID
   TextColumn get notes => text().nullable()();
-  TextColumn get destinationLocationId => text().nullable().references(StorageLocations, #id)();
+  TextColumn get destinationLocationId =>
+      text().nullable().references(StorageLocations, #id)();
 
   // Audits
   TextColumn get createdBy => text().withDefault(const Constant('system'))();

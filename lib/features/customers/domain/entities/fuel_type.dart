@@ -5,7 +5,7 @@ enum FuelType {
 
   /// Display name of the fuel type.
   String get displayName => switch (this) {
-        FuelType.diesel => 'Diesel',
-        FuelType.petrol => 'Petrol',
-      };
+    FuelType.diesel => 'Diesel',
+    FuelType.petrol => 'Petrol',
+  };
 }

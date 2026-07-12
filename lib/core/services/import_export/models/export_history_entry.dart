@@ -9,7 +9,6 @@ enum ExportHistoryStatus { success, failed, inProgress }
 
 /// A single entry in the export/import history log.
 class ExportHistoryEntry {
-
   factory ExportHistoryEntry.fromJson(Map<String, dynamic> json) =>
       ExportHistoryEntry(
         id: json['id'] as String,

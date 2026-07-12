@@ -17,11 +17,15 @@ class VehicleRepositoryImpl implements VehicleRepository {
   @override
   Future<Result<List<Vehicle>>> getAll({bool includeDeleted = false}) async {
     try {
-      final rows = await _vehiclesDao.getAllVehicles(includeDeleted: includeDeleted);
+      final rows = await _vehiclesDao.getAllVehicles(
+        includeDeleted: includeDeleted,
+      );
       final domainList = rows.map((r) => r.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -30,11 +34,15 @@ class VehicleRepositoryImpl implements VehicleRepository {
     try {
       final row = await _vehiclesDao.getVehicleById(id);
       if (row == null) {
-        return const Result.failure(DatabaseFailure(message: 'Vehicle not found'));
+        return const Result.failure(
+          DatabaseFailure(message: 'Vehicle not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -63,12 +71,16 @@ class VehicleRepositoryImpl implements VehicleRepository {
             updatedAt: Value(vehicle.updatedAt),
             version: const Value(1),
           );
-          await db.into(db.storageLocations).insertOnConflictUpdate(locationCompanion);
+          await db
+              .into(db.storageLocations)
+              .insertOnConflictUpdate(locationCompanion);
         }
       });
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -78,18 +90,24 @@ class VehicleRepositoryImpl implements VehicleRepository {
       await _vehiclesDao.softDeleteVehicle(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<List<VehicleServiceRecord>>> getServiceRecords(String vehicleId) async {
+  Future<Result<List<VehicleServiceRecord>>> getServiceRecords(
+    String vehicleId,
+  ) async {
     try {
       final rows = await _vehiclesDao.getServiceRecords(vehicleId);
       final domainList = rows.map((r) => r.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -104,7 +122,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
         // 2. Hook: Auto-log an expense matching this service record
         final expenseId = _uuid.v4();
         final expenseNo = 'EXP-SRV-${record.id.substring(0, 8).toUpperCase()}';
-        
+
         // Map service type to expense category
         String category = 'VEHICLE_MAINTENANCE';
         switch (record.serviceType) {
@@ -135,7 +153,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
           paymentMode: const Value('CASH'), // Default
           vehicleId: Value(record.vehicleId),
           billDocumentId: Value(record.billDocumentId),
-          notes: Value('Linked to service record ID: ${record.id} - ${record.details}'),
+          notes: Value(
+            'Linked to service record ID: ${record.id} - ${record.details}',
+          ),
           createdBy: Value(record.createdBy),
           createdAt: Value(record.createdAt),
           updatedBy: Value(record.updatedBy),
@@ -147,7 +167,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
       });
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

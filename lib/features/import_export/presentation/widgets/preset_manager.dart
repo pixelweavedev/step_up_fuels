@@ -57,11 +57,17 @@ class _PresetManagerState extends State<PresetManager> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+                  color: isDark
+                      ? AppColors.darkThemeTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
               ),
               if (widget.presets.isNotEmpty)
-                const Icon(Icons.bookmark_outline_rounded, size: 16, color: AppColors.brandAmber),
+                const Icon(
+                  Icons.bookmark_outline_rounded,
+                  size: 16,
+                  color: AppColors.brandAmber,
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -70,7 +76,9 @@ class _PresetManagerState extends State<PresetManager> {
               'No presets saved for this entity yet. Configure your columns & filters below and save them as a preset.',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.darkThemeTextSecondary : AppColors.lightTextSecondary,
+                color: isDark
+                    ? AppColors.darkThemeTextSecondary
+                    : AppColors.lightTextSecondary,
               ),
             )
           else ...[
@@ -78,12 +86,17 @@ class _PresetManagerState extends State<PresetManager> {
               initialValue: widget.selectedPreset,
               hint: const Text('Select a Preset'),
               decoration: const InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 border: OutlineInputBorder(),
               ),
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+                color: isDark
+                    ? AppColors.darkThemeTextPrimary
+                    : AppColors.lightTextPrimary,
               ),
               items: widget.presets.map((preset) {
                 return DropdownMenuItem<ExportPreset>(
@@ -93,7 +106,11 @@ class _PresetManagerState extends State<PresetManager> {
                     children: [
                       Text(preset.name),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 16,
+                          color: AppColors.error,
+                        ),
                         onPressed: () => widget.onDelete(preset.id),
                       ),
                     ],
@@ -129,7 +146,10 @@ class _PresetManagerState extends State<PresetManager> {
                       decoration: const InputDecoration(
                         hintText: 'Preset Name (e.g. GST Report)',
                         hintStyle: TextStyle(fontSize: 12),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
                         border: OutlineInputBorder(),
                       ),
                       style: const TextStyle(fontSize: 13),

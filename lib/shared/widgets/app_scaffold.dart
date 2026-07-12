@@ -32,9 +32,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
     final navContainerDecoration = BoxDecoration(
       color: isDark ? AppColors.darkThemeSidebar : Colors.white,
-      border: Border(
-        right: BorderSide(color: AppColors.darkBorder),
-      ),
+      border: Border(right: BorderSide(color: AppColors.darkBorder)),
     );
 
     return AdaptiveScaffold(
@@ -59,11 +57,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _TopBar(isSidebarCollapsed: _isSidebarCollapsed),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: theme.colorScheme.outline,
-          ),
+          Divider(height: 1, thickness: 1, color: theme.colorScheme.outline),
         ],
       ),
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -89,7 +83,10 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                     height: 36,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.brandAmber, AppColors.brandAmberDark],
+                        colors: [
+                          AppColors.brandAmber,
+                          AppColors.brandAmberDark,
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -172,14 +169,18 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
           leading: Icon(
             isActive ? item.activeIcon : item.icon,
             size: 20,
-            color: isActive ? AppColors.brandAmber : AppColors.sidebarIconInactive,
+            color: isActive
+                ? AppColors.brandAmber
+                : AppColors.sidebarIconInactive,
           ),
           title: Text(
             item.label,
             style: TextStyle(
               fontSize: 14,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-              color: isActive ? AppColors.brandAmber : AppColors.darkTextSecondary,
+              color: isActive
+                  ? AppColors.brandAmber
+                  : AppColors.darkTextSecondary,
             ),
           ),
           selected: isActive,

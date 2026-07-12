@@ -56,7 +56,9 @@ class ExcelSerializer {
   void _writeHeaderRow<T>(Sheet sheet, List<ExportColumn<T>> cols) {
     for (int c = 0; c < cols.length; c++) {
       final col = cols[c];
-      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0));
+      final cell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0),
+      );
 
       cell.value = TextCellValue(col.label);
       cell.cellStyle = CellStyle(
@@ -98,11 +100,7 @@ class ExcelSerializer {
     }
   }
 
-  void _setCellValue<T>(
-    Data cell,
-    ExportColumn<T> col,
-    T item,
-  ) {
+  void _setCellValue<T>(Data cell, ExportColumn<T> col, T item) {
     final raw = col.getRawValue?.call(item);
 
     switch (col.type) {

@@ -9,8 +9,11 @@ class PaymentAllocations extends Table {
   TextColumn get paymentId => text().references(Payments, #id)();
   TextColumn get invoiceId => text().references(Invoices, #id)();
   RealColumn get allocatedAmount => real()();
-  TextColumn get status => text().withDefault(const Constant('ACTIVE'))(); // ACTIVE, REVERSED
-  TextColumn get type => text().withDefault(const Constant('PAYMENT'))(); // PAYMENT, ADVANCE, CREDIT_NOTE, REFUND, WRITE_OFF
+  TextColumn get status =>
+      text().withDefault(const Constant('ACTIVE'))(); // ACTIVE, REVERSED
+  TextColumn get type => text().withDefault(
+    const Constant('PAYMENT'),
+  )(); // PAYMENT, ADVANCE, CREDIT_NOTE, REFUND, WRITE_OFF
   TextColumn get referenceNumber => text().nullable()();
   TextColumn get remarks => text().nullable()();
   DateTimeColumn get reversedAt => dateTime().nullable()();

@@ -19,8 +19,7 @@ extension DateTimeExtensions on DateTime {
       year == other.year && month == other.month && day == other.day;
 
   /// Returns true if this date is in the past (before today).
-  bool get isInPast =>
-      dateOnly.isBefore(AppDateUtils.today);
+  bool get isInPast => dateOnly.isBefore(AppDateUtils.today);
 
   /// Returns true if this date is overdue (past today).
   bool get isOverdue => AppDateUtils.isOverdue(this);
@@ -43,5 +42,6 @@ extension DateTimeExtensions on DateTime {
 /// Nullable DateTime extensions.
 extension NullableDateTimeExtensions on DateTime? {
   /// Returns display string or dash if null.
-  String get toDisplayOrDash => this == null ? '—' : AppDateUtils.toDisplay(this!);
+  String get toDisplayOrDash =>
+      this == null ? '—' : AppDateUtils.toDisplay(this!);
 }

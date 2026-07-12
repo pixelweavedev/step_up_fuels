@@ -21,15 +21,26 @@ class ResponsiveSpacing {
   // ── Page-level horizontal padding ─────────────────────────────────────────
 
   /// The main horizontal content padding for feature pages.
-  static double pageHorizontal(BuildContext context) =>
-      ResponsiveLayout.value(context, desktop: 28, tablet: 20, smallTablet: 16, mobile: 16);
+  static double pageHorizontal(BuildContext context) => ResponsiveLayout.value(
+    context,
+    desktop: 28,
+    tablet: 20,
+    smallTablet: 16,
+    mobile: 16,
+  );
 
   /// The main vertical content padding for feature pages.
-  static double pageVertical(BuildContext context) =>
-      ResponsiveLayout.value(context, desktop: 24, tablet: 20, smallTablet: 16, mobile: 16);
+  static double pageVertical(BuildContext context) => ResponsiveLayout.value(
+    context,
+    desktop: 24,
+    tablet: 20,
+    smallTablet: 16,
+    mobile: 16,
+  );
 
   /// Shorthand for symmetric page padding as EdgeInsets.
-  static EdgeInsets pageEdgeInsets(BuildContext context) => EdgeInsets.symmetric(
+  static EdgeInsets pageEdgeInsets(BuildContext context) =>
+      EdgeInsets.symmetric(
         horizontal: pageHorizontal(context),
         vertical: pageVertical(context),
       );

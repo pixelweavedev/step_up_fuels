@@ -30,10 +30,7 @@ sealed class AppFailure {
 
 /// Thrown when a database read or write operation fails.
 final class DatabaseFailure extends AppFailure {
-  const DatabaseFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const DatabaseFailure({required super.message, super.stackTrace});
 
   @override
   String get userMessage => 'A database error occurred. Please try again.';
@@ -41,10 +38,7 @@ final class DatabaseFailure extends AppFailure {
 
 /// Thrown when a requested record does not exist.
 final class NotFoundFailure extends AppFailure {
-  const NotFoundFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const NotFoundFailure({required super.message, super.stackTrace});
 
   @override
   String get userMessage => 'The requested record was not found.';
@@ -65,17 +59,13 @@ final class ValidationFailure extends AppFailure {
   final Map<String, String> fields;
 
   @override
-  String get userMessage =>
-      fields.isNotEmpty ? fields.values.first : message;
+  String get userMessage => fields.isNotEmpty ? fields.values.first : message;
 }
 
 /// Thrown when a business rule is violated.
 /// Example: trying to cancel an already-paid invoice.
 final class BusinessRuleFailure extends AppFailure {
-  const BusinessRuleFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const BusinessRuleFailure({required super.message, super.stackTrace});
 }
 
 /// Thrown when a state transition is invalid.
@@ -94,10 +84,7 @@ final class InvalidStateTransitionFailure extends AppFailure {
 
 /// Thrown when a network request fails.
 final class NetworkFailure extends AppFailure {
-  const NetworkFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const NetworkFailure({required super.message, super.stackTrace});
 
   @override
   String get userMessage =>
@@ -122,10 +109,7 @@ final class ServerFailure extends AppFailure {
 
 /// Catch-all for unexpected errors.
 final class UnexpectedFailure extends AppFailure {
-  const UnexpectedFailure({
-    required super.message,
-    super.stackTrace,
-  });
+  const UnexpectedFailure({required super.message, super.stackTrace});
 
   @override
   String get userMessage =>

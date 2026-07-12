@@ -31,59 +31,59 @@ class InventoryExportAdapter extends ExportAdapter<InventoryMovement> {
 
   @override
   List<ExportColumn<InventoryMovement>> get dataColumns => [
-        ExportColumn<InventoryMovement>(
-          key: 'product_id',
-          label: 'Product ID',
-          getValue: (i) => i.productId,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'source_location_id',
-          label: 'Source Location',
-          getValue: (i) => i.sourceLocationId ?? '',
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'destination_location_id',
-          label: 'Destination Location',
-          getValue: (i) => i.destinationLocationId ?? '',
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'type',
-          label: 'Type',
-          getValue: (i) => i.type.value,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'quantity',
-          label: 'Quantity',
-          getValue: (i) => i.quantity.toStringAsFixed(2),
-          getRawValue: (i) => i.quantity,
-          type: ColumnType.number,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'movement_date',
-          label: 'Date',
-          getValue: (i) => DateFormat('dd/MM/yyyy').format(i.movementDate),
-          getRawValue: (i) => i.movementDate,
-          type: ColumnType.date,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'reference_id',
-          label: 'Ref ID',
-          getValue: (i) => i.referenceId ?? '',
-          defaultVisible: false,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'reference_type',
-          label: 'Ref Type',
-          getValue: (i) => i.referenceType ?? '',
-          defaultVisible: false,
-        ),
-        ExportColumn<InventoryMovement>(
-          key: 'notes',
-          label: 'Notes',
-          getValue: (i) => i.notes ?? '',
-          defaultVisible: false,
-        ),
-      ];
+    ExportColumn<InventoryMovement>(
+      key: 'product_id',
+      label: 'Product ID',
+      getValue: (i) => i.productId,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'source_location_id',
+      label: 'Source Location',
+      getValue: (i) => i.sourceLocationId ?? '',
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'destination_location_id',
+      label: 'Destination Location',
+      getValue: (i) => i.destinationLocationId ?? '',
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'type',
+      label: 'Type',
+      getValue: (i) => i.type.value,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'quantity',
+      label: 'Quantity',
+      getValue: (i) => i.quantity.toStringAsFixed(2),
+      getRawValue: (i) => i.quantity,
+      type: ColumnType.number,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'movement_date',
+      label: 'Date',
+      getValue: (i) => DateFormat('dd/MM/yyyy').format(i.movementDate),
+      getRawValue: (i) => i.movementDate,
+      type: ColumnType.date,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'reference_id',
+      label: 'Ref ID',
+      getValue: (i) => i.referenceId ?? '',
+      defaultVisible: false,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'reference_type',
+      label: 'Ref Type',
+      getValue: (i) => i.referenceType ?? '',
+      defaultVisible: false,
+    ),
+    ExportColumn<InventoryMovement>(
+      key: 'notes',
+      label: 'Notes',
+      getValue: (i) => i.notes ?? '',
+      defaultVisible: false,
+    ),
+  ];
 
   @override
   Future<List<InventoryMovement>> fetchData(ExportFilter filter) async {
@@ -101,18 +101,18 @@ class InventoryExportAdapter extends ExportAdapter<InventoryMovement> {
 
   @override
   Map<String, dynamic> toJson(InventoryMovement i) => {
-        'id': i.id,
-        'product_id': i.productId,
-        'source_location_id': i.sourceLocationId,
-        'destination_location_id': i.destinationLocationId,
-        'type': i.type.value,
-        'quantity': i.quantity,
-        'reference_id': i.referenceId,
-        'reference_type': i.referenceType,
-        'movement_date': i.movementDate.toIso8601String(),
-        'notes': i.notes,
-        'created_at': i.createdAt.toIso8601String(),
-      };
+    'id': i.id,
+    'product_id': i.productId,
+    'source_location_id': i.sourceLocationId,
+    'destination_location_id': i.destinationLocationId,
+    'type': i.type.value,
+    'quantity': i.quantity,
+    'reference_id': i.referenceId,
+    'reference_type': i.referenceType,
+    'movement_date': i.movementDate.toIso8601String(),
+    'notes': i.notes,
+    'created_at': i.createdAt.toIso8601String(),
+  };
 
   @override
   InventoryMovement? fromJson(Map<String, dynamic> json) => null;

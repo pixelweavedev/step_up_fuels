@@ -135,11 +135,11 @@ class Invoice {
 
   /// True if this invoice is still cancellable (not yet paid).
   bool get isCancellable => [
-        InvoiceStatus.draft,
-        InvoiceStatus.verified,
-        InvoiceStatus.posted,
-        InvoiceStatus.overdue,
-      ].contains(status);
+    InvoiceStatus.draft,
+    InvoiceStatus.verified,
+    InvoiceStatus.posted,
+    InvoiceStatus.overdue,
+  ].contains(status);
 
   Invoice copyWith({
     String? id,

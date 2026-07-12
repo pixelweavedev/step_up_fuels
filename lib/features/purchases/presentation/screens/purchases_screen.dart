@@ -1,12 +1,11 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/responsive/responsive_dimensions.dart';
 import 'package:step_up_fuels/core/responsive/responsive_layout.dart';
 import 'package:step_up_fuels/core/responsive/responsive_spacing.dart';
-import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/expenses/domain/entities/expense.dart';
@@ -21,6 +20,9 @@ import 'package:step_up_fuels/features/purchases/domain/entities/supplier.dart';
 import 'package:step_up_fuels/features/purchases/presentation/providers/purchases_provider.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
+import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:uuid/uuid.dart';
 
 class PurchasesScreen extends ConsumerStatefulWidget {
@@ -1348,137 +1350,93 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: AppColors.darkCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: 520,
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ResponsiveDialog(
+      title: 'Register Supplier Vendor',
+      maxWidth: 520,
+      actions: [
+        ElevatedButton(
+          onPressed: _saving ? null : _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brandAmber,
+          ),
+          child: Text(
+            'Save Supplier',
+            style: TextStyle(
+              color: AppColors.darkBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AdaptiveFormRow(
               children: [
-                Text(
-                  'Register Supplier Vendor',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _codeCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco(
-                          'Supplier Code *',
-                          'e.g. SPL-001',
-                        ),
-                        validator: (v) => v!.trim().isEmpty ? 'Required' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _gstCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco(
-                          'GSTIN (optional)',
-                          '15-digit GSTIN',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
                 TextFormField(
-                  controller: _nameCtrl,
+                  controller: _codeCtrl,
                   style: TextStyle(color: AppColors.darkTextPrimary),
-                  decoration: _inputDeco(
-                    'Company / Vendor Name *',
-                    'e.g. Bharat Petroleum Corporation Ltd',
-                  ),
+                  decoration: _inputDeco('Supplier Code *', 'e.g. SPL-001'),
                   validator: (v) => v!.trim().isEmpty ? 'Required' : null,
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _contactCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco('Contact Person *', 'Name'),
-                        validator: (v) => v!.trim().isEmpty ? 'Required' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _phoneCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco(
-                          'Mobile Number *',
-                          '10-digit number',
-                        ),
-                        validator: (v) => v!.trim().isEmpty ? 'Required' : null,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _cityCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco('City', 'e.g. Pune'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _stateCtrl,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco('State', 'e.g. Maharashtra'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _saving ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandAmber,
-                      ),
-                      child: Text(
-                        'Save Supplier',
-                        style: TextStyle(
-                          color: AppColors.darkBackground,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                TextFormField(
+                  controller: _gstCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('GSTIN (optional)', '15-digit GSTIN'),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _nameCtrl,
+              style: TextStyle(color: AppColors.darkTextPrimary),
+              decoration: _inputDeco(
+                'Company / Vendor Name *',
+                'e.g. Bharat Petroleum Corporation Ltd',
+              ),
+              validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+            ),
+            const SizedBox(height: 12),
+            AdaptiveFormRow(
+              children: [
+                TextFormField(
+                  controller: _contactCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('Contact Person *', 'Name'),
+                  validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+                ),
+                TextFormField(
+                  controller: _phoneCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('Mobile Number *', '10-digit number'),
+                  validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            AdaptiveFormRow(
+              children: [
+                TextFormField(
+                  controller: _cityCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('City', 'e.g. Pune'),
+                ),
+                TextFormField(
+                  controller: _stateCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('State', 'e.g. Maharashtra'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -1575,206 +1533,136 @@ class _AddExpenseDialogState extends ConsumerState<_AddExpenseDialog> {
     final vehiclesAsync = ref.watch(vehiclesListProvider);
     final driversAsync = ref.watch(driversListProvider);
 
-    return Dialog(
-      backgroundColor: AppColors.darkCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: 500,
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ResponsiveDialog(
+      title: 'Log Operating Expense',
+      maxWidth: 500,
+      actions: [
+        ElevatedButton(
+          onPressed: _saving ? null : _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brandAmber,
+          ),
+          child: Text(
+            'Save Expense',
+            style: TextStyle(
+              color: AppColors.darkBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              dropdownColor: AppColors.darkCard,
+              style: TextStyle(color: AppColors.darkTextPrimary),
+              decoration: _inputDeco('Category *', ''),
+              items: _categories
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.replaceAll('_', ' ')),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) => setState(() => _category = v!),
+            ),
+            const SizedBox(height: 12),
+            AdaptiveFormRow(
               children: [
-                Text(
-                  'Log Operating Expense',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkTextPrimary,
-                  ),
+                TextFormField(
+                  controller: _amountCtrl,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('Amount (₹) *', '0.00'),
+                  validator: (v) => double.tryParse(v ?? '') == null
+                      ? 'Invalid amount'
+                      : null,
                 ),
-                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: _category,
+                  initialValue: _paymentMode,
                   dropdownColor: AppColors.darkCard,
                   style: TextStyle(color: AppColors.darkTextPrimary),
-                  decoration: _inputDeco('Category *', ''),
-                  items: _categories
-                      .map(
-                        (c) => DropdownMenuItem(
-                          value: c,
-                          child: Text(c.replaceAll('_', ' ')),
-                        ),
-                      )
+                  decoration: _inputDeco('Payment Mode *', ''),
+                  items: const ['CASH', 'UPI', 'BANK_TRANSFER']
+                      .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                       .toList(),
-                  onChanged: (v) => setState(() => _category = v!),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _amountCtrl,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco('Amount (₹) *', '0.00'),
-                        validator: (v) => double.tryParse(v ?? '') == null
-                            ? 'Invalid amount'
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        initialValue: _paymentMode,
-                        dropdownColor: AppColors.darkCard,
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                        decoration: _inputDeco('Payment Mode *', ''),
-                        items: ['CASH', 'UPI', 'BANK_TRANSFER']
-                            .map(
-                              (m) => DropdownMenuItem(value: m, child: Text(m)),
-                            )
-                            .toList(),
-                        onChanged: (v) => setState(() => _paymentMode = v!),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Expense Date',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.darkTextSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          InkWell(
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: _expenseDate,
-                                firstDate: DateTime(2025),
-                                lastDate: DateTime(2030),
-                              );
-                              if (picked != null) {
-                                setState(() => _expenseDate = picked);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.darkBorder),
-                              ),
-                              child: Text(
-                                DateFormat('dd MMM yyyy').format(_expenseDate),
-                                style: TextStyle(
-                                  color: AppColors.darkTextPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Optional vehicle link
-                vehiclesAsync.when(
-                  data: (vehicles) => DropdownButtonFormField<String?>(
-                    initialValue: _selectedVehicle,
-                    dropdownColor: AppColors.darkCard,
-                    style: TextStyle(color: AppColors.darkTextPrimary),
-                    decoration: _inputDeco(
-                      'Link to Bowser (optional)',
-                      'Select vehicle',
-                    ),
-                    items: [
-                      const DropdownMenuItem(child: Text('None (General)')),
-                      ...vehicles.map(
-                        (v) => DropdownMenuItem(
-                          value: v.id,
-                          child: Text(v.registrationNumber),
-                        ),
-                      ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedVehicle = v),
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 12),
-                // Optional driver link
-                driversAsync.when(
-                  data: (drivers) => DropdownButtonFormField<String?>(
-                    initialValue: _selectedDriver,
-                    dropdownColor: AppColors.darkCard,
-                    style: TextStyle(color: AppColors.darkTextPrimary),
-                    decoration: _inputDeco(
-                      'Link to Driver (optional)',
-                      'Select driver',
-                    ),
-                    items: [
-                      const DropdownMenuItem(child: Text('None (General)')),
-                      ...drivers.map(
-                        (d) =>
-                            DropdownMenuItem(value: d.id, child: Text(d.name)),
-                      ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedDriver = v),
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _notesCtrl,
-                  style: TextStyle(color: AppColors.darkTextPrimary),
-                  maxLines: 2,
-                  decoration: _inputDeco(
-                    'Expense Notes',
-                    'Explain operational purpose',
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _saving ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandAmber,
-                      ),
-                      child: Text(
-                        'Save Expense',
-                        style: TextStyle(
-                          color: AppColors.darkBackground,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                  onChanged: (v) => setState(() => _paymentMode = v!),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            AppDatePickerField(
+              label: 'Expense Date',
+              selectedDate: _expenseDate,
+              onChanged: (d) => setState(() => _expenseDate = d),
+            ),
+            const SizedBox(height: 12),
+            // Optional vehicle link
+            vehiclesAsync.when(
+              data: (vehicles) => DropdownButtonFormField<String?>(
+                initialValue: _selectedVehicle,
+                dropdownColor: AppColors.darkCard,
+                style: TextStyle(color: AppColors.darkTextPrimary),
+                decoration: _inputDeco(
+                  'Link to Bowser (optional)',
+                  'Select vehicle',
+                ),
+                items: [
+                  const DropdownMenuItem(child: Text('None (General)')),
+                  ...vehicles.map(
+                    (v) => DropdownMenuItem(
+                      value: v.id,
+                      child: Text(v.registrationNumber),
+                    ),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _selectedVehicle = v),
+              ),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 12),
+            // Optional driver link
+            driversAsync.when(
+              data: (drivers) => DropdownButtonFormField<String?>(
+                initialValue: _selectedDriver,
+                dropdownColor: AppColors.darkCard,
+                style: TextStyle(color: AppColors.darkTextPrimary),
+                decoration: _inputDeco(
+                  'Link to Driver (optional)',
+                  'Select driver',
+                ),
+                items: [
+                  const DropdownMenuItem(child: Text('None (General)')),
+                  ...drivers.map(
+                    (d) => DropdownMenuItem(value: d.id, child: Text(d.name)),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _selectedDriver = v),
+              ),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _notesCtrl,
+              style: TextStyle(color: AppColors.darkTextPrimary),
+              maxLines: 2,
+              decoration: _inputDeco(
+                'Expense Notes',
+                'Explain operational purpose',
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1861,437 +1749,271 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
     final suppliersAsync = ref.watch(suppliersListProvider);
     final productsAsync = ref.watch(productsListProvider);
 
-    return Dialog(
-      backgroundColor: AppColors.darkCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SizedBox(
-        width: 760,
-        height: math.min(MediaQuery.of(context).size.height * 0.9, 680),
+    return ResponsiveDialog(
+      title: 'Record Fuel Purchase',
+      headerGradient: const LinearGradient(colors: AppColors.gradientRevenue),
+      headerIcon: Icons.shopping_cart_rounded,
+      maxWidth: 760,
+      maxHeight: 680,
+      actions: [
+        ElevatedButton(
+          onPressed: _saving ? null : _savePurchase,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brandAmber,
+          ),
+          child: Text(
+            'Record Purchase',
+            style: TextStyle(
+              color: AppColors.darkBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ],
+      child: Form(
+        key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(colors: AppColors.gradientRevenue),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.shopping_cart_rounded, color: Colors.white),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Record Fuel Purchase',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+            AdaptiveFormRow(
+              children: [
+                suppliersAsync.when(
+                  data: (suppliers) => DropdownButtonFormField<Supplier>(
+                    initialValue: _selectedSupplier,
+                    dropdownColor: AppColors.darkCard,
+                    style: TextStyle(color: AppColors.darkTextPrimary),
+                    decoration: _inputDeco('Supplier *', 'Select supplier'),
+                    items: suppliers
+                        .map(
+                          (s) =>
+                              DropdownMenuItem(value: s, child: Text(s.name)),
+                        )
+                        .toList(),
+                    onChanged: (s) => setState(() => _selectedSupplier = s),
+                    validator: (v) => v == null ? 'Required' : null,
                   ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text(e.toString()),
+                ),
+                TextFormField(
+                  controller: _invoiceNoCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco(
+                    'Vendor Invoice Number *',
+                    'e.g. BPCL-88742',
                   ),
-                ],
+                  validator: (v) => v!.trim().isEmpty ? 'Required' : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            AdaptiveFormRow(
+              children: [
+                AppDatePickerField(
+                  label: 'Purchase Date',
+                  selectedDate: _purchaseDate,
+                  firstDate: DateTime(2025),
+                  lastDate: DateTime(2030),
+                  onChanged: (picked) {
+                    setState(() => _purchaseDate = picked);
+                  },
+                ),
+                TextFormField(
+                  controller: _notesCtrl,
+                  style: TextStyle(color: AppColors.darkTextPrimary),
+                  decoration: _inputDeco('Purchase Notes', 'Remarks'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Storage/Bowser Destination Selection - fixes Bug 4
+            Text(
+              'Fuel Destination *',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.darkTextSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: suppliersAsync.when(
-                              data: (suppliers) =>
-                                  DropdownButtonFormField<Supplier>(
-                                    initialValue: _selectedSupplier,
-                                    dropdownColor: AppColors.darkCard,
-                                    style: TextStyle(
-                                      color: AppColors.darkTextPrimary,
-                                    ),
-                                    decoration: _inputDeco(
-                                      'Supplier *',
-                                      'Select supplier',
-                                    ),
-                                    items: suppliers
-                                        .map(
-                                          (s) => DropdownMenuItem(
-                                            value: s,
-                                            child: Text(s.name),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (s) =>
-                                        setState(() => _selectedSupplier = s),
-                                    validator: (v) =>
-                                        v == null ? 'Required' : null,
-                                  ),
-                              loading: () => const CircularProgressIndicator(),
-                              error: (e, _) => Text(e.toString()),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _invoiceNoCtrl,
-                              style: TextStyle(
-                                color: AppColors.darkTextPrimary,
-                              ),
-                              decoration: _inputDeco(
-                                'Vendor Invoice Number *',
-                                'e.g. BPCL-88742',
-                              ),
-                              validator: (v) =>
-                                  v!.trim().isEmpty ? 'Required' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Purchase Date',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.darkTextSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                InkWell(
-                                  onTap: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: _purchaseDate,
-                                      firstDate: DateTime(2025),
-                                      lastDate: DateTime(2030),
-                                    );
-                                    if (picked != null) {
-                                      setState(() => _purchaseDate = picked);
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.darkSurface,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: AppColors.darkBorder,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today_outlined,
-                                          size: 14,
-                                          color: AppColors.darkTextSecondary,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          DateFormat(
-                                            'dd MMM yyyy',
-                                          ).format(_purchaseDate),
-                                          style: TextStyle(
-                                            color: AppColors.darkTextPrimary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _notesCtrl,
-                              style: TextStyle(
-                                color: AppColors.darkTextPrimary,
-                              ),
-                              decoration: _inputDeco(
-                                'Purchase Notes',
-                                'Remarks',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Storage/Bowser Destination Selection - fixes Bug 4
-                      Text(
-                        'Fuel Destination *',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.darkTextSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      ref
-                          .watch(storageLocationsProvider)
-                          .when(
-                            data: (locations) {
-                              if (locations.isEmpty) {
-                                return const Text(
-                                  'No storage locations available. Create a storage location first.',
-                                  style: TextStyle(
-                                    color: AppColors.error,
-                                    fontSize: 12,
-                                  ),
-                                );
-                              }
-                              return DropdownButtonFormField<String>(
-                                initialValue: _selectedDestinationId,
-                                dropdownColor: AppColors.darkCard,
-                                style: TextStyle(
-                                  color: AppColors.darkTextPrimary,
-                                ),
-                                decoration: _inputDeco(
-                                  'Select destination',
-                                  '',
-                                ),
-                                items: locations.map((loc) {
-                                  final displayName =
-                                      '${loc.name} (${loc.type})';
-                                  return DropdownMenuItem(
-                                    value: loc.id,
-                                    child: Text(displayName),
-                                  );
-                                }).toList(),
-                                onChanged: (v) =>
-                                    setState(() => _selectedDestinationId = v),
-                                validator: (v) => v == null
-                                    ? 'Please select a fuel destination'
-                                    : null,
-                              );
-                            },
-                            loading: () => const CircularProgressIndicator(),
-                            error: (e, _) => Text(
-                              'Error loading locations: $e',
-                              style: const TextStyle(color: AppColors.error),
-                            ),
-                          ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Text(
-                            'Purchase Items',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextPrimary,
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton.icon(
-                            onPressed: () => setState(
-                              () => _items.add(_PurchaseItemDraft()),
-                            ),
-                            icon: const Icon(
-                              Icons.add,
-                              color: AppColors.brandAmber,
-                              size: 18,
-                            ),
-                            label: const Text(
-                              'Add Product',
-                              style: TextStyle(color: AppColors.brandAmber),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      if (_items.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.darkSurface,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'No products added yet. Click "Add Product".',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                            ),
-                          ),
-                        )
-                      else
-                        ...productsAsync.when(
-                          data: (products) => _items.asMap().entries.map((e) {
-                            final idx = e.key;
-                            final draft = e.value;
-                            final breakdown =
-                                draft.product != null && draft.quantity > 0
-                                ? _gstService.compute(
-                                    buyerStateCode:
-                                        _selectedSupplier?.billingState != null
-                                        ? '27'
-                                        : '27', // Simplified
-                                    taxableAmount: draft.quantity * draft.rate,
-                                    gstRate: draft.product!.gstRate,
-                                  )
-                                : null;
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.darkBorder),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: DropdownButtonFormField<Product>(
-                                      initialValue: draft.product,
-                                      dropdownColor: AppColors.darkCard,
-                                      style: TextStyle(
-                                        color: AppColors.darkTextPrimary,
-                                        fontSize: 13,
-                                      ),
-                                      decoration: _inputDeco('Product', ''),
-                                      items: products
-                                          .map(
-                                            (p) => DropdownMenuItem(
-                                              value: p,
-                                              child: Text(p.name),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (p) {
-                                        setState(() {
-                                          draft.product = p;
-                                          if (p != null) {
-                                            draft.rate =
-                                                p.currentSellingPrice ?? 0.0;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      keyboardType: TextInputType.number,
-                                      style: TextStyle(
-                                        color: AppColors.darkTextPrimary,
-                                        fontSize: 13,
-                                      ),
-                                      decoration: _inputDeco('Quantity', ''),
-                                      onChanged: (v) => setState(
-                                        () => draft.quantity =
-                                            double.tryParse(v) ?? 0,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextFormField(
-                                      keyboardType: TextInputType.number,
-                                      initialValue: draft.rate.toString(),
-                                      style: TextStyle(
-                                        color: AppColors.darkTextPrimary,
-                                        fontSize: 13,
-                                      ),
-                                      decoration: _inputDeco('Rate/L', ''),
-                                      onChanged: (v) => setState(
-                                        () => draft.rate =
-                                            double.tryParse(v) ?? 0,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  SizedBox(
-                                    width: 100,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          '₹${_fmt(breakdown?.totalAmount ?? 0.0)}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                            color: AppColors.darkTextPrimary,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Taxes: ₹${_fmt(breakdown?.totalTax ?? 0.0)}',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: AppColors.darkTextTertiary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () =>
-                                        setState(() => _items.removeAt(idx)),
-                                    icon: const Icon(
-                                      Icons.remove_circle_outline,
-                                      color: AppColors.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          loading: () => [const CircularProgressIndicator()],
-                          error: (e, _) => [Text(e.toString())],
-                        ),
-                      if (_items.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        _buildSummaryPanel(),
-                      ],
-                    ],
+            const SizedBox(height: 6),
+            ref
+                .watch(storageLocationsProvider)
+                .when(
+                  data: (locations) {
+                    if (locations.isEmpty) {
+                      return const Text(
+                        'No storage locations available. Create a storage location first.',
+                        style: TextStyle(color: AppColors.error, fontSize: 12),
+                      );
+                    }
+                    return DropdownButtonFormField<String>(
+                      initialValue: _selectedDestinationId,
+                      dropdownColor: AppColors.darkCard,
+                      style: TextStyle(color: AppColors.darkTextPrimary),
+                      decoration: _inputDeco('Select destination', ''),
+                      items: locations.map((loc) {
+                        final displayName = '${loc.name} (${loc.type})';
+                        return DropdownMenuItem(
+                          value: loc.id,
+                          child: Text(displayName),
+                        );
+                      }).toList(),
+                      onChanged: (v) =>
+                          setState(() => _selectedDestinationId = v),
+                      validator: (v) =>
+                          v == null ? 'Please select a fuel destination' : null,
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text(
+                    'Error loading locations: $e',
+                    style: const TextStyle(color: AppColors.error),
                   ),
                 ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.darkBorder)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Text(
+                  'Purchase Items',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _saving ? null : _savePurchase,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandAmber,
-                    ),
-                    child: Text(
-                      'Record Purchase',
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _items.add(_PurchaseItemDraft())),
+                  icon: const Icon(
+                    Icons.add,
+                    color: AppColors.brandAmber,
+                    size: 18,
+                  ),
+                  label: const Text(
+                    'Add Product',
+                    style: TextStyle(color: AppColors.brandAmber),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (_items.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.darkSurface,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'No products added yet. Click "Add Product".',
+                  style: TextStyle(color: AppColors.darkTextSecondary),
+                ),
+              )
+            else
+              ...productsAsync.when(
+                data: (products) => _items.asMap().entries.map((e) {
+                  final idx = e.key;
+                  final draft = e.value;
+                  final breakdown = draft.product != null && draft.quantity > 0
+                      ? _gstService.compute(
+                          buyerStateCode:
+                              _selectedSupplier?.billingState != null
+                              ? '27'
+                              : '27', // Simplified
+                          taxableAmount: draft.quantity * draft.rate,
+                          gstRate: draft.product!.gstRate,
+                        )
+                      : null;
+
+                  return AdaptiveLineItemLayout(
+                    productSelector: DropdownButtonFormField<Product>(
+                      initialValue: draft.product,
+                      dropdownColor: AppColors.darkCard,
                       style: TextStyle(
-                        color: AppColors.darkBackground,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkTextPrimary,
+                        fontSize: 13,
+                      ),
+                      decoration: _inputDeco('Product', ''),
+                      items: products
+                          .map(
+                            (p) =>
+                                DropdownMenuItem(value: p, child: Text(p.name)),
+                          )
+                          .toList(),
+                      onChanged: (p) {
+                        setState(() {
+                          draft.product = p;
+                          if (p != null) {
+                            draft.rate = p.currentSellingPrice ?? 0.0;
+                          }
+                        });
+                      },
+                    ),
+                    quantityField: TextFormField(
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(
+                        color: AppColors.darkTextPrimary,
+                        fontSize: 13,
+                      ),
+                      decoration: _inputDeco('Quantity', ''),
+                      onChanged: (v) => setState(
+                        () => draft.quantity = double.tryParse(v) ?? 0,
                       ),
                     ),
-                  ),
-                ],
+                    rateField: TextFormField(
+                      keyboardType: TextInputType.number,
+                      initialValue: draft.rate.toString(),
+                      style: TextStyle(
+                        color: AppColors.darkTextPrimary,
+                        fontSize: 13,
+                      ),
+                      decoration: _inputDeco('Rate/L', ''),
+                      onChanged: (v) =>
+                          setState(() => draft.rate = double.tryParse(v) ?? 0),
+                    ),
+                    summary: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '₹${_fmt(breakdown?.totalAmount ?? 0.0)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                        Text(
+                          'Taxes: ₹${_fmt(breakdown?.totalTax ?? 0.0)}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    removeButton: IconButton(
+                      onPressed: () => setState(() => _items.removeAt(idx)),
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                loading: () => [const CircularProgressIndicator()],
+                error: (e, _) => [Text(e.toString())],
               ),
-            ),
+            if (_items.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildSummaryPanel(),
+            ],
           ],
         ),
       ),

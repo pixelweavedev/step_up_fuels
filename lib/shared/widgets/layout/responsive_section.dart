@@ -43,9 +43,7 @@ class ResponsiveSection extends StatelessWidget {
       final List<Widget> rowChildren = [];
       for (int i = 0; i < children.length; i++) {
         final child = children[i];
-        rowChildren.add(
-          equalWidthsOnDesktop ? Expanded(child: child) : child,
-        );
+        rowChildren.add(equalWidthsOnDesktop ? Expanded(child: child) : child);
         if (i < children.length - 1) {
           rowChildren.add(SizedBox(width: spacing));
         }

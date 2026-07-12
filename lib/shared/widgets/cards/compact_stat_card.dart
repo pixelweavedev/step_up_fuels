@@ -37,9 +37,7 @@ class CompactStatCard extends StatelessWidget {
         ? AppMobileTokens.statCardHeight
         : 104.0; // Restrict height on mobile
 
-    final double cardPadding = isMobile
-        ? AppMobileTokens.cardPadding
-        : 16.0;
+    final double cardPadding = isMobile ? AppMobileTokens.cardPadding : 16.0;
 
     return GestureDetector(
       onTap: onTap,
@@ -149,7 +147,9 @@ class CompactStatCard extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: gradientColors.map((c) => c.withValues(alpha: 0.15)).toList(),
+                  colors: gradientColors
+                      .map((c) => c.withValues(alpha: 0.15))
+                      .toList(),
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

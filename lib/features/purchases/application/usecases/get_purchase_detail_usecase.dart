@@ -7,13 +7,16 @@ class GetPurchaseDetailUseCase {
   GetPurchaseDetailUseCase(this._repository);
   final PurchaseRepository _repository;
 
-  Future<Result<({FuelPurchase purchase, List<FuelPurchaseItem> items})>> call(String id) async {
+  Future<Result<({FuelPurchase purchase, List<FuelPurchaseItem> items})>> call(
+    String id,
+  ) async {
     final headerRes = await _repository.getPurchaseById(id);
     return headerRes.when(
       success: (purchase) async {
         final itemsRes = await _repository.getPurchaseItems(id);
         return itemsRes.when(
-          success: (items) => Result.success((purchase: purchase, items: items)),
+          success: (items) =>
+              Result.success((purchase: purchase, items: items)),
           failure: Result.failure,
         );
       },

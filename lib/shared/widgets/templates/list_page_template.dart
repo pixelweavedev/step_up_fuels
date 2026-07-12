@@ -38,10 +38,7 @@ class ListPageTemplate extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ResponsiveHeader(
-            title: title,
-            actions: actions,
-          ),
+          ResponsiveHeader(title: title, actions: actions),
           if (searchWidget != null || filterWidget != null) ...[
             ResponsiveSection(
               children: [
@@ -51,9 +48,7 @@ class ListPageTemplate extends StatelessWidget {
             ),
             const SizedBox(height: AppMobileTokens.spacingMD),
           ],
-          Expanded(
-            child: body,
-          ),
+          Expanded(child: body),
         ],
       );
     }
@@ -65,10 +60,7 @@ class ListPageTemplate extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ResponsiveHeader(
-              title: title,
-              actions: actions,
-            ),
+            ResponsiveHeader(title: title, actions: actions),
             if (searchWidget != null) ...[
               searchWidget!,
               const SizedBox(height: AppMobileTokens.spacingMD),
@@ -80,30 +72,18 @@ class ListPageTemplate extends StatelessWidget {
           ],
         ),
       ),
-      if (isSliver)
-        body
-      else
-        SliverFillRemaining(
-          child: body,
-        ),
+      if (isSliver) body else SliverFillRemaining(child: body),
       // Add bottom spacing for FAB when present
       if (floatingActionButton != null)
         SliverToBoxAdapter(
-          child: SizedBox(
-            height: MobilePageScaffold.bottomFabSpacing,
-          ),
+          child: SizedBox(height: MobilePageScaffold.bottomFabSpacing),
         ),
     ];
 
-    Widget mainContent = CustomScrollView(
-      slivers: slivers,
-    );
+    Widget mainContent = CustomScrollView(slivers: slivers);
 
     if (onRefresh != null) {
-      mainContent = RefreshIndicator(
-        onRefresh: onRefresh!,
-        child: mainContent,
-      );
+      mainContent = RefreshIndicator(onRefresh: onRefresh!, child: mainContent);
     }
 
     return MobilePageScaffold(

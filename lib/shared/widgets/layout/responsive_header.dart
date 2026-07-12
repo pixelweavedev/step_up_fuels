@@ -40,7 +40,9 @@ class ResponsiveHeader extends StatelessWidget {
     final subtitleStyle = TextStyle(
       fontSize: AppMobileTokens.fontCaption,
       fontWeight: FontWeight.w500,
-      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+      color: isDark
+          ? AppColors.darkTextSecondary
+          : AppColors.lightTextSecondary,
     );
 
     final metaStyle = TextStyle(
@@ -58,7 +60,9 @@ class ResponsiveHeader extends StatelessWidget {
           onPressed: onBack,
           visualDensity: VisualDensity.compact,
           iconSize: AppMobileTokens.iconMD,
-          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+          color: isDark
+              ? AppColors.darkTextPrimary
+              : AppColors.lightTextPrimary,
         ),
       );
     } else if (Navigator.canPop(context)) {
@@ -69,7 +73,9 @@ class ResponsiveHeader extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           visualDensity: VisualDensity.compact,
           iconSize: AppMobileTokens.iconMD,
-          color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+          color: isDark
+              ? AppColors.darkTextPrimary
+              : AppColors.lightTextPrimary,
         ),
       );
     }
@@ -134,12 +140,12 @@ class ResponsiveHeader extends StatelessWidget {
       actionsRow = Row(
         mainAxisSize: MainAxisSize.min,
         children: actions!
-            .map((a) => Padding(
-                  padding: const EdgeInsets.only(
-                    left: AppMobileTokens.spacingSM,
-                  ),
-                  child: a,
-                ))
+            .map(
+              (a) => Padding(
+                padding: const EdgeInsets.only(left: AppMobileTokens.spacingSM),
+                child: a,
+              ),
+            )
             .toList(),
       );
     }
@@ -150,9 +156,7 @@ class ResponsiveHeader extends StatelessWidget {
             ? AppMobileTokens.spacingMD
             : AppMobileTokens.spacingXL,
       ),
-      constraints: const BoxConstraints(
-        minHeight: 56.0,
-      ),
+      constraints: const BoxConstraints(minHeight: 56.0),
       child: isMobile
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,

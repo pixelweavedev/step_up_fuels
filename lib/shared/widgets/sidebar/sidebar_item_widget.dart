@@ -43,13 +43,13 @@ class _SidebarItemWidgetState extends State<SidebarItemWidget> {
           decoration: BoxDecoration(
             color: widget.isActive
                 ? (Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.brandAmber.withValues(alpha: 0.15)
-                    : AppColors.brandAmber.withValues(alpha: 0.08))
+                      ? AppColors.brandAmber.withValues(alpha: 0.15)
+                      : AppColors.brandAmber.withValues(alpha: 0.08))
                 : (_isHovered
-                    ? (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.05))
-                    : Colors.transparent),
+                      ? (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.05))
+                      : Colors.transparent),
             borderRadius: BorderRadius.circular(8),
           ),
           child: widget.isCollapsed
@@ -91,8 +91,7 @@ class _SidebarItemWidgetState extends State<SidebarItemWidget> {
             widget.item.label,
             style: TextStyle(
               fontSize: 13,
-              fontWeight:
-                  widget.isActive ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w400,
               color: widget.isActive
                   ? AppColors.sidebarTextActive
                   : AppColors.sidebarTextInactive,

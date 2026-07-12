@@ -77,8 +77,7 @@ class ImportRowResult {
   final List<ValidationError> warnings;
   final List<DependencyRef> dependencies;
 
-  bool get isValid =>
-      status != ImportRowStatus.error && errors.isEmpty;
+  bool get isValid => status != ImportRowStatus.error && errors.isEmpty;
 }
 
 /// Aggregated summary of all rows scanned during import validation.

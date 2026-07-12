@@ -8,7 +8,8 @@ import 'package:step_up_fuels/features/vehicles/data/tables/vehicles_table.dart'
 @DataClassName('FuelDeliveryRow')
 class FuelDeliveries extends Table {
   TextColumn get id => text()();
-  TextColumn get deliverySlipNumber => text().unique()(); // Auto-generated e.g. DC-2026-0001
+  TextColumn get deliverySlipNumber =>
+      text().unique()(); // Auto-generated e.g. DC-2026-0001
   TextColumn get customerId => text().references(Customers, #id)();
   TextColumn get customerSiteId => text().references(CustomerSites, #id)();
   TextColumn get vehicleId => text().references(Vehicles, #id)();
@@ -17,9 +18,11 @@ class FuelDeliveries extends Table {
   RealColumn get ratePerLitre => real()();
   RealColumn get totalAmount => real()();
   DateTimeColumn get deliveryDate => dateTime()();
-  TextColumn get invoiceId => text().nullable()(); // Linked Invoice ID (null if pending billing)
+  TextColumn get invoiceId =>
+      text().nullable()(); // Linked Invoice ID (null if pending billing)
   TextColumn get billingStatus => text()(); // PENDING_BILLING, BILLED, EXEMPT
-  TextColumn get paymentStatus => text().withDefault(const Constant('UNPAID'))(); // UNPAID, PARTIAL, PAID
+  TextColumn get paymentStatus =>
+      text().withDefault(const Constant('UNPAID'))(); // UNPAID, PARTIAL, PAID
   TextColumn get notes => text().nullable()();
 
   // Audits & SaaS Scope

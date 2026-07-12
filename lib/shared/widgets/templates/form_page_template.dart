@@ -48,12 +48,14 @@ class FormPageTemplate extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: actions
-              .map((a) => Padding(
-                    padding: const EdgeInsets.only(
-                      left: AppMobileTokens.spacingSM,
-                    ),
-                    child: a,
-                  ))
+              .map(
+                (a) => Padding(
+                  padding: const EdgeInsets.only(
+                    left: AppMobileTokens.spacingSM,
+                  ),
+                  child: a,
+                ),
+              )
               .toList(),
         ),
       ),

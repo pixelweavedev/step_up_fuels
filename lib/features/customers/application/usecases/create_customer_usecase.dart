@@ -15,9 +15,7 @@ class CreateCustomerUseCase {
       success: (list) async {
         final nextNum = list.length + 1;
         final nextCode = 'CUST-${nextNum.toString().padLeft(3, '0')}';
-        final toSave = customer.copyWith(
-          customerCode: nextCode,
-        );
+        final toSave = customer.copyWith(customerCode: nextCode);
         return _repository.save(toSave);
       },
       failure: (f) => Result.failure(f),

@@ -48,7 +48,9 @@ class _ColumnPickerDialogState<T> extends State<ColumnPickerDialog<T>> {
           Text(
             'Select Export Columns',
             style: TextStyle(
-              color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+              color: isDark
+                  ? AppColors.darkThemeTextPrimary
+                  : AppColors.lightTextPrimary,
             ),
           ),
         ],
@@ -64,7 +66,9 @@ class _ColumnPickerDialogState<T> extends State<ColumnPickerDialog<T>> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _visibleKeys = widget.allColumns.map((c) => c.key).toList();
+                      _visibleKeys = widget.allColumns
+                          .map((c) => c.key)
+                          .toList();
                     });
                   },
                   child: const Text('Select All'),
@@ -88,13 +92,18 @@ class _ColumnPickerDialogState<T> extends State<ColumnPickerDialog<T>> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 8,
+                        ),
                         child: Text(
                           entry.key.toUpperCase(),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                            color: isDark
+                                ? AppColors.darkThemeTextTertiary
+                                : AppColors.lightTextTertiary,
                             letterSpacing: 1.0,
                           ),
                         ),
@@ -111,7 +120,9 @@ class _ColumnPickerDialogState<T> extends State<ColumnPickerDialog<T>> {
                             col.key,
                             style: TextStyle(
                               fontSize: 10,
-                              color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                              color: isDark
+                                  ? AppColors.darkThemeTextTertiary
+                                  : AppColors.lightTextTertiary,
                             ),
                           ),
                           activeColor: AppColors.brandAmber,

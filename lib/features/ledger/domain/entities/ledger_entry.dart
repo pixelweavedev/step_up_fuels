@@ -58,16 +58,16 @@ class LedgerEntry extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        ledgerAccountId,
-        entryDate,
-        description,
-        debitAmount,
-        creditAmount,
-        referenceId,
-        referenceType,
-        runningBalance,
-        createdAt,
-        createdBy,
-      ];
+    id,
+    ledgerAccountId,
+    entryDate,
+    description,
+    debitAmount,
+    creditAmount,
+    referenceId,
+    referenceType,
+    runningBalance,
+    createdAt,
+    createdBy,
+  ];
 }

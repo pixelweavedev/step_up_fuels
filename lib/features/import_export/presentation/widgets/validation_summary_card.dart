@@ -14,7 +14,8 @@ class ValidationSummaryCard extends StatelessWidget {
 
   final ImportValidationSummary summary;
   final VoidCallback onCancel;
-  final ValueChanged<bool> onProceed; // true if dryRun only, false if full write
+  final ValueChanged<bool>
+  onProceed; // true if dryRun only, false if full write
   final ValueChanged<bool> onToggleDryRun;
   final bool dryRun;
 
@@ -46,13 +47,17 @@ class ValidationSummaryCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+                  color: isDark
+                      ? AppColors.darkThemeTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: hasErrors ? AppColors.errorLight : AppColors.successLight,
+                  color: hasErrors
+                      ? AppColors.errorLight
+                      : AppColors.successLight,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -70,10 +75,30 @@ class ValidationSummaryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildMetric(context, '${summary.totalRows}', 'Scanned', Colors.grey),
-              _buildMetric(context, '${summary.validRows}', 'Valid', AppColors.success),
-              _buildMetric(context, '${summary.conflictRows}', 'Conflicts', AppColors.warning),
-              _buildMetric(context, '${summary.errorRows}', 'Errors', AppColors.error),
+              _buildMetric(
+                context,
+                '${summary.totalRows}',
+                'Scanned',
+                Colors.grey,
+              ),
+              _buildMetric(
+                context,
+                '${summary.validRows}',
+                'Valid',
+                AppColors.success,
+              ),
+              _buildMetric(
+                context,
+                '${summary.conflictRows}',
+                'Conflicts',
+                AppColors.warning,
+              ),
+              _buildMetric(
+                context,
+                '${summary.errorRows}',
+                'Errors',
+                AppColors.error,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -93,7 +118,10 @@ class ValidationSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       'Dry Run / Validate Only',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       'Scan the file for errors without saving any data.',
@@ -118,17 +146,19 @@ class ValidationSummaryCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: hasOnlyErrors
-                    ? null
-                    : () => onProceed(dryRun),
+                onPressed: hasOnlyErrors ? null : () => onProceed(dryRun),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: hasErrors ? AppColors.brandAmber : AppColors.success,
+                  backgroundColor: hasErrors
+                      ? AppColors.brandAmber
+                      : AppColors.success,
                   foregroundColor: Colors.white,
                 ),
                 child: Text(
                   dryRun
                       ? 'Validate File'
-                      : (hasErrors ? 'Import Valid Rows Only' : 'Import All Rows'),
+                      : (hasErrors
+                            ? 'Import Valid Rows Only'
+                            : 'Import All Rows'),
                 ),
               ),
             ],
@@ -138,7 +168,12 @@ class ValidationSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMetric(BuildContext context, String value, String label, Color color) {
+  Widget _buildMetric(
+    BuildContext context,
+    String value,
+    String label,
+    Color color,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
@@ -155,7 +190,9 @@ class ValidationSummaryCard extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+            color: isDark
+                ? AppColors.darkThemeTextTertiary
+                : AppColors.lightTextTertiary,
           ),
         ),
       ],

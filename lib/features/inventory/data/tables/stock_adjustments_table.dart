@@ -6,11 +6,13 @@ import 'package:step_up_fuels/features/products/data/tables/products_table.dart'
 @DataClassName('StockAdjustmentRow')
 class StockAdjustments extends Table {
   TextColumn get id => text()();
-  TextColumn get storageLocationId => text().references(StorageLocations, #id)();
+  TextColumn get storageLocationId =>
+      text().references(StorageLocations, #id)();
   TextColumn get productId => text().references(Products, #id)();
   TextColumn get adjustmentType => text()(); // GAIN, LOSS
   RealColumn get quantity => real()();
-  TextColumn get reason => text()(); // e.g. Temperature shrinkage, Leakage, Physical dip rod check
+  TextColumn get reason =>
+      text()(); // e.g. Temperature shrinkage, Leakage, Physical dip rod check
   DateTimeColumn get adjustmentDate => dateTime()();
   TextColumn get approvedBy => text().withDefault(const Constant('system'))();
 

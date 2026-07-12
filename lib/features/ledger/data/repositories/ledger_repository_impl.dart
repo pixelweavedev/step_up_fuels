@@ -26,7 +26,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       );
       return Result.success(rows.map((r) => r.toDomain()).toList());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -35,11 +37,15 @@ class LedgerRepositoryImpl implements LedgerRepository {
     try {
       final row = await _dao.getAccountById(id);
       if (row == null) {
-        return const Result.failure(NotFoundFailure(message: 'Ledger account not found'));
+        return const Result.failure(
+          NotFoundFailure(message: 'Ledger account not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -48,11 +54,15 @@ class LedgerRepositoryImpl implements LedgerRepository {
     try {
       final row = await _dao.getAccountByCode(accountCode);
       if (row == null) {
-        return const Result.failure(NotFoundFailure(message: 'Ledger account not found'));
+        return const Result.failure(
+          NotFoundFailure(message: 'Ledger account not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -86,7 +96,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       final created = await _dao.getAccountById(accountId);
       return Result.success(created!.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -120,7 +132,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       final created = await _dao.getAccountById(accountId);
       return Result.success(created!.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -152,7 +166,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       final created = await _dao.getAccountById(accountId);
       return Result.success(created!.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -170,7 +186,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       );
       return Result.success(rows.map((r) => r.toDomain()).toList());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -201,7 +219,9 @@ class LedgerRepositoryImpl implements LedgerRepository {
       await _dao.saveEntry(companion);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

@@ -51,12 +51,14 @@ class DetailPageTemplate extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppMobileTokens.sectionGap),
           child: Column(
             children: stats!
-                .map((s) => Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: AppMobileTokens.spacingSM,
-                      ),
-                      child: s,
-                    ))
+                .map(
+                  (s) => Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: AppMobileTokens.spacingSM,
+                    ),
+                    child: s,
+                  ),
+                )
                 .toList(),
           ),
         );
@@ -111,31 +113,23 @@ class DetailPageTemplate extends StatelessWidget {
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                header,
-                if (statsSection != null) statsSection,
-              ],
+              children: [header, if (statsSection != null) statsSection],
             ),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: AppMobileTokens.sectionGap,
-                  ),
-                  child: sections[index],
-                );
-              },
-              childCount: sections.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppMobileTokens.sectionGap,
+                ),
+                child: sections[index],
+              );
+            }, childCount: sections.length),
           ),
           // Cushion bottom of the list for FAB
           if (floatingActionButton != null)
             SliverToBoxAdapter(
-              child: SizedBox(
-                height: MobilePageScaffold.bottomFabSpacing,
-              ),
+              child: SizedBox(height: MobilePageScaffold.bottomFabSpacing),
             ),
         ],
       ),

@@ -23,8 +23,7 @@ class GstConstants {
       r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$';
 
   /// PAN regex
-  static const String panPattern =
-      r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$';
+  static const String panPattern = r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$';
 
   /// IFSC regex
   static const String ifscPattern = r'^[A-Z]{4}0[A-Z0-9]{6}$';

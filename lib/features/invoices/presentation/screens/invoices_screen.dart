@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +21,9 @@ import 'package:step_up_fuels/features/payments/presentation/screens/payments_sc
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
+import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
 import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
@@ -1561,303 +1562,200 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
     final customersAsync = ref.watch(customersListProvider);
     final productsAsync = ref.watch(productsListProvider);
 
-    return Dialog(
-      backgroundColor: AppColors.darkCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: SizedBox(
-        width: 780,
-        height: math.min(MediaQuery.of(context).size.height * 0.9, 720),
+    return ResponsiveDialog(
+      title: 'Create New Invoice',
+      headerGradient: const LinearGradient(colors: AppColors.gradientInvoices),
+      headerIcon: Icons.receipt_long_rounded,
+      maxWidth: 780,
+      actions: [
+        ElevatedButton.icon(
+          onPressed: _saving ? null : _saveAndPost,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brandAmber,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          icon: Icon(Icons.publish_rounded, color: AppColors.darkBackground),
+          label: Text(
+            'Post Invoice',
+            style: TextStyle(
+              color: AppColors.darkBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        ElevatedButton.icon(
+          onPressed: _saving ? null : _saveDraft,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.darkBorderLight,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          icon: _saving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Icon(Icons.save_outlined, color: AppColors.darkTextPrimary),
+          label: Text(
+            'Save Draft',
+            style: TextStyle(color: AppColors.darkTextPrimary),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ],
+      child: Form(
+        key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dialog header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(colors: AppColors.gradientInvoices),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.receipt_long_rounded, color: Colors.white),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Create New Invoice',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            // Customer selector
+            const _FieldLabel('Customer *'),
+            customersAsync.when(
+              data: (customers) => _buildCustomerDropdown(customers),
+              loading: () =>
+                  const CircularProgressIndicator(color: AppColors.brandAmber),
+              error: (e, _) => Text(e.toString()),
+            ),
+            const SizedBox(height: 16),
+
+            // Dates & Supply Type row
+            AdaptiveFormRow(
+              children: [
+                AppDatePickerField(
+                  label: 'Invoice Date',
+                  selectedDate: _invoiceDate,
+                  onChanged: (d) => setState(() => _invoiceDate = d),
+                ),
+                AppDatePickerField(
+                  label: 'Due Date',
+                  selectedDate: _dueDate,
+                  onChanged: (d) => setState(() => _dueDate = d),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _FieldLabel('Supply Type'),
+                    _dialogDropdown(
+                      value: _supplyType,
+                      items: const ['B2B', 'B2C'],
+                      onChanged: (v) => setState(() => _supplyType = v!),
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.white70),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Place of supply
+            AdaptiveFormRow(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _FieldLabel('Buyer State Code'),
+                    TextFormField(
+                      initialValue: _buyerStateCode,
+                      onChanged: (v) =>
+                          setState(() => _buyerStateCode = v.trim()),
+                      style: TextStyle(color: AppColors.darkTextPrimary),
+                      decoration: _inputDecoration('e.g. 27'),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _FieldLabel('Notes (optional)'),
+                    TextFormField(
+                      controller: _notesCtrl,
+                      style: TextStyle(color: AppColors.darkTextPrimary),
+                      decoration: _inputDecoration('Additional notes'),
+                    ),
+                  ],
+                ),
+              ],
             ),
 
-            // Form body
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Customer selector
-                      const _FieldLabel('Customer *'),
-                      customersAsync.when(
-                        data: (customers) => _buildCustomerDropdown(customers),
-                        loading: () => const CircularProgressIndicator(
-                          color: AppColors.brandAmber,
-                        ),
-                        error: (e, _) => Text(e.toString()),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Dates row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _FieldLabel('Invoice Date'),
-                                _DatePickerField(
-                                  date: _invoiceDate,
-                                  onChanged: (d) =>
-                                      setState(() => _invoiceDate = d),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _FieldLabel('Due Date'),
-                                _DatePickerField(
-                                  date: _dueDate,
-                                  onChanged: (d) =>
-                                      setState(() => _dueDate = d),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _FieldLabel('Supply Type'),
-                                _dialogDropdown(
-                                  value: _supplyType,
-                                  items: ['B2B', 'B2C'],
-                                  onChanged: (v) =>
-                                      setState(() => _supplyType = v!),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Place of supply
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _FieldLabel('Buyer State Code'),
-                                TextFormField(
-                                  initialValue: _buyerStateCode,
-                                  onChanged: (v) => setState(
-                                    () => _buyerStateCode = v.trim(),
-                                  ),
-                                  style: TextStyle(
-                                    color: AppColors.darkTextPrimary,
-                                  ),
-                                  decoration: _inputDecoration('e.g. 27'),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _FieldLabel('Notes (optional)'),
-                                TextFormField(
-                                  controller: _notesCtrl,
-                                  style: TextStyle(
-                                    color: AppColors.darkTextPrimary,
-                                  ),
-                                  decoration: _inputDecoration(
-                                    'Additional notes',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-                      // Line items section
-                      Row(
-                        children: [
-                          Text(
-                            'Line Items',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextPrimary,
-                            ),
-                          ),
-                          const Spacer(),
-                          TextButton.icon(
-                            onPressed: () => setState(
-                              () => _lineItems.add(_LineItemDraft()),
-                            ),
-                            icon: const Icon(
-                              Icons.add_rounded,
-                              color: AppColors.brandAmber,
-                              size: 18,
-                            ),
-                            label: const Text(
-                              'Add Item',
-                              style: TextStyle(color: AppColors.brandAmber),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_lineItems.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.darkSurface,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.darkBorder),
-                          ),
-                          child: Text(
-                            'No line items. Click "Add Item" to add fuel/products.',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                      else
-                        ...productsAsync.when(
-                          data: (products) => _lineItems
-                              .asMap()
-                              .entries
-                              .map(
-                                (e) => _LineItemRow(
-                                  key: ValueKey(e.key),
-                                  draft: e.value,
-                                  products: products,
-                                  gstService: _gstService,
-                                  buyerStateCode: _buyerStateCode,
-                                  index: e.key,
-                                  onRemove: () => setState(
-                                    () => _lineItems.removeAt(e.key),
-                                  ),
-                                  onChanged: () => setState(() {}),
-                                ),
-                              )
-                              .toList(),
-                          loading: () => [
-                            const CircularProgressIndicator(
-                              color: AppColors.brandAmber,
-                            ),
-                          ],
-                          error: (e, _) => [Text(e.toString())],
-                        ),
-
-                      if (_lineItems.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        _buildTotalsSummary(),
-                      ],
-                    ],
+            const SizedBox(height: 20),
+            // Line items section
+            Row(
+              children: [
+                Text(
+                  'Line Items',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkTextPrimary,
                   ),
                 ),
-              ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _lineItems.add(_LineItemDraft())),
+                  icon: const Icon(
+                    Icons.add_rounded,
+                    color: AppColors.brandAmber,
+                    size: 18,
+                  ),
+                  label: const Text(
+                    'Add Item',
+                    style: TextStyle(color: AppColors.brandAmber),
+                  ),
+                ),
+              ],
             ),
-
-            // Footer actions
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: AppColors.darkBorder)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+            if (_lineItems.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.darkSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.darkBorder),
+                ),
+                child: Text(
+                  'No line items. Click "Add Item" to add fuel/products.',
+                  style: TextStyle(
+                    color: AppColors.darkTextSecondary,
+                    fontSize: 13,
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _saving ? null : _saveDraft,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.darkBorderLight,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                ),
+              )
+            else
+              ...productsAsync.when(
+                data: (products) => _lineItems
+                    .asMap()
+                    .entries
+                    .map(
+                      (e) => _LineItemRow(
+                        key: ValueKey(e.key),
+                        draft: e.value,
+                        products: products,
+                        gstService: _gstService,
+                        buyerStateCode: _buyerStateCode,
+                        index: e.key,
+                        onRemove: () =>
+                            setState(() => _lineItems.removeAt(e.key)),
+                        onChanged: () => setState(() {}),
                       ),
-                    ),
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Icon(
-                            Icons.save_outlined,
-                            color: AppColors.darkTextPrimary,
-                          ),
-                    label: Text(
-                      'Save Draft',
-                      style: TextStyle(color: AppColors.darkTextPrimary),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _saving ? null : _saveAndPost,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandAmber,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.publish_rounded,
-                      color: AppColors.darkBackground,
-                    ),
-                    label: Text(
-                      'Post Invoice',
-                      style: TextStyle(
-                        color: AppColors.darkBackground,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                    )
+                    .toList(),
+                loading: () => [
+                  const CircularProgressIndicator(color: AppColors.brandAmber),
                 ],
+                error: (e, _) => [Text(e.toString())],
               ),
-            ),
+
+            if (_lineItems.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildTotalsSummary(),
+            ],
           ],
         ),
       ),
@@ -2161,146 +2059,91 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
           )
         : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.darkBorder),
+    return AdaptiveLineItemLayout(
+      productSelector: DropdownButtonFormField<Product>(
+        initialValue: draft.product,
+        dropdownColor: AppColors.darkCard,
+        style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
+        decoration: _inputDecoration('Product'),
+        items: widget.products
+            .map((p) => DropdownMenuItem(value: p, child: Text(p.name)))
+            .toList(),
+        onChanged: (p) {
+          setState(() {
+            draft.product = p;
+            if (p != null && draft.rate == 0) {
+              final price = p.currentSellingPrice ?? 0.0;
+              draft.rate = price;
+              _rateCtrl.text = price.toString();
+            }
+          });
+          widget.onChanged();
+        },
       ),
-      child: Column(
+      quantityField: TextField(
+        controller: _qtyCtrl,
+        keyboardType: TextInputType.number,
+        style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
+        decoration: _inputDecoration('Qty'),
+        onChanged: (v) {
+          draft.quantity = double.tryParse(v) ?? 0;
+          widget.onChanged();
+        },
+      ),
+      rateField: TextField(
+        controller: _rateCtrl,
+        keyboardType: TextInputType.number,
+        style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
+        decoration: _inputDecoration('Rate/L'),
+        onChanged: (v) {
+          draft.rate = double.tryParse(v) ?? 0;
+          widget.onChanged();
+        },
+      ),
+      unitSelector: DropdownButtonFormField<String>(
+        initialValue: draft.unit,
+        dropdownColor: AppColors.darkCard,
+        style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
+        decoration: _inputDecoration('Unit'),
+        items: const [
+          'LTRS',
+          'KL',
+        ].map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+        onChanged: (u) {
+          setState(() => draft.unit = u!);
+          widget.onChanged();
+        },
+      ),
+      summary: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              // Product selector
-              Expanded(
-                flex: 3,
-                child: DropdownButtonFormField<Product>(
-                  initialValue: draft.product,
-                  dropdownColor: AppColors.darkCard,
-                  style: TextStyle(
-                    color: AppColors.darkTextPrimary,
-                    fontSize: 13,
-                  ),
-                  decoration: _inputDecoration('Product'),
-                  items: widget.products
-                      .map(
-                        (p) => DropdownMenuItem(value: p, child: Text(p.name)),
-                      )
-                      .toList(),
-                  onChanged: (p) {
-                    setState(() {
-                      draft.product = p;
-                      if (p != null && draft.rate == 0) {
-                        final price = p.currentSellingPrice ?? 0.0;
-                        draft.rate = price;
-                        _rateCtrl.text = price.toString();
-                      }
-                    });
-                    widget.onChanged();
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Quantity
-              Expanded(
-                child: TextField(
-                  controller: _qtyCtrl,
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    color: AppColors.darkTextPrimary,
-                    fontSize: 13,
-                  ),
-                  decoration: _inputDecoration('Qty'),
-                  onChanged: (v) {
-                    draft.quantity = double.tryParse(v) ?? 0;
-                    widget.onChanged();
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Rate
-              Expanded(
-                child: TextField(
-                  controller: _rateCtrl,
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(
-                    color: AppColors.darkTextPrimary,
-                    fontSize: 13,
-                  ),
-                  decoration: _inputDecoration('Rate/L'),
-                  onChanged: (v) {
-                    draft.rate = double.tryParse(v) ?? 0;
-                    widget.onChanged();
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Unit selector
-              SizedBox(
-                width: 80,
-                child: DropdownButtonFormField<String>(
-                  initialValue: draft.unit,
-                  dropdownColor: AppColors.darkCard,
-                  style: TextStyle(
-                    color: AppColors.darkTextPrimary,
-                    fontSize: 13,
-                  ),
-                  decoration: _inputDecoration('Unit'),
-                  items: ['LTRS', 'KL']
-                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-                      .toList(),
-                  onChanged: (u) {
-                    setState(() => draft.unit = u!);
-                    widget.onChanged();
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Amount
-              SizedBox(
-                width: 90,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      gst != null ? '₹${_fmt(gst.totalAmount)}' : '₹0.00',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
-                        fontSize: 13,
-                      ),
-                    ),
-                    if (gst != null)
-                      Text(
-                        'GST: ₹${_fmt(gst.totalTax)}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.darkTextSecondary,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Remove
-              IconButton(
-                onPressed: widget.onRemove,
-                icon: const Icon(
-                  Icons.remove_circle_outline_rounded,
-                  color: AppColors.error,
-                  size: 20,
-                ),
-                tooltip: 'Remove item',
-              ),
-            ],
+          Text(
+            gst != null ? '₹${_fmt(gst.totalAmount)}' : '₹0.00',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkTextPrimary,
+              fontSize: 13,
+            ),
           ),
+          if (gst != null)
+            Text(
+              'GST: ₹${_fmt(gst.totalTax)}',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
         ],
+      ),
+      removeButton: IconButton(
+        onPressed: widget.onRemove,
+        icon: const Icon(
+          Icons.remove_circle_outline_rounded,
+          color: AppColors.error,
+          size: 20,
+        ),
+        tooltip: 'Remove item',
       ),
     );
   }
@@ -2612,59 +2455,6 @@ class _EmptyInvoicesPlaceholder extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _DatePickerField extends StatelessWidget {
-  const _DatePickerField({required this.date, required this.onChanged});
-  final DateTime date;
-  final ValueChanged<DateTime> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: date,
-          firstDate: DateTime(2020),
-          lastDate: DateTime(2035),
-          builder: (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.dark(
-                primary: AppColors.brandAmber,
-                surface: AppColors.darkCard,
-              ),
-            ),
-            child: child!,
-          ),
-        );
-        if (picked != null) onChanged(picked);
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.darkSurface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.darkBorder),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.calendar_today_outlined,
-              size: 16,
-              color: AppColors.darkTextSecondary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              DateFormat('dd MMM yyyy').format(date),
-              style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 13),
-            ),
-          ],
-        ),
       ),
     );
   }

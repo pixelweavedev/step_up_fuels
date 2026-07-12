@@ -13,11 +13,15 @@ class DriverRepositoryImpl implements DriverRepository {
   @override
   Future<Result<List<Driver>>> getAll({bool includeDeleted = false}) async {
     try {
-      final rows = await _driversDao.getAllDrivers(includeDeleted: includeDeleted);
+      final rows = await _driversDao.getAllDrivers(
+        includeDeleted: includeDeleted,
+      );
       final domainList = rows.map((r) => r.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -26,11 +30,15 @@ class DriverRepositoryImpl implements DriverRepository {
     try {
       final row = await _driversDao.getDriverById(id);
       if (row == null) {
-        return const Result.failure(DatabaseFailure(message: 'Driver not found'));
+        return const Result.failure(
+          DatabaseFailure(message: 'Driver not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -40,7 +48,9 @@ class DriverRepositoryImpl implements DriverRepository {
       await _driversDao.saveDriver(driver.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -50,18 +60,28 @@ class DriverRepositoryImpl implements DriverRepository {
       await _driversDao.softDeleteDriver(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<List<DriverAssignment>>> getAssignments({String? driverId, String? vehicleId}) async {
+  Future<Result<List<DriverAssignment>>> getAssignments({
+    String? driverId,
+    String? vehicleId,
+  }) async {
     try {
-      final rows = await _driversDao.getAssignments(driverId: driverId, vehicleId: vehicleId);
+      final rows = await _driversDao.getAssignments(
+        driverId: driverId,
+        vehicleId: vehicleId,
+      );
       final domainList = rows.map((r) => r.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -71,17 +91,24 @@ class DriverRepositoryImpl implements DriverRepository {
       await _driversDao.assignDriver(assignment.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
   @override
-  Future<Result<void>> releaseDriver({required String assignmentId, required DateTime releasedAt}) async {
+  Future<Result<void>> releaseDriver({
+    required String assignmentId,
+    required DateTime releasedAt,
+  }) async {
     try {
       await _driversDao.releaseDriver(assignmentId, releasedAt);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

@@ -8,14 +8,20 @@ class Payments extends Table {
   TextColumn get id => text()();
   TextColumn get paymentNumber => text().unique()(); // PMT/2026-27/001
   TextColumn get customerId => text().references(Customers, #id)();
-  TextColumn get invoiceId => text().nullable().references(Invoices, #id)(); // Nullable (for advances or multiple allocations)
+  TextColumn get invoiceId => text().nullable().references(
+    Invoices,
+    #id,
+  )(); // Nullable (for advances or multiple allocations)
   RealColumn get amount => real()();
   DateTimeColumn get paymentDate => dateTime()();
-  TextColumn get paymentMode => text()(); // CASH, UPI, BANK_TRANSFER, CHEQUE, etc.
+  TextColumn get paymentMode =>
+      text()(); // CASH, UPI, BANK_TRANSFER, CHEQUE, etc.
   TextColumn get referenceNumber => text().nullable()(); // Txn ID, UTR
   TextColumn get bankName => text().nullable()();
   TextColumn get notes => text().nullable()();
-  TextColumn get status => text().withDefault(const Constant('POSTED'))(); // DRAFT, POSTED, REVERSED, CANCELLED
+  TextColumn get status => text().withDefault(
+    const Constant('POSTED'),
+  )(); // DRAFT, POSTED, REVERSED, CANCELLED
 
   // Audits
   TextColumn get createdBy => text().withDefault(const Constant('system'))();

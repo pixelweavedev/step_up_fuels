@@ -27,7 +27,8 @@ class ExportAdapterRegistry {
   static ExportAdapter<dynamic> getByName(String name) {
     return all.firstWhere(
       (a) => a.entityName == name,
-      orElse: () => throw ArgumentError('No export adapter found for entity: $name'),
+      orElse: () =>
+          throw ArgumentError('No export adapter found for entity: $name'),
     );
   }
 }

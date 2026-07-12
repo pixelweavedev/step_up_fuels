@@ -75,7 +75,10 @@ class AdaptiveDialog {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, color: AppColors.darkTextSecondary),
+                      icon: Icon(
+                        Icons.close,
+                        color: AppColors.darkTextSecondary,
+                      ),
                       onPressed: () => Navigator.of(ctx).pop(),
                     ),
                   ],
@@ -136,7 +139,10 @@ class AdaptiveDialog {
                 ? [
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: actions,
+                      ),
                     ),
                   ]
                 : null,

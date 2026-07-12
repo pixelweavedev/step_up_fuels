@@ -314,7 +314,9 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         final updatedRow = purchaseRow.toDomain().copyWith(
           paymentStatus: 'PAID',
           notes: notes != null && notes.isNotEmpty
-              ? (purchaseRow.notes != null ? '${purchaseRow.notes}\n$notes' : notes)
+              ? (purchaseRow.notes != null
+                    ? '${purchaseRow.notes}\n$notes'
+                    : notes)
               : purchaseRow.notes,
         );
         await _dao.savePurchase(updatedRow.toCompanion());

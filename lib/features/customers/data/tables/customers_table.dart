@@ -9,7 +9,8 @@ class Customers extends Table {
   TextColumn get displayName => text().nullable()();
   TextColumn get tradeName => text().nullable()();
   TextColumn get legalBusinessName => text().nullable()();
-  TextColumn get customerType => text()(); // CORPORATE, CONSTRUCTION, INDUSTRIAL, GOVERNMENT, INDIVIDUAL
+  TextColumn get customerType =>
+      text()(); // CORPORATE, CONSTRUCTION, INDUSTRIAL, GOVERNMENT, INDIVIDUAL
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 
   // GST & Compliance
@@ -30,7 +31,8 @@ class Customers extends Table {
   TextColumn get billingCountry => text().nullable()();
 
   // Credit Info
-  TextColumn get paymentTerms => text().nullable()(); // ADVANCE, DAYS7, DAYS15, DAYS30, DAYS45
+  TextColumn get paymentTerms =>
+      text().nullable()(); // ADVANCE, DAYS7, DAYS15, DAYS30, DAYS45
   RealColumn get creditLimit => real().withDefault(const Constant(0.0))();
   IntColumn get creditDays => integer().withDefault(const Constant(30))();
   RealColumn get securityDeposit => real().withDefault(const Constant(0.0))();
@@ -50,15 +52,19 @@ class Customers extends Table {
   // Invoice Preferences
   TextColumn get invoicePrefix => text().nullable()();
   BoolColumn get emailInvoice => boolean().withDefault(const Constant(true))();
-  BoolColumn get whatsappInvoice => boolean().withDefault(const Constant(false))();
+  BoolColumn get whatsappInvoice =>
+      boolean().withDefault(const Constant(false))();
   BoolColumn get requirePo => boolean().withDefault(const Constant(false))();
   BoolColumn get requireDc => boolean().withDefault(const Constant(false))();
-  BoolColumn get requireSignature => boolean().withDefault(const Constant(false))();
+  BoolColumn get requireSignature =>
+      boolean().withDefault(const Constant(false))();
 
   // Compliance Flags
   BoolColumn get gstApplicable => boolean().withDefault(const Constant(true))();
-  BoolColumn get eInvoiceRequired => boolean().withDefault(const Constant(false))();
-  BoolColumn get eWayBillRequired => boolean().withDefault(const Constant(false))();
+  BoolColumn get eInvoiceRequired =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get eWayBillRequired =>
+      boolean().withDefault(const Constant(false))();
 
   // Accounting
   RealColumn get openingBalance => real().withDefault(const Constant(0.0))();

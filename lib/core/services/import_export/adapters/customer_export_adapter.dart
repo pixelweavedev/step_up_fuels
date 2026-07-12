@@ -49,7 +49,12 @@ class CustomerExportAdapter extends ExportAdapter<Customer> {
       getValue: (c) => c.name,
       importable: true,
       required: true,
-      importAliases: ['customer name', 'account name', 'client name', 'full name'],
+      importAliases: [
+        'customer name',
+        'account name',
+        'client name',
+        'full name',
+      ],
     ),
     ExportColumn<Customer>(
       key: 'display_name',
@@ -382,25 +387,40 @@ class CustomerExportAdapter extends ExportAdapter<Customer> {
     final errors = <ValidationError>[];
 
     if ((json['customer_code'] as String?)?.isEmpty ?? true) {
-      errors.add(const ValidationError(field: 'customer_code', message: 'Customer Code is required'));
+      errors.add(
+        const ValidationError(
+          field: 'customer_code',
+          message: 'Customer Code is required',
+        ),
+      );
     }
     if ((json['name'] as String?)?.isEmpty ?? true) {
-      errors.add(const ValidationError(field: 'name', message: 'Name is required'));
+      errors.add(
+        const ValidationError(field: 'name', message: 'Name is required'),
+      );
     }
 
     final gstRate = double.tryParse(json['default_gst_rate']?.toString() ?? '');
     if (json['default_gst_rate'] != null && gstRate == null) {
-      errors.add(const ValidationError(field: 'default_gst_rate', message: 'GST rate must be a number'));
+      errors.add(
+        const ValidationError(
+          field: 'default_gst_rate',
+          message: 'GST rate must be a number',
+        ),
+      );
     }
 
     final gstin = json['gstin'] as String?;
     if (gstin != null && gstin.isNotEmpty && gstin.length != 15) {
-      errors.add(const ValidationError(
-        field: 'gstin',
-        message: 'GSTIN must be exactly 15 characters',
-        severity: ValidationSeverity.warning,
-        suggestion: 'Verify GSTIN format: 2-digit state code + 10-digit PAN + 1 + Z + check digit',
-      ));
+      errors.add(
+        const ValidationError(
+          field: 'gstin',
+          message: 'GSTIN must be exactly 15 characters',
+          severity: ValidationSeverity.warning,
+          suggestion:
+              'Verify GSTIN format: 2-digit state code + 10-digit PAN + 1 + Z + check digit',
+        ),
+      );
     }
 
     return errors;

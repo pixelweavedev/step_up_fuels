@@ -6,7 +6,8 @@ class LedgerAccounts extends Table {
   TextColumn get id => text()();
   TextColumn get accountCode => text().unique()(); // e.g. ACT-1001
   TextColumn get name => text()(); // e.g. Tata Motors Account
-  TextColumn get accountType => text()(); // CUSTOMER, SUPPLIER, CASH, BANK, SALES, EXPENSE, TAX
+  TextColumn get accountType =>
+      text()(); // CUSTOMER, SUPPLIER, CASH, BANK, SALES, EXPENSE, TAX
   TextColumn get referenceId => text().nullable()(); // FK to Customer/Supplier
   TextColumn get referenceType => text().nullable()(); // CUSTOMER, SUPPLIER
   BoolColumn get isSystem => boolean().withDefault(const Constant(false))();

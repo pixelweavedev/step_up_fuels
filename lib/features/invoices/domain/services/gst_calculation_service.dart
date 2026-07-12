@@ -33,9 +33,7 @@ class GstBreakdown {
 /// - Intrastate (seller state == buyer state): CGST + SGST each = gstRate/2
 /// - Interstate (different states): IGST = gstRate
 class GstCalculationService {
-  const GstCalculationService({
-    required this.sellerStateCode,
-  });
+  const GstCalculationService({required this.sellerStateCode});
 
   /// Company's state code from settings (e.g. "27" for Maharashtra).
   final String sellerStateCode;
@@ -82,9 +80,8 @@ class GstCalculationService {
   }
 
   /// Recompute header-level totals from a list of item breakdowns.
-  ({double subtotal, double cgst, double sgst, double igst, double total}) summarise(
-    List<GstBreakdown> items,
-  ) {
+  ({double subtotal, double cgst, double sgst, double igst, double total})
+  summarise(List<GstBreakdown> items) {
     double subtotal = 0;
     double cgst = 0;
     double sgst = 0;

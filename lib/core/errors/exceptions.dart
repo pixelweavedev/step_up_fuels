@@ -19,16 +19,14 @@ class DatabaseException implements Exception {
 
 /// Thrown when a database record cannot be found by its ID.
 class RecordNotFoundException implements Exception {
-  const RecordNotFoundException({
-    required this.entityName,
-    required this.id,
-  });
+  const RecordNotFoundException({required this.entityName, required this.id});
 
   final String entityName;
   final String id;
 
   @override
-  String toString() => 'RecordNotFoundException: $entityName with id=$id not found';
+  String toString() =>
+      'RecordNotFoundException: $entityName with id=$id not found';
 }
 
 /// Thrown when a unique constraint is violated (e.g. duplicate GSTIN).
@@ -61,10 +59,7 @@ class NetworkException implements Exception {
 
 /// Thrown when the remote server returns an error (future use).
 class ServerException implements Exception {
-  const ServerException({
-    required this.message,
-    required this.statusCode,
-  });
+  const ServerException({required this.message, required this.statusCode});
 
   final String message;
   final int statusCode;

@@ -26,13 +26,13 @@ void main() async {
   try {
     await configureDependencies();
   } catch (e, st) {
-    AppLogger.fatal('Failed to configure dependencies', error: e, stackTrace: st);
+    AppLogger.fatal(
+      'Failed to configure dependencies',
+      error: e,
+      stackTrace: st,
+    );
     exit(1);
   }
 
-  runApp(
-    const ProviderScope(
-      child: App(),
-    ),
-  );
+  runApp(const ProviderScope(child: App()));
 }

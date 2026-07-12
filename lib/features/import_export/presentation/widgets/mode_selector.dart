@@ -74,7 +74,9 @@ class ModeSelector extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextDisabled,
+            color: isDark
+                ? AppColors.darkThemeTextTertiary
+                : AppColors.lightTextDisabled,
             fontSize: 13,
             decoration: TextDecoration.lineThrough,
           ),
@@ -89,9 +91,7 @@ class ModeSelector extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.brandAmber
-              : Colors.transparent,
+          color: isSelected ? AppColors.brandAmber : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -102,7 +102,9 @@ class ModeSelector extends StatelessWidget {
               size: 16,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? AppColors.darkThemeTextSecondary : AppColors.lightTextSecondary),
+                  : (isDark
+                        ? AppColors.darkThemeTextSecondary
+                        : AppColors.lightTextSecondary),
             ),
             const SizedBox(width: 6),
             Text(
@@ -112,7 +114,9 @@ class ModeSelector extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 color: isSelected
                     ? Colors.white
-                    : (isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary),
+                    : (isDark
+                          ? AppColors.darkThemeTextPrimary
+                          : AppColors.lightTextPrimary),
               ),
             ),
           ],

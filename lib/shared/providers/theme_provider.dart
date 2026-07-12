@@ -15,9 +15,13 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   Future<void> _loadTheme() async {
     try {
       final db = ref.read(databaseProvider);
-      final storedValue = await db.getSetting(AppConstants.settingsKeyThemeMode);
+      final storedValue = await db.getSetting(
+        AppConstants.settingsKeyThemeMode,
+      );
       if (storedValue != null) {
-        final mode = storedValue.toLowerCase() == 'light' ? ThemeMode.light : ThemeMode.dark;
+        final mode = storedValue.toLowerCase() == 'light'
+            ? ThemeMode.light
+            : ThemeMode.dark;
         state = mode;
         AppColors.isDark = (mode == ThemeMode.dark);
       } else {
@@ -34,7 +38,10 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     AppColors.isDark = (newMode == ThemeMode.dark);
     try {
       final db = ref.read(databaseProvider);
-      await db.setSetting(AppConstants.settingsKeyThemeMode, newMode == ThemeMode.light ? 'light' : 'dark');
+      await db.setSetting(
+        AppConstants.settingsKeyThemeMode,
+        newMode == ThemeMode.light ? 'light' : 'dark',
+      );
     } catch (_) {
       // Keep in-memory update even if DB save fails
     }
@@ -42,7 +49,9 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 }
 
 /// Riverpod provider for the current ThemeMode.
-final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);
 
 /// Extension to easily toggle the theme.
 extension ThemeModeProviderExt on WidgetRef {

@@ -8,7 +8,6 @@ import 'package:step_up_fuels/core/services/import_export/models/export_mode.dar
 /// so that common exports (e.g. "Accounting Export", "GST Report") can be
 /// reproduced with one click.
 class ExportPreset {
-
   factory ExportPreset.fromJson(Map<String, dynamic> json) => ExportPreset(
     id: json['id'] as String,
     name: json['name'] as String,

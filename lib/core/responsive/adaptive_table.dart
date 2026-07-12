@@ -52,7 +52,8 @@ class AdaptiveTable<T> extends StatelessWidget {
         padding: padding,
         itemCount: items.length,
         separatorBuilder: (_, __) => SizedBox(height: spacing),
-        itemBuilder: (context, index) => mobileCardBuilder(context, items[index]),
+        itemBuilder: (context, index) =>
+            mobileCardBuilder(context, items[index]),
       );
     }
 
@@ -64,13 +65,11 @@ class AdaptiveTable<T> extends StatelessWidget {
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: constraints.maxWidth,
-              ),
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
               child: Theme(
-                data: Theme.of(context).copyWith(
-                  dividerColor: AppColors.darkBorder,
-                ),
+                data: Theme.of(
+                  context,
+                ).copyWith(dividerColor: AppColors.darkBorder),
                 child: DataTable(
                   headingRowColor: WidgetStateProperty.all(AppColors.brandNavy),
                   dataRowMinHeight: 48,

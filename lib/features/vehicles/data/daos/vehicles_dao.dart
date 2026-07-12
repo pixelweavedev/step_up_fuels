@@ -6,7 +6,8 @@ import 'package:step_up_fuels/features/vehicles/data/tables/vehicles_table.dart'
 part 'vehicles_dao.g.dart';
 
 @DriftAccessor(tables: [Vehicles, VehicleServiceRecords])
-class VehiclesDao extends DatabaseAccessor<AppDatabase> with _$VehiclesDaoMixin {
+class VehiclesDao extends DatabaseAccessor<AppDatabase>
+    with _$VehiclesDaoMixin {
   VehiclesDao(super.db);
 
   Future<List<VehicleRow>> getAllVehicles({bool includeDeleted = false}) async {
@@ -31,14 +32,18 @@ class VehiclesDao extends DatabaseAccessor<AppDatabase> with _$VehiclesDaoMixin 
     );
   }
 
-  Future<List<VehicleServiceRecordRow>> getServiceRecords(String vehicleId) async {
+  Future<List<VehicleServiceRecordRow>> getServiceRecords(
+    String vehicleId,
+  ) async {
     return (select(vehicleServiceRecords)
           ..where((t) => t.vehicleId.equals(vehicleId) & t.deletedAt.isNull())
           ..orderBy([(t) => OrderingTerm.desc(t.serviceDate)]))
         .get();
   }
 
-  Future<void> saveServiceRecord(VehicleServiceRecordsCompanion companion) async {
+  Future<void> saveServiceRecord(
+    VehicleServiceRecordsCompanion companion,
+  ) async {
     await into(vehicleServiceRecords).insertOnConflictUpdate(companion);
   }
 }

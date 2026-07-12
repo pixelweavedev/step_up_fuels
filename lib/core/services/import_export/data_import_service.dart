@@ -104,10 +104,13 @@ class DataImportService {
         }
         if (!exists) {
           brokenDeps.add(dep);
-          errors.add(ValidationError(
-            field: dep.field,
-            message: 'Referenced ${dep.entityType} "${dep.refId}" does not exist.',
-          ));
+          errors.add(
+            ValidationError(
+              field: dep.field,
+              message:
+                  'Referenced ${dep.entityType} "${dep.refId}" does not exist.',
+            ),
+          );
         }
       }
 
@@ -159,16 +162,18 @@ class DataImportService {
         validCount++;
       }
 
-      rowResults.add(ImportRowResult(
-        rowIndex: i + 1,
-        status: status,
-        rawData: rawRow,
-        mappedData: mappedRow,
-        errors: errors,
-        warnings: warnings,
-        dependencies: brokenDeps,
-        message: conflictId, // Store conflict ID here temporarily
-      ));
+      rowResults.add(
+        ImportRowResult(
+          rowIndex: i + 1,
+          status: status,
+          rawData: rawRow,
+          mappedData: mappedRow,
+          errors: errors,
+          warnings: warnings,
+          dependencies: brokenDeps,
+          message: conflictId, // Store conflict ID here temporarily
+        ),
+      );
     }
 
     return ImportValidationSummary(
@@ -197,11 +202,13 @@ class DataImportService {
     for (final row in validationSummary.rows) {
       if (row.status == ImportRowStatus.error) {
         errorCount++;
-        logs.add(ImportLogEntry(
-          rowIndex: row.rowIndex,
-          status: ImportRowStatus.error,
-          message: row.errors.map((e) => e.message).join('; '),
-        ));
+        logs.add(
+          ImportLogEntry(
+            rowIndex: row.rowIndex,
+            status: ImportRowStatus.error,
+            message: row.errors.map((e) => e.message).join('; '),
+          ),
+        );
         continue;
       }
 
@@ -213,11 +220,13 @@ class DataImportService {
         if (conflictStrategy == ConflictStrategy.skip) {
           skippedCount++;
           isSkip = true;
-          logs.add(ImportLogEntry(
-            rowIndex: row.rowIndex,
-            status: ImportRowStatus.skipped,
-            message: 'Conflict detected. Row skipped.',
-          ));
+          logs.add(
+            ImportLogEntry(
+              rowIndex: row.rowIndex,
+              status: ImportRowStatus.skipped,
+              message: 'Conflict detected. Row skipped.',
+            ),
+          );
         } else if (conflictStrategy == ConflictStrategy.updateExisting) {
           isUpdate = true;
         } else if (conflictStrategy == ConflictStrategy.createDuplicate) {
@@ -233,49 +242,66 @@ class DataImportService {
         } else {
           importedCount++;
         }
-        logs.add(ImportLogEntry(
-          rowIndex: row.rowIndex,
-          status: isUpdate ? ImportRowStatus.updated : ImportRowStatus.imported,
-          message: 'Dry run check: OK.',
-        ));
+        logs.add(
+          ImportLogEntry(
+            rowIndex: row.rowIndex,
+            status: isUpdate
+                ? ImportRowStatus.updated
+                : ImportRowStatus.imported,
+            message: 'Dry run check: OK.',
+          ),
+        );
         continue;
       }
 
       try {
         final conflictId = row.message; // temporary stored conflict ID
-        final success = await _saveToDb(adapter.entityName, data, isUpdate, conflictId);
+        final success = await _saveToDb(
+          adapter.entityName,
+          data,
+          isUpdate,
+          conflictId,
+        );
         if (success) {
           if (isUpdate) {
             updatedCount++;
-            logs.add(ImportLogEntry(
-              rowIndex: row.rowIndex,
-              status: ImportRowStatus.updated,
-              message: 'Successfully updated record.',
-              entityId: conflictId,
-            ));
+            logs.add(
+              ImportLogEntry(
+                rowIndex: row.rowIndex,
+                status: ImportRowStatus.updated,
+                message: 'Successfully updated record.',
+                entityId: conflictId,
+              ),
+            );
           } else {
             importedCount++;
-            logs.add(ImportLogEntry(
-              rowIndex: row.rowIndex,
-              status: ImportRowStatus.imported,
-              message: 'Successfully imported record.',
-            ));
+            logs.add(
+              ImportLogEntry(
+                rowIndex: row.rowIndex,
+                status: ImportRowStatus.imported,
+                message: 'Successfully imported record.',
+              ),
+            );
           }
         } else {
           errorCount++;
-          logs.add(ImportLogEntry(
-            rowIndex: row.rowIndex,
-            status: ImportRowStatus.error,
-            message: 'Failed to write record to database.',
-          ));
+          logs.add(
+            ImportLogEntry(
+              rowIndex: row.rowIndex,
+              status: ImportRowStatus.error,
+              message: 'Failed to write record to database.',
+            ),
+          );
         }
       } catch (e) {
         errorCount++;
-        logs.add(ImportLogEntry(
-          rowIndex: row.rowIndex,
-          status: ImportRowStatus.error,
-          message: 'Error: ${e.toString()}',
-        ));
+        logs.add(
+          ImportLogEntry(
+            rowIndex: row.rowIndex,
+            status: ImportRowStatus.error,
+            message: 'Error: ${e.toString()}',
+          ),
+        );
       }
     }
 
@@ -297,7 +323,9 @@ class DataImportService {
       format: ExportFormat.csv, // Default log format
       mode: ExportMode.data,
       type: ExportHistoryType.import,
-      status: errorCount == 0 ? ExportHistoryStatus.success : ExportHistoryStatus.failed,
+      status: errorCount == 0
+          ? ExportHistoryStatus.success
+          : ExportHistoryStatus.failed,
       timestamp: DateTime.now(),
       rowCount: validationSummary.totalRows,
       importedCount: importedCount,
@@ -316,34 +344,51 @@ class DataImportService {
 
   // ── Database Helper Actions ────────────────────────────────────────────────
 
-  Future<bool> _saveToDb(String entityName, Map<String, dynamic> data, bool isUpdate, String? conflictId) async {
+  Future<bool> _saveToDb(
+    String entityName,
+    Map<String, dynamic> data,
+    bool isUpdate,
+    String? conflictId,
+  ) async {
     final now = DateTime.now();
     final id = conflictId ?? const Uuid().v4();
 
     if (entityName == 'customers') {
       final repo = sl<CustomerRepository>();
       final typeStr = data['type']?.toString().toUpperCase() ?? 'COMPANY';
-      final type = CustomerType.values.firstWhere((t) => t.name == typeStr, orElse: () => CustomerType.company);
+      final type = CustomerType.values.firstWhere(
+        (t) => t.name == typeStr,
+        orElse: () => CustomerType.company,
+      );
 
       final fuelStr = data['fuel_type']?.toString().toUpperCase();
       final fuelType = fuelStr != null
-          ? FuelType.values.firstWhere((f) => f.name == fuelStr, orElse: () => FuelType.diesel)
+          ? FuelType.values.firstWhere(
+              (f) => f.name == fuelStr,
+              orElse: () => FuelType.diesel,
+            )
           : null;
 
       final termsStr = data['payment_terms']?.toString().toUpperCase();
       final paymentTerms = termsStr != null
-          ? PaymentTerms.values.firstWhere((p) => p.name == termsStr, orElse: () => PaymentTerms.days30)
+          ? PaymentTerms.values.firstWhere(
+              (p) => p.name == termsStr,
+              orElse: () => PaymentTerms.days30,
+            )
           : null;
 
       final customer = Customer(
         id: id,
         customerCode: data['customer_code']?.toString() ?? '',
         name: data['name']?.toString() ?? '',
-        displayName: data['display_name']?.toString() ?? data['name']?.toString() ?? '',
+        displayName:
+            data['display_name']?.toString() ?? data['name']?.toString() ?? '',
         tradeName: data['trade_name']?.toString(),
         legalBusinessName: data['legal_business_name']?.toString(),
         type: type,
-        isActive: data['is_active']?.toString().toLowerCase() == 'yes' || data['is_active'] == true,
+        isActive:
+            data['is_active']?.toString().toLowerCase() == 'yes' ||
+            data['is_active'] == true,
         gstin: data['gstin']?.toString(),
         pan: data['pan']?.toString(),
         state: data['state']?.toString(),
@@ -356,13 +401,18 @@ class DataImportService {
         billingState: data['billing_state']?.toString(),
         billingPincode: data['billing_pincode']?.toString(),
         billingCountry: data['billing_country']?.toString(),
-        creditLimit: double.tryParse(data['credit_limit']?.toString() ?? '') ?? 0.0,
+        creditLimit:
+            double.tryParse(data['credit_limit']?.toString() ?? '') ?? 0.0,
         creditDays: int.tryParse(data['credit_days']?.toString() ?? '') ?? 30,
-        securityDeposit: double.tryParse(data['security_deposit']?.toString() ?? '') ?? 0.0,
-        defaultGstRate: double.tryParse(data['default_gst_rate']?.toString() ?? '') ?? 0.18,
+        securityDeposit:
+            double.tryParse(data['security_deposit']?.toString() ?? '') ?? 0.0,
+        defaultGstRate:
+            double.tryParse(data['default_gst_rate']?.toString() ?? '') ?? 0.18,
         defaultPrice: double.tryParse(data['default_price']?.toString() ?? ''),
-        openingBalance: double.tryParse(data['opening_balance']?.toString() ?? '') ?? 0.0,
-        currentBalance: double.tryParse(data['current_balance']?.toString() ?? '') ?? 0.0,
+        openingBalance:
+            double.tryParse(data['opening_balance']?.toString() ?? '') ?? 0.0,
+        currentBalance:
+            double.tryParse(data['current_balance']?.toString() ?? '') ?? 0.0,
         fuelType: fuelType,
         paymentTerms: paymentTerms,
         emailInvoice: data['email_invoice'] == true,
@@ -397,7 +447,9 @@ class DataImportService {
         cgstRate: double.tryParse(data['cgst_rate']?.toString() ?? '') ?? 0.09,
         sgstRate: double.tryParse(data['sgst_rate']?.toString() ?? '') ?? 0.09,
         igstRate: double.tryParse(data['igst_rate']?.toString() ?? '') ?? 0.0,
-        currentSellingPrice: double.tryParse(data['current_selling_price']?.toString() ?? ''),
+        currentSellingPrice: double.tryParse(
+          data['current_selling_price']?.toString() ?? '',
+        ),
         isActive: data['is_active'] != false,
         createdBy: 'import',
         createdAt: now,
@@ -412,11 +464,16 @@ class DataImportService {
     if (entityName == 'drivers') {
       final repo = sl<DriverRepository>();
       final statusStr = data['status']?.toString().toLowerCase() ?? 'active';
-      final status = DriverStatus.values.firstWhere((s) => s.name == statusStr, orElse: () => DriverStatus.active);
+      final status = DriverStatus.values.firstWhere(
+        (s) => s.name == statusStr,
+        orElse: () => DriverStatus.active,
+      );
 
       DateTime expiry = now.add(const Duration(days: 365));
       if (data['license_expiry'] != null) {
-        expiry = DateTime.tryParse(data['license_expiry']?.toString() ?? '') ?? expiry;
+        expiry =
+            DateTime.tryParse(data['license_expiry']?.toString() ?? '') ??
+            expiry;
       }
 
       final driver = Driver(
@@ -440,7 +497,10 @@ class DataImportService {
     if (entityName == 'vehicles') {
       final repo = sl<VehicleRepository>();
       final statusStr = data['status']?.toString().toLowerCase() ?? 'active';
-      final status = VehicleStatus.values.firstWhere((s) => s.name == statusStr, orElse: () => VehicleStatus.active);
+      final status = VehicleStatus.values.firstWhere(
+        (s) => s.name == statusStr,
+        orElse: () => VehicleStatus.active,
+      );
 
       final vehicle = Vehicle(
         id: id,
@@ -463,7 +523,9 @@ class DataImportService {
       final repo = sl<ExpenseRepository>();
       DateTime expDate = now;
       if (data['expense_date'] != null) {
-        expDate = DateTime.tryParse(data['expense_date']?.toString() ?? '') ?? expDate;
+        expDate =
+            DateTime.tryParse(data['expense_date']?.toString() ?? '') ??
+            expDate;
       }
 
       final expense = Expense(

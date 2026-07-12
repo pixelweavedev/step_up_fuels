@@ -83,8 +83,7 @@ class JsonSerializer {
     if (decoded is Map<String, dynamic>) {
       // Versioned envelope
       if (decoded.containsKey('version') && decoded.containsKey(entityName)) {
-        final rows =
-            (decoded[entityName] as List).cast<Map<String, dynamic>>();
+        final rows = (decoded[entityName] as List).cast<Map<String, dynamic>>();
         return JsonParseResult(
           schemaVersion: decoded['version'] as int?,
           appVersion: decoded['appVersion'] as String?,

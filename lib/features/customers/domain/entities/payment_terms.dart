@@ -8,10 +8,10 @@ enum PaymentTerms {
 
   /// Display label for UI representation.
   String get displayName => switch (this) {
-        PaymentTerms.advance => 'Advance',
-        PaymentTerms.days7 => '7 Days',
-        PaymentTerms.days15 => '15 Days',
-        PaymentTerms.days30 => '30 Days',
-        PaymentTerms.days45 => '45 Days',
-      };
+    PaymentTerms.advance => 'Advance',
+    PaymentTerms.days7 => '7 Days',
+    PaymentTerms.days15 => '15 Days',
+    PaymentTerms.days30 => '30 Days',
+    PaymentTerms.days45 => '45 Days',
+  };
 }

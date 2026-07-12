@@ -43,19 +43,28 @@ class AppTextStyles {
   static TextStyle labelMedium(BuildContext context) =>
       GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, height: 1.4);
 
-  static TextStyle labelSmall(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, height: 1.3,
-          letterSpacing: 0.4);
+  static TextStyle labelSmall(BuildContext context) => GoogleFonts.inter(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    height: 1.3,
+    letterSpacing: 0.4,
+  );
 
   // ── Captions ──────────────────────────────────────────────────────────────
-  static TextStyle caption(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, height: 1.4,
-          color: AppColors.darkTextSecondary);
+  static TextStyle caption(BuildContext context) => GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    color: AppColors.darkTextSecondary,
+  );
 
   // ── Table ─────────────────────────────────────────────────────────────────
-  static TextStyle tableHeader(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, height: 1.2,
-          letterSpacing: 0.5);
+  static TextStyle tableHeader(BuildContext context) => GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    height: 1.2,
+    letterSpacing: 0.5,
+  );
 
   static TextStyle tableCell(BuildContext context) =>
       GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w400, height: 1.3);
@@ -64,25 +73,37 @@ class AppTextStyles {
       GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, height: 1.3);
 
   // ── Numeric / Financial ────────────────────────────────────────────────────
-  static TextStyle amount(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, height: 1.2,
-          fontFeatures: [const FontFeature.tabularFigures()]);
+  static TextStyle amount(BuildContext context) => GoogleFonts.inter(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    height: 1.2,
+    fontFeatures: [const FontFeature.tabularFigures()],
+  );
 
-  static TextStyle amountLarge(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w700, height: 1.1,
-          fontFeatures: [const FontFeature.tabularFigures()]);
+  static TextStyle amountLarge(BuildContext context) => GoogleFonts.inter(
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    height: 1.1,
+    fontFeatures: [const FontFeature.tabularFigures()],
+  );
 
-  static TextStyle amountSmall(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, height: 1.2,
-          fontFeatures: [const FontFeature.tabularFigures()]);
+  static TextStyle amountSmall(BuildContext context) => GoogleFonts.inter(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    height: 1.2,
+    fontFeatures: [const FontFeature.tabularFigures()],
+  );
 
   // ── Sidebar ────────────────────────────────────────────────────────────────
   static TextStyle sidebarItem(BuildContext context) =>
       GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, height: 1.2);
 
-  static TextStyle sidebarSection(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, height: 1.2,
-          letterSpacing: 1.0);
+  static TextStyle sidebarSection(BuildContext context) => GoogleFonts.inter(
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    height: 1.2,
+    letterSpacing: 1.0,
+  );
 
   // ── Buttons ────────────────────────────────────────────────────────────────
   static TextStyle buttonLarge(BuildContext context) =>
@@ -92,7 +113,10 @@ class AppTextStyles {
       GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, height: 1.2);
 
   // ── Status Badges ──────────────────────────────────────────────────────────
-  static TextStyle statusBadge(BuildContext context) =>
-      GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, height: 1.2,
-          letterSpacing: 0.3);
+  static TextStyle statusBadge(BuildContext context) => GoogleFonts.inter(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    height: 1.2,
+    letterSpacing: 0.3,
+  );
 }

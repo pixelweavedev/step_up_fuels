@@ -15,21 +15,28 @@ part 'inventory_dao.g.dart';
     DailyStockReconciliations,
   ],
 )
-class InventoryDao extends DatabaseAccessor<AppDatabase> with _$InventoryDaoMixin {
+class InventoryDao extends DatabaseAccessor<AppDatabase>
+    with _$InventoryDaoMixin {
   InventoryDao(super.db);
 
   // ── Storage Locations ──────────────────────────────────────────────────────
 
-  Future<List<StorageLocationRow>> getStorageLocations({bool includeDeleted = false}) async {
+  Future<List<StorageLocationRow>> getStorageLocations({
+    bool includeDeleted = false,
+  }) async {
     if (includeDeleted) {
       return select(storageLocations).get();
     } else {
-      return (select(storageLocations)..where((t) => t.deletedAt.isNull())).get();
+      return (select(
+        storageLocations,
+      )..where((t) => t.deletedAt.isNull())).get();
     }
   }
 
   Future<StorageLocationRow?> getStorageLocationById(String id) async {
-    return (select(storageLocations)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return (select(
+      storageLocations,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
   Future<void> saveStorageLocation(StorageLocationsCompanion companion) async {
@@ -62,7 +69,11 @@ class InventoryDao extends DatabaseAccessor<AppDatabase> with _$InventoryDaoMixi
   }) async {
     final query = select(inventoryMovements);
     if (locationId != null) {
-      query.where((t) => t.sourceLocationId.equals(locationId) | t.destinationLocationId.equals(locationId));
+      query.where(
+        (t) =>
+            t.sourceLocationId.equals(locationId) |
+            t.destinationLocationId.equals(locationId),
+      );
     }
     if (productId != null) {
       query.where((t) => t.productId.equals(productId));
@@ -77,13 +88,16 @@ class InventoryDao extends DatabaseAccessor<AppDatabase> with _$InventoryDaoMixi
     return query.get();
   }
 
-  Future<double> getCurrentStock({required String locationId, required String productId}) async {
+  Future<double> getCurrentStock({
+    required String locationId,
+    required String productId,
+  }) async {
     // 1. Sum of all incoming stock
     final incomingQuery = selectOnly(inventoryMovements)
       ..addColumns([inventoryMovements.quantity.sum()])
       ..where(
         inventoryMovements.destinationLocationId.equals(locationId) &
-        inventoryMovements.productId.equals(productId),
+            inventoryMovements.productId.equals(productId),
       );
     final incomingRow = await incomingQuery.getSingle();
     final incoming = incomingRow.read(inventoryMovements.quantity.sum()) ?? 0.0;
@@ -93,7 +107,7 @@ class InventoryDao extends DatabaseAccessor<AppDatabase> with _$InventoryDaoMixi
       ..addColumns([inventoryMovements.quantity.sum()])
       ..where(
         inventoryMovements.sourceLocationId.equals(locationId) &
-        inventoryMovements.productId.equals(productId),
+            inventoryMovements.productId.equals(productId),
       );
     final outgoingRow = await outgoingQuery.getSingle();
     final outgoing = outgoingRow.read(inventoryMovements.quantity.sum()) ?? 0.0;
@@ -124,7 +138,9 @@ class InventoryDao extends DatabaseAccessor<AppDatabase> with _$InventoryDaoMixi
 
   // ── Reconciliations ────────────────────────────────────────────────────────
 
-  Future<void> saveReconciliation(DailyStockReconciliationsCompanion companion) async {
+  Future<void> saveReconciliation(
+    DailyStockReconciliationsCompanion companion,
+  ) async {
     await into(dailyStockReconciliations).insertOnConflictUpdate(companion);
   }
 

@@ -7,13 +7,16 @@ import 'package:step_up_fuels/features/vehicles/data/tables/vehicles_table.dart'
 class Expenses extends Table {
   TextColumn get id => text()();
   TextColumn get expenseNumber => text().unique()(); // e.g. EXP/2026-27/001
-  TextColumn get category => text()(); // DRIVER_SALARY, VEHICLE_MAINTENANCE, REPAIRS, INSURANCE, ROAD_TAX, FASTAG, TOLL_CHARGES, OFFICE_EXPENSES, MISCELLANEOUS
+  TextColumn get category =>
+      text()(); // DRIVER_SALARY, VEHICLE_MAINTENANCE, REPAIRS, INSURANCE, ROAD_TAX, FASTAG, TOLL_CHARGES, OFFICE_EXPENSES, MISCELLANEOUS
   RealColumn get amount => real()();
   DateTimeColumn get expenseDate => dateTime()();
   TextColumn get paymentMode => text()(); // CASH, UPI, BANK_TRANSFER
   TextColumn get paymentReference => text().nullable()();
-  TextColumn get vehicleId => text().nullable().references(Vehicles, #id)(); // Link to a bowser
-  TextColumn get driverId => text().nullable().references(Drivers, #id)(); // Link to a driver
+  TextColumn get vehicleId =>
+      text().nullable().references(Vehicles, #id)(); // Link to a bowser
+  TextColumn get driverId =>
+      text().nullable().references(Drivers, #id)(); // Link to a driver
   TextColumn get billDocumentId => text().nullable()(); // Link to attachments
   TextColumn get notes => text().nullable()();
 

@@ -117,8 +117,8 @@ class StatCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               color: trendPositive == true
-                                    ? AppColors.success
-                                    : AppColors.error,
+                                  ? AppColors.success
+                                  : AppColors.error,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

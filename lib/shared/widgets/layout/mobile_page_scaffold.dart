@@ -50,13 +50,12 @@ class MobilePageScaffold extends StatelessWidget {
     }
 
     if (useSafeArea) {
-      content = SafeArea(
-        child: content,
-      );
+      content = SafeArea(child: content);
     }
 
     return Scaffold(
-      backgroundColor: backgroundColor ??
+      backgroundColor:
+          backgroundColor ??
           (isDark ? AppColors.darkBackground : AppColors.lightBackground),
       appBar: appBar,
       drawer: drawer,

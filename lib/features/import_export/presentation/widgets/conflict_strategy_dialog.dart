@@ -3,10 +3,7 @@ import 'package:step_up_fuels/core/services/import_export/models/import_result.d
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class ConflictStrategyDialog extends StatefulWidget {
-  const ConflictStrategyDialog({
-    super.key,
-    required this.onSelected,
-  });
+  const ConflictStrategyDialog({super.key, required this.onSelected});
 
   final ValueChanged<ConflictStrategy> onSelected;
 
@@ -31,7 +28,9 @@ class _ConflictStrategyDialogState extends State<ConflictStrategyDialog> {
           Text(
             'Duplicate Records Found',
             style: TextStyle(
-              color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+              color: isDark
+                  ? AppColors.darkThemeTextPrimary
+                  : AppColors.lightTextPrimary,
             ),
           ),
         ],
@@ -47,43 +46,54 @@ class _ConflictStrategyDialogState extends State<ConflictStrategyDialog> {
               style: TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 16),
-            ...ConflictStrategy.values.where((s) => s != ConflictStrategy.askEachTime).map((strategy) {
-              String desc = '';
-              if (strategy == ConflictStrategy.updateExisting) {
-                desc = 'Overwrite existing database fields with imported file values (Recommended).';
-              } else if (strategy == ConflictStrategy.skip) {
-                desc = 'Leave database untouched; skip importing this row.';
-              } else if (strategy == ConflictStrategy.createDuplicate) {
-                desc = 'Save as a new record (will generate a new unique ID).';
-              }
-
-              return RadioListTile<ConflictStrategy>(
-                value: strategy,
-                groupValue: _strategy,
-                activeColor: AppColors.brandAmber,
-                title: Text(
-                  strategy.label,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
-                  ),
-                ),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _strategy = val);
+            ...ConflictStrategy.values
+                .where((s) => s != ConflictStrategy.askEachTime)
+                .map((strategy) {
+                  String desc = '';
+                  if (strategy == ConflictStrategy.updateExisting) {
+                    desc =
+                        'Overwrite existing database fields with imported file values (Recommended).';
+                  } else if (strategy == ConflictStrategy.skip) {
+                    desc = 'Leave database untouched; skip importing this row.';
+                  } else if (strategy == ConflictStrategy.createDuplicate) {
+                    desc =
+                        'Save as a new record (will generate a new unique ID).';
                   }
-                },
-              );
-            }),
+
+                  return RadioListTile<ConflictStrategy>(
+                    value: strategy,
+                    groupValue: _strategy,
+                    activeColor: AppColors.brandAmber,
+                    title: Text(
+                      strategy.label,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      desc,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark
+                            ? AppColors.darkThemeTextTertiary
+                            : AppColors.lightTextTertiary,
+                      ),
+                    ),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() => _strategy = val);
+                      }
+                    },
+                  );
+                }),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkThemeBorder : AppColors.lightBackground,
+                color: isDark
+                    ? AppColors.darkThemeBorder
+                    : AppColors.lightBackground,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: const Row(
@@ -97,7 +107,10 @@ class _ConflictStrategyDialogState extends State<ConflictStrategyDialog> {
                   Expanded(
                     child: Text(
                       'Apply this strategy to all duplicate conflicts detected in this import',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],

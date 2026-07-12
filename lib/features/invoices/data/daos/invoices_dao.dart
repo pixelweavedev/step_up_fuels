@@ -6,7 +6,8 @@ import 'package:step_up_fuels/features/invoices/data/tables/invoices_table.dart'
 part 'invoices_dao.g.dart';
 
 @DriftAccessor(tables: [Invoices, InvoiceItems])
-class InvoicesDao extends DatabaseAccessor<AppDatabase> with _$InvoicesDaoMixin {
+class InvoicesDao extends DatabaseAccessor<AppDatabase>
+    with _$InvoicesDaoMixin {
   InvoicesDao(super.db);
 
   // ── Invoice CRUD ──────────────────────────────────────────────────────────
@@ -24,8 +25,12 @@ class InvoicesDao extends DatabaseAccessor<AppDatabase> with _$InvoicesDaoMixin 
       if (!includeDeleted) expr = expr & t.deletedAt.isNull();
       if (status != null) expr = expr & t.status.equals(status);
       if (customerId != null) expr = expr & t.customerId.equals(customerId);
-      if (fromDate != null) expr = expr & t.invoiceDate.isBiggerOrEqualValue(fromDate);
-      if (toDate != null) expr = expr & t.invoiceDate.isSmallerOrEqualValue(toDate);
+      if (fromDate != null) {
+        expr = expr & t.invoiceDate.isBiggerOrEqualValue(fromDate);
+      }
+      if (toDate != null) {
+        expr = expr & t.invoiceDate.isSmallerOrEqualValue(toDate);
+      }
       return expr;
     });
     query.orderBy([(t) => OrderingTerm.desc(t.invoiceDate)]);
@@ -87,9 +92,9 @@ class InvoicesDao extends DatabaseAccessor<AppDatabase> with _$InvoicesDaoMixin 
   /// Reads the current invoice counter from AppSettings and returns it.
   /// Used inside a transaction when posting an invoice.
   Future<int> readAndIncrementCounter() async {
-    final row = await (select(db.appSettings)
-          ..where((t) => t.key.equals('invoice_counter')))
-        .getSingleOrNull();
+    final row = await (select(
+      db.appSettings,
+    )..where((t) => t.key.equals('invoice_counter'))).getSingleOrNull();
 
     final current = int.tryParse(row?.value ?? '0') ?? 0;
     final next = current + 1;
@@ -118,6 +123,8 @@ class InvoicesDao extends DatabaseAccessor<AppDatabase> with _$InvoicesDaoMixin 
   }
 
   Future<void> deleteItemsByInvoiceId(String invoiceId) async {
-    await (delete(invoiceItems)..where((t) => t.invoiceId.equals(invoiceId))).go();
+    await (delete(
+      invoiceItems,
+    )..where((t) => t.invoiceId.equals(invoiceId))).go();
   }
 }

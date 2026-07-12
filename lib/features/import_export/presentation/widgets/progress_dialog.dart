@@ -23,7 +23,9 @@ class ProgressDialog extends StatelessWidget {
     final percent = (progress * 100).toStringAsFixed(0);
     // Simple estimation assuming 1000 rows/sec if total > 0
     final secondsRemaining = total > 0 ? ((total - count) / 1000).ceil() : 0;
-    final etaStr = secondsRemaining > 0 ? '$secondsRemaining seconds remaining' : 'Estimating...';
+    final etaStr = secondsRemaining > 0
+        ? '$secondsRemaining seconds remaining'
+        : 'Estimating...';
 
     return Dialog(
       backgroundColor: isDark ? AppColors.darkThemeCard : Colors.white,
@@ -41,13 +43,17 @@ class ProgressDialog extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.darkThemeTextPrimary : AppColors.lightTextPrimary,
+                  color: isDark
+                      ? AppColors.darkThemeTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
               ),
               const SizedBox(height: 16),
               LinearProgressIndicator(
                 value: progress,
-                backgroundColor: isDark ? AppColors.darkThemeBorder : AppColors.lightBorder,
+                backgroundColor: isDark
+                    ? AppColors.darkThemeBorder
+                    : AppColors.lightBorder,
                 color: AppColors.brandAmber,
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
@@ -62,7 +68,10 @@ class ProgressDialog extends StatelessWidget {
                   ),
                   Text(
                     '$percent%',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -72,7 +81,9 @@ class ProgressDialog extends StatelessWidget {
                   'Estimated: $etaStr',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? AppColors.darkThemeTextTertiary : AppColors.lightTextTertiary,
+                    color: isDark
+                        ? AppColors.darkThemeTextTertiary
+                        : AppColors.lightTextTertiary,
                   ),
                 ),
               ],

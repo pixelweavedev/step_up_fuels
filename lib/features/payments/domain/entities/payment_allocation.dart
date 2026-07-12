@@ -142,15 +142,15 @@ class PaymentAllocation extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        paymentId,
-        invoiceId,
-        allocatedAmount,
-        status,
-        type,
-        referenceNumber,
-        remarks,
-        reversedAt,
-        createdAt,
-      ];
+    id,
+    paymentId,
+    invoiceId,
+    allocatedAmount,
+    status,
+    type,
+    referenceNumber,
+    remarks,
+    reversedAt,
+    createdAt,
+  ];
 }

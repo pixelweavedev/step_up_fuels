@@ -1,4 +1,3 @@
-
 /// Central source of truth for mobile design tokens in Step Up Fuels.
 class AppMobileTokens {
   AppMobileTokens._();

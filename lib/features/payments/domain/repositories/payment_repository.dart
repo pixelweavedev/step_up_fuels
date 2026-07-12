@@ -19,7 +19,10 @@ abstract class PaymentRepository {
   /// Saves a customer payment, allocating it to invoices and generating ledger entries.
   /// If [autoAllocate] is true and [payment.invoiceId] is null, the payment is applied
   /// to the customer's oldest outstanding invoices.
-  Future<Result<void>> receivePayment(Payment payment, {bool autoAllocate = true});
+  Future<Result<void>> receivePayment(
+    Payment payment, {
+    bool autoAllocate = true,
+  });
 
   /// Reverses an active payment receipt, rolls back allocations, and posts reversing entries.
   Future<Result<void>> reversePayment(String paymentId);

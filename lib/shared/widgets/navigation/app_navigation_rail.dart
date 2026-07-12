@@ -42,9 +42,7 @@ class AppNavigationRail extends StatelessWidget {
           ? NavigationRailLabelType.none
           : NavigationRailLabelType.selected,
       selectedIconTheme: const IconThemeData(color: AppColors.brandAmber),
-      unselectedIconTheme: IconThemeData(
-        color: AppColors.sidebarIconInactive,
-      ),
+      unselectedIconTheme: IconThemeData(color: AppColors.sidebarIconInactive),
       selectedLabelTextStyle: const TextStyle(
         color: AppColors.brandAmber,
         fontWeight: FontWeight.w600,

@@ -58,12 +58,14 @@ class DashboardTemplate extends StatelessWidget {
     if (isMobile) {
       chartsSection = Column(
         children: charts
-            .map((c) => Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: AppMobileTokens.sectionGap,
-                  ),
-                  child: c,
-                ))
+            .map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppMobileTokens.sectionGap,
+                ),
+                child: c,
+              ),
+            )
             .toList(),
       );
     } else {
@@ -132,21 +134,14 @@ class DashboardTemplate extends StatelessWidget {
       ),
       if (floatingActionButton != null)
         SliverToBoxAdapter(
-          child: SizedBox(
-            height: MobilePageScaffold.bottomFabSpacing,
-          ),
+          child: SizedBox(height: MobilePageScaffold.bottomFabSpacing),
         ),
     ];
 
-    Widget mainContent = CustomScrollView(
-      slivers: slivers,
-    );
+    Widget mainContent = CustomScrollView(slivers: slivers);
 
     if (onRefresh != null) {
-      mainContent = RefreshIndicator(
-        onRefresh: onRefresh!,
-        child: mainContent,
-      );
+      mainContent = RefreshIndicator(onRefresh: onRefresh!, child: mainContent);
     }
 
     return MobilePageScaffold(

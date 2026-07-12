@@ -16,7 +16,9 @@ class ProductRepositoryImpl implements ProductRepository {
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -27,7 +29,9 @@ class ProductRepositoryImpl implements ProductRepository {
       final domainList = rows.map((row) => row.toDomain()).toList();
       return Result.success(domainList);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -36,11 +40,15 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       final row = await _dao.getProductById(id);
       if (row == null) {
-        return const Result.failure(NotFoundFailure(message: 'Product not found'));
+        return const Result.failure(
+          NotFoundFailure(message: 'Product not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -49,11 +57,15 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       final row = await _dao.getProductByCode(code);
       if (row == null) {
-        return const Result.failure(NotFoundFailure(message: 'Product not found'));
+        return const Result.failure(
+          NotFoundFailure(message: 'Product not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -63,7 +75,9 @@ class ProductRepositoryImpl implements ProductRepository {
       await _dao.saveProduct(product.toCompanion());
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -73,7 +87,9 @@ class ProductRepositoryImpl implements ProductRepository {
       await _dao.softDeleteProduct(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -83,7 +99,9 @@ class ProductRepositoryImpl implements ProductRepository {
       await _dao.restoreProduct(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

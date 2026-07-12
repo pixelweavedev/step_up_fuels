@@ -32,7 +32,8 @@ extension DoubleExtensions on double {
 
 extension IntExtensions on int {
   /// Format with Indian comma separation.
-  String get formatted => NumberUtils.formatAmount(toDouble()).replaceAll('.00', '');
+  String get formatted =>
+      NumberUtils.formatAmount(toDouble()).replaceAll('.00', '');
 }
 
 extension NullableDoubleExtensions on double? {

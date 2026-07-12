@@ -2,7 +2,6 @@
 ///
 /// Entity adapters use only the filters relevant to their domain.
 class ExportFilter {
-
   factory ExportFilter.fromJson(Map<String, dynamic> json) => ExportFilter(
     dateFrom: json['dateFrom'] != null
         ? DateTime.tryParse(json['dateFrom'] as String)

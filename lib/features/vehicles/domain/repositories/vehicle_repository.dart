@@ -7,6 +7,8 @@ abstract class VehicleRepository {
   Future<Result<Vehicle>> getById(String id);
   Future<Result<void>> save(Vehicle vehicle);
   Future<Result<void>> softDelete(String id);
-  Future<Result<List<VehicleServiceRecord>>> getServiceRecords(String vehicleId);
+  Future<Result<List<VehicleServiceRecord>>> getServiceRecords(
+    String vehicleId,
+  );
   Future<Result<void>> saveServiceRecord(VehicleServiceRecord record);
 }

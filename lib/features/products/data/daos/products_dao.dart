@@ -5,7 +5,8 @@ import 'package:step_up_fuels/features/products/data/tables/products_table.dart'
 part 'products_dao.g.dart';
 
 @DriftAccessor(tables: [Products])
-class ProductsDao extends DatabaseAccessor<AppDatabase> with _$ProductsDaoMixin {
+class ProductsDao extends DatabaseAccessor<AppDatabase>
+    with _$ProductsDaoMixin {
   ProductsDao(super.db);
 
   Future<List<ProductRow>> getAllProducts({bool includeDeleted = false}) async {
@@ -18,12 +19,12 @@ class ProductsDao extends DatabaseAccessor<AppDatabase> with _$ProductsDaoMixin 
 
   Future<List<ProductRow>> searchProducts(String query) async {
     final lowercaseQuery = '%${query.toLowerCase()}%';
-    return (select(products)
-          ..where(
-            (t) =>
-                t.deletedAt.isNull() &
-                (t.name.lower().like(lowercaseQuery) | t.productCode.lower().like(lowercaseQuery)),
-          ))
+    return (select(products)..where(
+          (t) =>
+              t.deletedAt.isNull() &
+              (t.name.lower().like(lowercaseQuery) |
+                  t.productCode.lower().like(lowercaseQuery)),
+        ))
         .get();
   }
 
@@ -32,7 +33,9 @@ class ProductsDao extends DatabaseAccessor<AppDatabase> with _$ProductsDaoMixin 
   }
 
   Future<ProductRow?> getProductByCode(String code) async {
-    return (select(products)..where((t) => t.productCode.equals(code))).getSingleOrNull();
+    return (select(
+      products,
+    )..where((t) => t.productCode.equals(code))).getSingleOrNull();
   }
 
   Future<void> saveProduct(ProductsCompanion companion) async {

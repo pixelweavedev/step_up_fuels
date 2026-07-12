@@ -7,7 +7,10 @@ class SavePurchaseUseCase {
   SavePurchaseUseCase(this._repository);
   final PurchaseRepository _repository;
 
-  Future<Result<void>> call(FuelPurchase purchase, List<FuelPurchaseItem> items) {
+  Future<Result<void>> call(
+    FuelPurchase purchase,
+    List<FuelPurchaseItem> items,
+  ) {
     return _repository.savePurchase(purchase, items);
   }
 }

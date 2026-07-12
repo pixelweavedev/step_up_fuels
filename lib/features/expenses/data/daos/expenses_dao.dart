@@ -5,7 +5,8 @@ import 'package:step_up_fuels/features/expenses/data/tables/expenses_table.dart'
 part 'expenses_dao.g.dart';
 
 @DriftAccessor(tables: [Expenses])
-class ExpensesDao extends DatabaseAccessor<AppDatabase> with _$ExpensesDaoMixin {
+class ExpensesDao extends DatabaseAccessor<AppDatabase>
+    with _$ExpensesDaoMixin {
   ExpensesDao(super.db);
 
   Future<List<ExpenseRow>> getAllExpenses({
@@ -23,8 +24,12 @@ class ExpensesDao extends DatabaseAccessor<AppDatabase> with _$ExpensesDaoMixin 
       if (category != null) expr = expr & t.category.equals(category);
       if (vehicleId != null) expr = expr & t.vehicleId.equals(vehicleId);
       if (driverId != null) expr = expr & t.driverId.equals(driverId);
-      if (fromDate != null) expr = expr & t.expenseDate.isBiggerOrEqualValue(fromDate);
-      if (toDate != null) expr = expr & t.expenseDate.isSmallerOrEqualValue(toDate);
+      if (fromDate != null) {
+        expr = expr & t.expenseDate.isBiggerOrEqualValue(fromDate);
+      }
+      if (toDate != null) {
+        expr = expr & t.expenseDate.isSmallerOrEqualValue(toDate);
+      }
       return expr;
     });
     query.orderBy([(t) => OrderingTerm.desc(t.expenseDate)]);
@@ -48,9 +53,9 @@ class ExpensesDao extends DatabaseAccessor<AppDatabase> with _$ExpensesDaoMixin 
   // ── Serial Number Management ────────────────────────────────────────────────
 
   Future<int> readAndIncrementCounter() async {
-    final row = await (select(db.appSettings)
-          ..where((t) => t.key.equals('expense_counter')))
-        .getSingleOrNull();
+    final row = await (select(
+      db.appSettings,
+    )..where((t) => t.key.equals('expense_counter'))).getSingleOrNull();
 
     final current = int.tryParse(row?.value ?? '0') ?? 0;
     final next = current + 1;

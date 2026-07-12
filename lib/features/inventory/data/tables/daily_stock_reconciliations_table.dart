@@ -5,7 +5,8 @@ import 'package:step_up_fuels/features/inventory/data/tables/storage_locations_t
 @DataClassName('DailyStockReconciliationRow')
 class DailyStockReconciliations extends Table {
   TextColumn get id => text()();
-  TextColumn get storageLocationId => text().references(StorageLocations, #id)();
+  TextColumn get storageLocationId =>
+      text().references(StorageLocations, #id)();
   DateTimeColumn get reconciliationDate => dateTime()();
   RealColumn get openingStock => real()();
   RealColumn get quantityReceived => real()(); // Transfers in

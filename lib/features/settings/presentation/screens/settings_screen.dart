@@ -451,8 +451,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 _buildTextField(
                   label: 'Email Address',
                   controller: _emailController,
-                  validator: (v) =>
-                      !v!.contains('@') ? 'Invalid email' : null,
+                  validator: (v) => !v!.contains('@') ? 'Invalid email' : null,
                 ),
                 _buildTextField(
                   label: 'Contact Phone',
@@ -661,10 +660,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               style: const TextStyle(color: Colors.white),
               initialValue: _selectedPaperSize,
               items: const [
-                DropdownMenuItem(
-                  value: 'A4',
-                  child: Text('A4 (Standard)'),
-                ),
+                DropdownMenuItem(value: 'A4', child: Text('A4 (Standard)')),
                 DropdownMenuItem(value: 'LETTER', child: Text('Letter')),
               ],
               onChanged: (val) {

@@ -32,8 +32,8 @@ class CompanyProfileNotifier extends AsyncNotifier<CompanyProfile> {
 
 final companyProfileProvider =
     AsyncNotifierProvider<CompanyProfileNotifier, CompanyProfile>(
-  CompanyProfileNotifier.new,
-);
+      CompanyProfileNotifier.new,
+    );
 
 class InvoiceSettingsNotifier extends AsyncNotifier<InvoiceSettings> {
   @override
@@ -56,8 +56,8 @@ class InvoiceSettingsNotifier extends AsyncNotifier<InvoiceSettings> {
 
 final invoiceSettingsProvider =
     AsyncNotifierProvider<InvoiceSettingsNotifier, InvoiceSettings>(
-  InvoiceSettingsNotifier.new,
-);
+      InvoiceSettingsNotifier.new,
+    );
 
 class PrintSettingsNotifier extends AsyncNotifier<PrintSettings> {
   @override
@@ -80,5 +80,5 @@ class PrintSettingsNotifier extends AsyncNotifier<PrintSettings> {
 
 final printSettingsProvider =
     AsyncNotifierProvider<PrintSettingsNotifier, PrintSettings>(
-  PrintSettingsNotifier.new,
-);
+      PrintSettingsNotifier.new,
+    );

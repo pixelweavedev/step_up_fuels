@@ -70,7 +70,9 @@ class PdfInvoiceGenerator {
                         ),
                       ),
                       pw.Text(
-                        isDuplicate ? 'DUPLICATE FOR SUPPLIER' : 'ORIGINAL FOR RECIPIENT',
+                        isDuplicate
+                            ? 'DUPLICATE FOR SUPPLIER'
+                            : 'ORIGINAL FOR RECIPIENT',
                         style: pw.TextStyle(
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
@@ -186,7 +188,10 @@ class PdfInvoiceGenerator {
               // Items Table
               pw.TableHelper.fromTextArray(
                 context: context,
-                border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                border: pw.TableBorder.all(
+                  color: PdfColors.grey400,
+                  width: 0.5,
+                ),
                 headers: [
                   '#',
                   'Description',
@@ -200,7 +205,8 @@ class PdfInvoiceGenerator {
                 ],
                 data: List<List<String>>.generate(items.length, (index) {
                   final item = items[index];
-                  final gstRatePct = '${(item.gstRate * 100).toStringAsFixed(0)}%';
+                  final gstRatePct =
+                      '${(item.gstRate * 100).toStringAsFixed(0)}%';
                   return [
                     (index + 1).toString(),
                     item.description,
@@ -238,7 +244,10 @@ class PdfInvoiceGenerator {
                         '1. Interest @ 18% p.a. will be charged for payments delayed beyond credit period.\n'
                         '2. All disputes are subject to Mumbai Jurisdiction.\n'
                         '3. Delivery bowser log sheets are the final proof of fuel discharged.',
-                        style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey800),
+                        style: const pw.TextStyle(
+                          fontSize: 7,
+                          color: PdfColors.grey800,
+                        ),
                       ),
                       pw.SizedBox(height: 12),
                       pw.Text(
@@ -251,7 +260,10 @@ class PdfInvoiceGenerator {
                       ),
                       pw.Text(
                         'Bank: HDFC Bank Limited\nA/C No: 50100489768976\nIFSC: HDFC0000012 • Branch: Vashi',
-                        style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey800),
+                        style: const pw.TextStyle(
+                          fontSize: 7,
+                          color: PdfColors.grey800,
+                        ),
                       ),
                     ],
                   ),
@@ -260,39 +272,79 @@ class PdfInvoiceGenerator {
                     children: [
                       pw.Row(
                         children: [
-                          pw.Text('Subtotal (Taxable Value):  ', style: const pw.TextStyle(fontSize: 10)),
-                          pw.Text('₹${currencyFmt.format(invoice.subtotal)}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'Subtotal (Taxable Value):  ',
+                            style: const pw.TextStyle(fontSize: 10),
+                          ),
+                          pw.Text(
+                            '₹${currencyFmt.format(invoice.subtotal)}',
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       if (!invoice.isInterstate) ...[
                         pw.SizedBox(height: 4),
                         pw.Row(
                           children: [
-                            pw.Text('CGST:  ', style: const pw.TextStyle(fontSize: 9)),
-                            pw.Text('₹${currencyFmt.format(invoice.cgstAmount)}', style: const pw.TextStyle(fontSize: 9)),
+                            pw.Text(
+                              'CGST:  ',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
+                            pw.Text(
+                              '₹${currencyFmt.format(invoice.cgstAmount)}',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
                           ],
                         ),
                         pw.SizedBox(height: 2),
                         pw.Row(
                           children: [
-                            pw.Text('SGST:  ', style: const pw.TextStyle(fontSize: 9)),
-                            pw.Text('₹${currencyFmt.format(invoice.sgstAmount)}', style: const pw.TextStyle(fontSize: 9)),
+                            pw.Text(
+                              'SGST:  ',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
+                            pw.Text(
+                              '₹${currencyFmt.format(invoice.sgstAmount)}',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
                           ],
                         ),
                       ] else ...[
                         pw.SizedBox(height: 4),
                         pw.Row(
                           children: [
-                            pw.Text('IGST:  ', style: const pw.TextStyle(fontSize: 9)),
-                            pw.Text('₹${currencyFmt.format(invoice.igstAmount)}', style: const pw.TextStyle(fontSize: 9)),
+                            pw.Text(
+                              'IGST:  ',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
+                            pw.Text(
+                              '₹${currencyFmt.format(invoice.igstAmount)}',
+                              style: const pw.TextStyle(fontSize: 9),
+                            ),
                           ],
                         ),
                       ],
                       pw.Divider(thickness: 0.5, color: PdfColors.grey400),
                       pw.Row(
                         children: [
-                          pw.Text('Total Amount (Incl. GST):  ', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
-                          pw.Text('₹${currencyFmt.format(invoice.totalAmount)}', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blueGrey900)),
+                          pw.Text(
+                            'Total Amount (Incl. GST):  ',
+                            style: pw.TextStyle(
+                              fontSize: 11,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.Text(
+                            '₹${currencyFmt.format(invoice.totalAmount)}',
+                            style: pw.TextStyle(
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.blueGrey900,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -313,21 +365,43 @@ class PdfInvoiceGenerator {
                         width: 60,
                         height: 60,
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+                          border: pw.Border.all(
+                            color: PdfColors.grey400,
+                            width: 0.5,
+                          ),
                         ),
                         alignment: pw.Alignment.center,
-                        child: pw.Text('QR CODE\nPLACEHOLDER', style: const pw.TextStyle(fontSize: 6), textAlign: pw.TextAlign.center),
+                        child: pw.Text(
+                          'QR CODE\nPLACEHOLDER',
+                          style: const pw.TextStyle(fontSize: 6),
+                          textAlign: pw.TextAlign.center,
+                        ),
                       ),
                       pw.SizedBox(height: 4),
-                      pw.Text('IRN / E-Way Bill Placeholder', style: const pw.TextStyle(fontSize: 6)),
+                      pw.Text(
+                        'IRN / E-Way Bill Placeholder',
+                        style: const pw.TextStyle(fontSize: 6),
+                      ),
                     ],
                   ),
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
-                      pw.Text('For STEP UP FUELS', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(
+                        'For STEP UP FUELS',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                       pw.SizedBox(height: 30),
-                      pw.Text('Authorized Signatory & Seal', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(
+                        'Authorized Signatory & Seal',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ],

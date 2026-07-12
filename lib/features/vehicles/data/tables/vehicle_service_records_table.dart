@@ -7,11 +7,13 @@ class VehicleServiceRecords extends Table {
   TextColumn get id => text()();
   TextColumn get vehicleId => text().references(Vehicles, #id)();
   DateTimeColumn get serviceDate => dateTime()();
-  TextColumn get serviceType => text()(); // ROUTINE, REPAIR, TYRE, INSURANCE, ROAD_TAX, OTHER
+  TextColumn get serviceType =>
+      text()(); // ROUTINE, REPAIR, TYRE, INSURANCE, ROAD_TAX, OTHER
   RealColumn get cost => real()();
   TextColumn get details => text()();
   TextColumn get serviceCenter => text()();
-  TextColumn get billDocumentId => text().nullable()(); // FK to documents (if present)
+  TextColumn get billDocumentId =>
+      text().nullable()(); // FK to documents (if present)
 
   // Audits
   TextColumn get createdBy => text().withDefault(const Constant('system'))();

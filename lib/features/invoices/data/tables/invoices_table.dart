@@ -8,7 +8,8 @@ class Invoices extends Table {
   TextColumn get id => text()();
   TextColumn get invoiceNumber => text().unique()(); // e.g. SUF/2026-27/001
   TextColumn get customerId => text().references(Customers, #id)();
-  TextColumn get customerSiteId => text().nullable().references(CustomerSites, #id)();
+  TextColumn get customerSiteId =>
+      text().nullable().references(CustomerSites, #id)();
   DateTimeColumn get invoiceDate => dateTime()();
   DateTimeColumn get dueDate => dateTime()();
   TextColumn get supplyType => text()(); // B2B, B2C
@@ -21,7 +22,8 @@ class Invoices extends Table {
   RealColumn get totalAmount => real()(); // Total including taxes
   RealColumn get amountPaid => real().withDefault(const Constant(0.0))();
   RealColumn get outstanding => real()();
-  TextColumn get status => text()(); // DRAFT, VERIFIED, POSTED, PAID, PARTIALLY_PAID, OVERDUE, CANCELLED
+  TextColumn get status =>
+      text()(); // DRAFT, VERIFIED, POSTED, PAID, PARTIALLY_PAID, OVERDUE, CANCELLED
   TextColumn get notes => text().nullable()();
   DateTimeColumn get cancelledAt => dateTime().nullable()();
   TextColumn get cancelledReason => text().nullable()();

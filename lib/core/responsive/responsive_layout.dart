@@ -65,7 +65,9 @@ class ResponsiveLayout {
   static DeviceType device(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     if (width < ResponsiveBreakpoints.mobile) return DeviceType.mobile;
-    if (width < ResponsiveBreakpoints.smallTablet) return DeviceType.smallTablet;
+    if (width < ResponsiveBreakpoints.smallTablet) {
+      return DeviceType.smallTablet;
+    }
     if (width < ResponsiveBreakpoints.tablet) return DeviceType.tablet;
     return DeviceType.desktop;
   }

@@ -38,15 +38,19 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
         final q = searchQuery.trim().toLowerCase();
         list = list
-            .where((inv) =>
-                inv.invoiceNumber.toLowerCase().contains(q) ||
-                inv.customerId.toLowerCase().contains(q))
+            .where(
+              (inv) =>
+                  inv.invoiceNumber.toLowerCase().contains(q) ||
+                  inv.customerId.toLowerCase().contains(q),
+            )
             .toList();
       }
 
       return Result.success(list);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -55,11 +59,15 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
     try {
       final row = await _dao.getInvoiceById(id);
       if (row == null) {
-        return const Result.failure(DatabaseFailure(message: 'Invoice not found'));
+        return const Result.failure(
+          DatabaseFailure(message: 'Invoice not found'),
+        );
       }
       return Result.success(row.toDomain());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -69,7 +77,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       final rows = await _dao.getItemsByInvoiceId(invoiceId);
       return Result.success(rows.map((r) => r.toDomain()).toList());
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -89,7 +99,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       });
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -105,7 +117,8 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
 
         // 2. Validate state transition
         final current = InvoiceStatus.fromString(row.status);
-        if (current != InvoiceStatus.draft && current != InvoiceStatus.verified) {
+        if (current != InvoiceStatus.draft &&
+            current != InvoiceStatus.verified) {
           throw Exception('Only DRAFT or VERIFIED invoices can be posted.');
         }
 
@@ -122,17 +135,20 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
 
         // 4. Update status and invoice number
         await _dao.saveInvoice(
-          row.toDomain().copyWith(
+          row
+              .toDomain()
+              .copyWith(
                 invoiceNumber: invoiceNumber,
                 status: InvoiceStatus.posted,
                 updatedAt: DateTime.now(),
-              ).toCompanion(),
+              )
+              .toCompanion(),
         );
 
         // 5. Post double-entry Ledger Entries and Inventory Movement
-        final customerRow = await (db.select(db.customers)
-              ..where((t) => t.id.equals(row.customerId)))
-            .getSingleOrNull();
+        final customerRow = await (db.select(
+          db.customers,
+        )..where((t) => t.id.equals(row.customerId))).getSingleOrNull();
         if (customerRow == null) throw Exception('Customer not found');
 
         // Resolve Ledger Accounts
@@ -161,7 +177,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           referenceType: 'INVOICE',
           createdBy: row.createdBy,
         );
-        if (debitRes.isFailure) throw Exception(debitRes.failureOrNull?.message);
+        if (debitRes.isFailure) {
+          throw Exception(debitRes.failureOrNull?.message);
+        }
 
         // Credit Sales Ledger Account
         final creditRes = await _ledgerRepo.postEntry(
@@ -174,12 +192,14 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           referenceType: 'INVOICE',
           createdBy: row.createdBy,
         );
-        if (creditRes.isFailure) throw Exception(creditRes.failureOrNull?.message);
+        if (creditRes.isFailure) {
+          throw Exception(creditRes.failureOrNull?.message);
+        }
 
         // Record Inventory Movement (DELIVERY_OUT)
-        final mainLoc = await (db.select(db.storageLocations)
-              ..where((t) => t.type.equals('MAIN_STORAGE')))
-            .getSingleOrNull();
+        final mainLoc = await (db.select(
+          db.storageLocations,
+        )..where((t) => t.type.equals('MAIN_STORAGE'))).getSingleOrNull();
         final mainLocId = mainLoc?.id ?? 'main-storage-terminal';
 
         final items = await _dao.getItemsByInvoiceId(invoiceId);
@@ -194,7 +214,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
             referenceId: Value(invoiceId),
             referenceType: const Value('INVOICE'),
             movementDate: Value(row.invoiceDate),
-            notes: Value('Sales Invoice: $invoiceNumber to ${customerRow.name}'),
+            notes: Value(
+              'Sales Invoice: $invoiceNumber to ${customerRow.name}',
+            ),
             createdAt: Value(DateTime.now()),
             createdBy: Value(row.createdBy),
           );
@@ -202,17 +224,24 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         }
 
         // Update Customer current balance dynamically
-        final activeInvoices = await (db.select(db.invoices)
-              ..where((t) =>
-                  t.customerId.equals(customerRow.id) &
-                  t.deletedAt.isNull() &
-                  (t.status.equals('POSTED') |
-                      t.status.equals('PARTIALLY_PAID') |
-                      t.status.equals('OVERDUE'))))
-            .get();
-        final totalOutstanding = activeInvoices.fold<double>(0.0, (sum, inv) => sum + inv.outstanding);
+        final activeInvoices =
+            await (db.select(db.invoices)..where(
+                  (t) =>
+                      t.customerId.equals(customerRow.id) &
+                      t.deletedAt.isNull() &
+                      (t.status.equals('POSTED') |
+                          t.status.equals('PARTIALLY_PAID') |
+                          t.status.equals('OVERDUE')),
+                ))
+                .get();
+        final totalOutstanding = activeInvoices.fold<double>(
+          0.0,
+          (sum, inv) => sum + inv.outstanding,
+        );
 
-        await (db.update(db.customers)..where((t) => t.id.equals(customerRow.id))).write(
+        await (db.update(
+          db.customers,
+        )..where((t) => t.id.equals(customerRow.id))).write(
           CustomersCompanion(
             currentBalance: Value(totalOutstanding),
             lastInvoiceDate: Value(row.invoiceDate),
@@ -225,7 +254,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       });
       return Result.success(posted);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -239,26 +270,30 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
 
         final current = InvoiceStatus.fromString(row.status);
         if (!row.toDomain().isCancellable) {
-          throw Exception('Cannot cancel invoice in status: ${current.displayName}');
+          throw Exception(
+            'Cannot cancel invoice in status: ${current.displayName}',
+          );
         }
 
         // Only do ledger and inventory reversals if the invoice was POSTED/PARTIALLY_PAID/PAID
-        final wasPosted = current == InvoiceStatus.posted ||
+        final wasPosted =
+            current == InvoiceStatus.posted ||
             current == InvoiceStatus.partiallyPaid ||
             current == InvoiceStatus.paid;
 
         if (wasPosted) {
           // 1. Resolve Ledger Accounts
-          final customerRow = await (db.select(db.customers)
-                ..where((t) => t.id.equals(row.customerId)))
-              .getSingleOrNull();
+          final customerRow = await (db.select(
+            db.customers,
+          )..where((t) => t.id.equals(row.customerId))).getSingleOrNull();
           if (customerRow == null) throw Exception('Customer not found');
 
-          final customerLedgerRes = await _ledgerRepo.getOrCreateCustomerAccount(
-            customerRow.id,
-            customerRow.name,
-            customerRow.customerCode,
-          );
+          final customerLedgerRes = await _ledgerRepo
+              .getOrCreateCustomerAccount(
+                customerRow.id,
+                customerRow.name,
+                customerRow.customerCode,
+              );
           final customerLedger = customerLedgerRes.dataOrThrow;
 
           final salesLedgerRes = await _ledgerRepo.getOrCreateSystemAccount(
@@ -273,32 +308,38 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
           final creditRes = await _ledgerRepo.postEntry(
             accountId: customerLedger.id,
             entryDate: DateTime.now(),
-            description: 'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
+            description:
+                'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
             debit: 0.0,
             credit: row.totalAmount,
             referenceId: row.id,
             referenceType: 'INVOICE',
             createdBy: 'system',
           );
-          if (creditRes.isFailure) throw Exception(creditRes.failureOrNull?.message);
+          if (creditRes.isFailure) {
+            throw Exception(creditRes.failureOrNull?.message);
+          }
 
           // Debit Sales Ledger Account
           final debitRes = await _ledgerRepo.postEntry(
             accountId: salesLedger.id,
             entryDate: DateTime.now(),
-            description: 'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
+            description:
+                'Sales Invoice Cancelled Reversal: ${row.invoiceNumber}',
             debit: row.totalAmount,
             credit: 0.0,
             referenceId: row.id,
             referenceType: 'INVOICE',
             createdBy: 'system',
           );
-          if (debitRes.isFailure) throw Exception(debitRes.failureOrNull?.message);
+          if (debitRes.isFailure) {
+            throw Exception(debitRes.failureOrNull?.message);
+          }
 
           // 3. Revert Inventory Movements
-          final mainLoc = await (db.select(db.storageLocations)
-                ..where((t) => t.type.equals('MAIN_STORAGE')))
-              .getSingleOrNull();
+          final mainLoc = await (db.select(
+            db.storageLocations,
+          )..where((t) => t.type.equals('MAIN_STORAGE'))).getSingleOrNull();
           final mainLocId = mainLoc?.id ?? 'main-storage-terminal';
 
           final items = await _dao.getItemsByInvoiceId(invoiceId);
@@ -319,7 +360,6 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
             );
             await db.into(db.inventoryMovements).insert(movementCompanion);
           }
-
         }
 
         // 5. Update Status to Cancelled
@@ -331,25 +371,30 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         );
 
         // 6. Recalculate customer current balance dynamically (excluding this cancelled invoice)
-        final activeInvoices = await (db.select(db.invoices)
-              ..where((t) =>
-                  t.customerId.equals(row.customerId) &
-                  t.deletedAt.isNull() &
-                  (t.status.equals('POSTED') |
-                      t.status.equals('PARTIALLY_PAID') |
-                      t.status.equals('OVERDUE'))))
-            .get();
-        final totalOutstanding = activeInvoices.fold<double>(0.0, (sum, inv) => sum + inv.outstanding);
-
-        await (db.update(db.customers)..where((t) => t.id.equals(row.customerId))).write(
-          CustomersCompanion(
-            currentBalance: Value(totalOutstanding),
-          ),
+        final activeInvoices =
+            await (db.select(db.invoices)..where(
+                  (t) =>
+                      t.customerId.equals(row.customerId) &
+                      t.deletedAt.isNull() &
+                      (t.status.equals('POSTED') |
+                          t.status.equals('PARTIALLY_PAID') |
+                          t.status.equals('OVERDUE')),
+                ))
+                .get();
+        final totalOutstanding = activeInvoices.fold<double>(
+          0.0,
+          (sum, inv) => sum + inv.outstanding,
         );
+
+        await (db.update(db.customers)
+              ..where((t) => t.id.equals(row.customerId)))
+            .write(CustomersCompanion(currentBalance: Value(totalOutstanding)));
       });
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -359,7 +404,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       await _dao.applyPayment(invoiceId, amount);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 
@@ -369,7 +416,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       await _dao.softDeleteInvoice(id);
       return const Result.success(null);
     } catch (e, st) {
-      return Result.failure(DatabaseFailure(message: e.toString(), stackTrace: st));
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
     }
   }
 }

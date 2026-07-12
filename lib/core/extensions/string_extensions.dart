@@ -13,9 +13,9 @@ extension StringExtensions on String {
       isEmpty ? this : '${this[0].toUpperCase()}${substring(1).toLowerCase()}';
 
   /// Capitalizes the first letter of each word.
-  String get titleCase => split(' ')
-      .map((word) => word.isEmpty ? word : word.capitalized)
-      .join(' ');
+  String get titleCase => split(
+    ' ',
+  ).map((word) => word.isEmpty ? word : word.capitalized).join(' ');
 
   /// Converts to UPPER CASE with trimming.
   String get upperTrimmed => trim().toUpperCase();
@@ -34,18 +34,18 @@ extension StringExtensions on String {
   String? get nullIfEmpty => trim().isEmpty ? null : this;
 
   /// Checks if the string is a valid email.
-  bool get isValidEmail =>
-      RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-          .hasMatch(this);
+  bool get isValidEmail => RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  ).hasMatch(this);
 
   /// Checks if the string is a valid 10-digit Indian mobile number.
   bool get isValidIndianPhone =>
       RegExp(r'^[6-9][0-9]{9}$').hasMatch(digitsOnly);
 
   /// Checks if the string matches the Indian GSTIN pattern.
-  bool get isValidGstin =>
-      RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
-          .hasMatch(trim().toUpperCase());
+  bool get isValidGstin => RegExp(
+    r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+  ).hasMatch(trim().toUpperCase());
 
   /// Checks if the string matches a PAN number.
   bool get isValidPan =>

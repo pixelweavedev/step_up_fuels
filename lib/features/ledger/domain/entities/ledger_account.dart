@@ -16,7 +16,8 @@ class LedgerAccount extends Equatable {
   });
 
   final String id;
-  final String accountCode; // e.g. ACT-SALES, ACT-CASH, ACT-BANK, ACT-SUP-001, ACT-CUST-001
+  final String
+  accountCode; // e.g. ACT-SALES, ACT-CASH, ACT-BANK, ACT-SUP-001, ACT-CUST-001
   final String name;
   final String accountType;
   final String? referenceId; // customerId or supplierId
@@ -54,15 +55,15 @@ class LedgerAccount extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        accountCode,
-        name,
-        accountType,
-        referenceId,
-        referenceType,
-        isSystem,
-        isActive,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    accountCode,
+    name,
+    accountType,
+    referenceId,
+    referenceType,
+    isSystem,
+    isActive,
+    createdAt,
+    updatedAt,
+  ];
 }

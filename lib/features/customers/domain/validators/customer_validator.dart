@@ -15,7 +15,9 @@ class CustomerValidator {
   static String? validateGstin(String? value) {
     if (value == null || value.trim().isEmpty) return null; // GSTIN is optional
     final cleaned = value.trim().toUpperCase();
-    final regex = RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$');
+    final regex = RegExp(
+      r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+    );
     if (!regex.hasMatch(cleaned)) {
       return 'Invalid GSTIN format (e.g. 27AAAAA1111A1Z1)';
     }

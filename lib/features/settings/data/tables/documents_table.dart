@@ -8,8 +8,10 @@ class Documents extends Table {
   TextColumn get localPath => text()(); // Local absolute file path
   TextColumn get fileExtension => text()(); // e.g. pdf, png, jpg
   IntColumn get sizeInBytes => integer()();
-  TextColumn get category => text()(); // GST_CERTIFICATE, PAN_CARD, MSME_CERTIFICATE, AGREEMENT, PURCHASE_INVOICE, SALES_INVOICE, EXPENSE_BILL, OTHER
-  TextColumn get parentType => text()(); // CUSTOMER, PURCHASE, INVOICE, EXPENSE, VEHICLE, DRIVER
+  TextColumn get category =>
+      text()(); // GST_CERTIFICATE, PAN_CARD, MSME_CERTIFICATE, AGREEMENT, PURCHASE_INVOICE, SALES_INVOICE, EXPENSE_BILL, OTHER
+  TextColumn get parentType =>
+      text()(); // CUSTOMER, PURCHASE, INVOICE, EXPENSE, VEHICLE, DRIVER
   TextColumn get parentId => text()(); // FK to the corresponding parent UUID
 
   // Audits

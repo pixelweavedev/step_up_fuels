@@ -31,7 +31,10 @@ class DriversDao extends DatabaseAccessor<AppDatabase> with _$DriversDaoMixin {
     );
   }
 
-  Future<List<DriverAssignmentRow>> getAssignments({String? driverId, String? vehicleId}) async {
+  Future<List<DriverAssignmentRow>> getAssignments({
+    String? driverId,
+    String? vehicleId,
+  }) async {
     final query = select(driverAssignments);
     if (driverId != null) {
       query.where((t) => t.driverId.equals(driverId));
@@ -50,20 +53,26 @@ class DriversDao extends DatabaseAccessor<AppDatabase> with _$DriversDaoMixin {
       final now = DateTime.now();
 
       // 1. Release active driver assignments for this driver
-      await (update(driverAssignments)
-            ..where((t) => t.driverId.equals(driverId) & t.isActive.equals(true)))
-          .write(DriverAssignmentsCompanion(
-        releasedAt: Value(now),
-        isActive: const Value(false),
-      ));
+      await (update(driverAssignments)..where(
+            (t) => t.driverId.equals(driverId) & t.isActive.equals(true),
+          ))
+          .write(
+            DriverAssignmentsCompanion(
+              releasedAt: Value(now),
+              isActive: const Value(false),
+            ),
+          );
 
       // 2. Release active driver assignments for this vehicle
-      await (update(driverAssignments)
-            ..where((t) => t.vehicleId.equals(vehicleId) & t.isActive.equals(true)))
-          .write(DriverAssignmentsCompanion(
-        releasedAt: Value(now),
-        isActive: const Value(false),
-      ));
+      await (update(driverAssignments)..where(
+            (t) => t.vehicleId.equals(vehicleId) & t.isActive.equals(true),
+          ))
+          .write(
+            DriverAssignmentsCompanion(
+              releasedAt: Value(now),
+              isActive: const Value(false),
+            ),
+          );
 
       // 3. Insert new assignment
       await into(driverAssignments).insert(companion);
@@ -71,7 +80,9 @@ class DriversDao extends DatabaseAccessor<AppDatabase> with _$DriversDaoMixin {
   }
 
   Future<void> releaseDriver(String assignmentId, DateTime releasedAt) async {
-    await (update(driverAssignments)..where((t) => t.id.equals(assignmentId))).write(
+    await (update(
+      driverAssignments,
+    )..where((t) => t.id.equals(assignmentId))).write(
       DriverAssignmentsCompanion(
         releasedAt: Value(releasedAt),
         isActive: const Value(false),

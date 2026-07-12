@@ -38,14 +38,8 @@ class AppBottomNav extends StatelessWidget {
       onDestinationSelected: (index) => context.go(items[index].route),
       destinations: items.map((item) {
         return NavigationDestination(
-          icon: Icon(
-            item.icon,
-            color: AppColors.sidebarIconInactive,
-          ),
-          selectedIcon: Icon(
-            item.activeIcon,
-            color: AppColors.brandAmber,
-          ),
+          icon: Icon(item.icon, color: AppColors.sidebarIconInactive),
+          selectedIcon: Icon(item.activeIcon, color: AppColors.brandAmber),
           label: item.label,
           tooltip: item.label,
         );
