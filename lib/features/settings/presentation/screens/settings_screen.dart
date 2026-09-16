@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:step_up_fuels/app/database/seeds/database_seeder.dart';
+import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
@@ -56,6 +58,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   final _backupPathController = TextEditingController();
   final _restorePathController = TextEditingController();
   String _activeDbLocation = '';
+  bool _isSeeding = false;
 
   @override
   void initState() {
@@ -284,6 +287,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       res,
       'Database restored successfully! Please restart the application.',
     );
+  }
+
+  Future<void> _seedDemoData() async {
+    setState(() => _isSeeding = true);
+    try {
+      final db = ref.read(databaseProvider);
+      final seeder = DatabaseSeeder(db);
+      final counts = await seeder.seedAll();
+      final totalRows = counts.values.fold<int>(0, (sum, c) => sum + c);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Successfully seeded $totalRows demo records across ${counts.length} tables!',
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to seed demo data: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSeeding = false);
+      }
+    }
   }
 
   void _showResultSnackbar(Result<dynamic> result, String successMsg) {
@@ -780,6 +814,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             readOnly: true,
           ),
           const SizedBox(height: 24),
+
+          // Demo Data Seeder Card
+          Card(
+            color: AppColors.darkSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: AppColors.brandAmber.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        color: AppColors.brandAmber,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Seed Demo ERP Dataset',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.brandAmber,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Populates a fully reconciled, realistic demo dataset: 8 active customers, 10 delivery challans, 12 invoices, purchases, payments, 58 balanced ledger entries, and 54,300 L inventory across all locations.',
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brandAmber,
+                      foregroundColor: AppColors.darkBackground,
+                    ),
+                    onPressed: _isSeeding ? null : _seedDemoData,
+                    icon: _isSeeding
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.black,
+                            ),
+                          )
+                        : const Icon(Icons.dataset_linked_rounded),
+                    label: Text(
+                      _isSeeding
+                          ? 'Seeding Demo Data...'
+                          : 'Seed Realistic Demo Data',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // Backup Card
           Card(

@@ -14,6 +14,6 @@ DatabaseConnection connect() {
       await dbDir.create(recursive: true);
     }
     final file = File(p.join(dbDir.path, AppConstants.databaseName));
-    return NativeDatabase.createInBackground(file);
+    return DatabaseConnection(NativeDatabase.createInBackground(file));
   }));
 }
