@@ -516,6 +516,13 @@ class _InvoiceListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statusColor = _statusColor(invoice.status);
     final isOverdue = !isSelected && invoice.status == InvoiceStatus.overdue;
+    final customers = ref.watch(customersListProvider).value ?? [];
+    final customer = customers.cast<Customer?>().firstWhere(
+      (c) => c?.id == invoice.customerId,
+      orElse: () => null,
+    );
+    final customerDisplay =
+        customer?.name ?? (invoice.customerId.isNotEmpty ? 'Customer' : 'N/A');
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -573,7 +580,7 @@ class _InvoiceListTile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Customer: ${invoice.customerId}',
+                      'Customer: $customerDisplay',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.darkTextSecondary,
@@ -744,6 +751,11 @@ class _DetailContent extends ConsumerWidget {
     final inv = detail.invoice;
     final items = detail.items;
     final isMobile = context.isMobile;
+    final customers = ref.watch(customersListProvider).value ?? [];
+    final customer = customers.cast<Customer?>().firstWhere(
+      (c) => c?.id == inv.customerId,
+      orElse: () => null,
+    );
 
     final bodyWidgets = [
       if (isMobile) ...[
@@ -807,7 +819,9 @@ class _DetailContent extends ConsumerWidget {
       const SizedBox(height: 20),
       const _SectionHeader('Invoice Details'),
       const SizedBox(height: 10),
-      _MetaRow('Customer ID', inv.customerId),
+      _MetaRow('Customer', customer?.name ?? 'Unknown Customer'),
+      if (customer != null && customer.customerCode.isNotEmpty)
+        _MetaRow('Customer Code', customer.customerCode),
       _MetaRow('Supply Type', inv.supplyType),
       _MetaRow('Place of Supply', inv.placeOfSupply),
       _MetaRow(

@@ -191,6 +191,12 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
             }
           }
 
+          // Double-entry postings & movement metadata
+          final supplierRow = await (db.select(
+            db.suppliers,
+          )..where((t) => t.id.equals(purchase.supplierId))).getSingleOrNull();
+          if (supplierRow == null) throw Exception('Supplier not found');
+
           // Record a movement for each item purchased
           for (final item in items) {
             final movementCompanion = InventoryMovementsCompanion(
@@ -204,7 +210,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
               referenceType: const Value('PURCHASE'),
               movementDate: Value(purchase.purchaseDate),
               notes: Value(
-                'Fuel Purchase: $purchaseNumber from ${purchase.supplierId}',
+                'Fuel Purchase: $purchaseNumber from ${supplierRow.name}',
               ),
               createdAt: Value(DateTime.now()),
               createdBy: Value(purchase.createdBy),
@@ -213,12 +219,6 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                 .into(db.inventoryMovements)
                 .insertOnConflictUpdate(movementCompanion);
           }
-
-          // Double-entry postings
-          final supplierRow = await (db.select(
-            db.suppliers,
-          )..where((t) => t.id.equals(purchase.supplierId))).getSingleOrNull();
-          if (supplierRow == null) throw Exception('Supplier not found');
 
           final supplierLedgerRes = await _ledgerRepo
               .getOrCreateSupplierAccount(

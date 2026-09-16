@@ -929,7 +929,12 @@ class _MovementsList extends ConsumerWidget {
                   ),
                 ),
                 subtitle: Text(
-                  mov.notes ?? 'Transaction ID: ${mov.referenceId ?? "N/A"}',
+                  (mov.notes != null && mov.notes!.isNotEmpty)
+                      ? mov.notes!
+                      : (mov.referenceType != null &&
+                              mov.referenceType!.isNotEmpty
+                          ? 'Ref: ${mov.referenceType}'
+                          : 'Stock ${mov.type.name}'),
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.darkTextSecondary,

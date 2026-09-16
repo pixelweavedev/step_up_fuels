@@ -523,10 +523,23 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
   Widget _buildDetailPanel(String paymentId) {
     final paymentAsync = ref.watch(selectedPaymentProvider);
     final customers = ref.watch(customersListProvider).value ?? [];
+    final invoices = ref.watch(invoicesListProvider).value ?? [];
     final isMobile = context.isMobile;
 
     return paymentAsync.when(
       data: (payment) {
+        final allocatedInvoice = payment.invoiceId != null
+            ? invoices.cast<Invoice?>().firstWhere(
+                (inv) => inv?.id == payment.invoiceId,
+                orElse: () => null,
+              )
+            : null;
+        final invoiceDisplay = allocatedInvoice != null
+            ? allocatedInvoice.invoiceNumber
+            : (payment.invoiceId != null
+                ? 'Invoice'
+                : 'Auto-Allocated / Advance Account');
+
         final customer = customers.firstWhere(
           (c) => c.id == payment.customerId,
           orElse: () => Customer(
@@ -577,8 +590,8 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
           _buildDetailRow('Depositing Bank', payment.bankName ?? 'N/A'),
           _buildDetailRow('Notes', payment.notes ?? 'No notes recorded'),
           _buildDetailRow(
-            'Allocated Invoice ID',
-            payment.invoiceId ?? 'Auto-Allocated / Advance Account',
+            'Allocated Invoice',
+            invoiceDisplay,
           ),
           _buildDetailRow(
             'Status',

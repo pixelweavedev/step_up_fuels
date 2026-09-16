@@ -142,7 +142,7 @@ class ExportFilterPanel extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8.0, top: 8.0),
                       child: _buildTextFieldFilter(
-                        label: 'Vehicle ID',
+                        label: 'Vehicle / Bowser',
                         value: filter.vehicleId,
                         hint: 'e.g. MH12AB1234',
                         onChanged: (val) => onChange(
@@ -158,7 +158,7 @@ class ExportFilterPanel extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8.0, top: 8.0),
                       child: _buildTextFieldFilter(
-                        label: 'Driver ID',
+                        label: 'Driver',
                         value: filter.driverId,
                         hint: 'e.g. D008',
                         onChanged: (val) => onChange(

@@ -626,9 +626,10 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                          if (entry.referenceId != null)
+                                          if (entry.referenceType != null &&
+                                              entry.referenceType!.isNotEmpty)
                                             Text(
-                                              'Ref: ${entry.referenceType} (${entry.referenceId!.substring(0, math.min(8, entry.referenceId!.length))})',
+                                              'Ref: ${entry.referenceType}',
                                               style: TextStyle(
                                                 color:
                                                     AppColors.darkTextTertiary,

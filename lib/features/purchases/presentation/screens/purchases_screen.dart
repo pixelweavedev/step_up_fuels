@@ -18,6 +18,7 @@ import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase.d
 import 'package:step_up_fuels/features/purchases/domain/entities/fuel_purchase_item.dart';
 import 'package:step_up_fuels/features/purchases/domain/entities/supplier.dart';
 import 'package:step_up_fuels/features/purchases/presentation/providers/purchases_provider.dart';
+import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
@@ -409,6 +410,8 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
       );
     }
 
+    final suppliers = ref.watch(suppliersListProvider).value ?? [];
+
     return ListView.separated(
       padding: ResponsiveSpacing.listPadding(context),
       itemCount: purchases.length,
@@ -416,6 +419,11 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
       itemBuilder: (context, i) {
         final pur = purchases[i];
         final isSelected = pur.id == selectedId;
+        final supplier = suppliers.cast<Supplier?>().firstWhere(
+          (s) => s?.id == pur.supplierId,
+          orElse: () => null,
+        );
+        final supplierDisplay = supplier?.name ?? (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
         return Container(
           decoration: BoxDecoration(
             color: isSelected ? AppColors.darkCard : AppColors.darkSurface,
@@ -453,7 +461,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Inv Ref: ${pur.supplierInvoiceNo}  •  Supplier: ${pur.supplierId}',
+                          'Inv Ref: ${pur.supplierInvoiceNo}  •  Supplier: $supplierDisplay',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.darkTextSecondary,
@@ -829,6 +837,8 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 
     final totalExp = expenses.fold<double>(0, (s, e) => s + e.amount);
 
+    final vehicles = ref.watch(vehiclesListProvider).value ?? [];
+
     return Column(
       children: [
         // Total panel
@@ -870,6 +880,10 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
             separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (context, i) {
               final exp = expenses[i];
+              final vehicle = vehicles.cast<Vehicle?>().firstWhere(
+                (v) => v?.id == exp.vehicleId,
+                orElse: () => null,
+              );
               return Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -951,7 +965,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         ),
                         if (exp.vehicleId != null)
                           Text(
-                            'Bowser ID: ${exp.vehicleId}',
+                            'Bowser: ${vehicle?.registrationNumber ?? 'Assigned'}',
                             style: const TextStyle(
                               fontSize: 10,
                               color: AppColors.brandAmber,
@@ -1050,6 +1064,7 @@ class _PurchaseDetailPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(purchaseDetailProvider(purchaseId));
+    final suppliers = ref.watch(suppliersListProvider).value ?? [];
 
     return detailAsync.when(
       data: (detail) => Column(
@@ -1151,13 +1166,31 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                   const SizedBox(height: 20),
                   _sectionHeader('Procurement Information'),
                   const SizedBox(height: 10),
-                  _metaRow('Supplier Code', detail.purchase.supplierId),
-                  _metaRow(
-                    'Purchase Date',
-                    DateFormat(
-                      'dd MMM yyyy',
-                    ).format(detail.purchase.purchaseDate),
-                  ),
+                Builder(
+                  builder: (context) {
+                    final supplier = suppliers.cast<Supplier?>().firstWhere(
+                      (s) => s?.id == detail.purchase.supplierId,
+                      orElse: () => null,
+                    );
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _metaRow(
+                          'Supplier',
+                          supplier?.name ?? 'Unknown Supplier',
+                        ),
+                        if (supplier != null && supplier.supplierCode.isNotEmpty)
+                          _metaRow('Supplier Code', supplier.supplierCode),
+                      ],
+                    );
+                  },
+                ),
+                _metaRow(
+                  'Purchase Date',
+                  DateFormat(
+                    'dd MMM yyyy',
+                  ).format(detail.purchase.purchaseDate),
+                ),
                   _metaRow('Payment Status', detail.purchase.paymentStatus),
                   if (detail.purchase.notes != null)
                     _metaRow('Notes', detail.purchase.notes!),
