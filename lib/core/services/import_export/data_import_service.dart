@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_adapter.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_format.dart';
@@ -24,6 +22,7 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/domain/repositories/product_repository.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/domain/repositories/vehicle_repository.dart';
+import 'package:universal_io/io.dart';
 import 'package:uuid/uuid.dart';
 
 class DataImportService {

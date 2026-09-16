@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_history_entry.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_preset.dart';
+import 'package:universal_io/io.dart';
 
 class ImportExportStorage {
   ImportExportStorage._();

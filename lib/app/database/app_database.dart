@@ -1,9 +1,5 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:step_up_fuels/app/database/connection/connection.dart' as impl;
 import 'package:step_up_fuels/core/constants/app_constants.dart';
 import 'package:step_up_fuels/features/customers/data/tables/customer_contacts_table.dart';
 import 'package:step_up_fuels/features/customers/data/tables/customer_credit_limits_table.dart';
@@ -93,7 +89,7 @@ class AppSettings extends Table {
   daos: [InvoicesDao, PurchasesDao, ExpensesDao, PaymentsDao, LedgerDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase() : super(impl.connect());
   AppDatabase.forTesting(super.connection);
 
   @override
@@ -193,16 +189,4 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-// ─── Connection ──────────────────────────────────────────────────────────────
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final dbDir = Directory(p.join(dbFolder.path, 'StepUpFuels'));
-    if (!dbDir.existsSync()) {
-      await dbDir.create(recursive: true);
-    }
-    final file = File(p.join(dbDir.path, AppConstants.databaseName));
-    return NativeDatabase.createInBackground(file);
-  });
-}

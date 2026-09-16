@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +17,7 @@ import 'package:step_up_fuels/features/import_export/presentation/widgets/import
 import 'package:step_up_fuels/features/import_export/presentation/widgets/mode_selector.dart';
 import 'package:step_up_fuels/features/import_export/presentation/widgets/preset_manager.dart';
 import 'package:step_up_fuels/features/import_export/presentation/widgets/progress_dialog.dart';
+import 'package:universal_io/io.dart';
 
 class ImportExportScreen extends ConsumerStatefulWidget {
   const ImportExportScreen({super.key});

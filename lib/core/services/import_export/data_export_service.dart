@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_adapter.dart';
 import 'package:step_up_fuels/core/services/import_export/models/export_filter.dart';
@@ -9,6 +8,7 @@ import 'package:step_up_fuels/core/services/import_export/models/import_export_s
 import 'package:step_up_fuels/core/services/import_export/serializers/csv_serializer.dart';
 import 'package:step_up_fuels/core/services/import_export/serializers/excel_serializer.dart';
 import 'package:step_up_fuels/core/services/import_export/serializers/json_serializer.dart';
+import 'package:universal_io/io.dart';
 import 'package:uuid/uuid.dart';
 
 class DataExportService {
