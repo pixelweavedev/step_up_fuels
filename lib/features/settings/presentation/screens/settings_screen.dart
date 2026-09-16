@@ -1,5 +1,3 @@
-
-import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +11,7 @@ import 'package:step_up_fuels/features/settings/domain/entities/invoice_settings
 import 'package:step_up_fuels/features/settings/domain/entities/print_settings.dart';
 import 'package:step_up_fuels/features/settings/presentation/providers/settings_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:universal_io/io.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
