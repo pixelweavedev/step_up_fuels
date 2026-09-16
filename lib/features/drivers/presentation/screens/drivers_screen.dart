@@ -10,6 +10,7 @@ import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
@@ -206,7 +207,10 @@ class DriversScreen extends ConsumerWidget {
                     },
                   );
                 },
-                error: (err, st) => Center(child: Text('Error: $err')),
+                error: (err, st) => const AppErrorWidget(
+                  isCompact: true,
+                  message: 'Unable to load drivers list.',
+                ),
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.brandAmber),
                 ),
@@ -754,7 +758,10 @@ class _DriverAssignmentDialogState
                   },
                 );
               },
-              error: (err, st) => Text('Error loading vehicles: $err'),
+              error: (err, st) => const Text(
+                'Error loading vehicles',
+                style: TextStyle(color: AppColors.error),
+              ),
               loading: () => const Center(
                 child: CircularProgressIndicator(color: AppColors.brandAmber),
               ),

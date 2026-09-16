@@ -10,6 +10,7 @@ import 'package:step_up_fuels/features/products/presentation/providers/products_
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
@@ -517,7 +518,11 @@ class _ProductDetailView extends ConsumerWidget {
     return productAsync.when(
       data: (product) => _ProductDetailCard(product: product),
       error: (err, st) {
-        final errorWidget = Center(child: Text('Error: $err'));
+        final errorWidget = AppErrorWidget(
+          title: 'Product Unavailable',
+          message: 'Unable to load product details. Please try again.',
+          onRetry: () => ref.refresh(selectedProductProvider),
+        );
         return isMobile
             ? Scaffold(
                 appBar: AppBar(

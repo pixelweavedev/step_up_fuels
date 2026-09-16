@@ -25,8 +25,8 @@ class AppColors {
   static const Color darkThemeBorder = Color(0xFF334155);
   static const Color darkThemeBorderLight = Color(0xFF475569);
   static const Color darkThemeTextPrimary = Color(0xFFF8FAFC);
-  static const Color darkThemeTextSecondary = Color(0xFF94A3B8);
-  static const Color darkThemeTextTertiary = Color(0xFF64748B);
+  static const Color darkThemeTextSecondary = Color(0xFFCBD5E1);
+  static const Color darkThemeTextTertiary = Color(0xFF94A3B8);
 
   // ── Theme Backgrounds (dynamic getters for inline widget colors) ───────────
   static Color get darkBackground =>
@@ -51,18 +51,28 @@ class AppColors {
 
   // ── Text colors ────────────────────────────────────────────────────────────
   static Color get darkTextPrimary =>
-      isDark ? darkThemeTextPrimary : const Color(0xFF1A1A1A);
+      isDark ? darkThemeTextPrimary : const Color(0xFF0F172A);
   static Color get darkTextSecondary =>
-      isDark ? darkThemeTextSecondary : const Color(0xFF475569);
+      isDark ? darkThemeTextSecondary : const Color(0xFF334155);
   static Color get darkTextTertiary =>
-      isDark ? darkThemeTextTertiary : const Color(0xFF94A3B8);
+      isDark ? darkThemeTextTertiary : const Color(0xFF5F6E82);
   static Color get darkTextDisabled =>
-      isDark ? const Color(0xFF475569) : const Color(0xFFC8C2B9);
+      isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8);
 
-  static const Color lightTextPrimary = Color(0xFF1A1A1A);
-  static const Color lightTextSecondary = Color(0xFF475569);
-  static const Color lightTextTertiary = Color(0xFF94A3B8);
-  static const Color lightTextDisabled = Color(0xFFC8C2B9);
+  static const Color lightTextPrimary = Color(0xFF0F172A);
+  static const Color lightTextSecondary = Color(0xFF334155);
+  static const Color lightTextTertiary = Color(0xFF5F6E82);
+  static const Color lightTextDisabled = Color(0xFF94A3B8);
+
+  // ── Context-aware Color Helpers ──────────────────────────────────────────
+  static Color surface(BuildContext context) =>
+      Theme.of(context).colorScheme.surface;
+  static Color border(BuildContext context) =>
+      Theme.of(context).colorScheme.outline;
+  static Color textPrimary(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurface;
+  static Color textSecondary(BuildContext context) =>
+      Theme.of(context).colorScheme.onSurfaceVariant;
 
   // ── Sidebar Text ──────────────────────────────────────────────────────────
   static Color get sidebarTextInactive =>

@@ -19,6 +19,11 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/app/database/app_database.g.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
 
 linter:
   rules:

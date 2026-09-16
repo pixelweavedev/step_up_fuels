@@ -522,6 +522,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen>
                     .then((path) {
                       if (path != null) {
                         File(path).writeAsString(logCsv.toString()).then((_) {
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Log saved successfully to $path'),

@@ -108,7 +108,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              error: (_, __) => const Text('Error loading customers'),
+              error: (_, __) => const Text(
+                'Error loading customers',
+                style: TextStyle(color: AppColors.error, fontSize: 12),
+              ),
             ),
           ),
         ),
@@ -304,7 +307,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              error: (_, __) => const Text('Error loading customers'),
+              error: (_, __) => const Text(
+                'Error loading customers',
+                style: TextStyle(color: AppColors.error, fontSize: 12),
+              ),
             ),
           ),
         ],
@@ -491,6 +497,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
       ),
     );
     if (confirm == true) {
+      if (!context.mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       try {
         await ref

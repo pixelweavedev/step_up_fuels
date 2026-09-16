@@ -22,7 +22,9 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
 import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
@@ -56,36 +58,14 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     if (context.isMobile) {
       return ListPageTemplate(
         title: 'Invoices',
-        searchWidget: Container(
-          height: 42,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.darkCard,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.darkBorder),
-          ),
-          child: TextField(
+        searchWidget: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: AppTextField(
             controller: _searchCtrl,
+            hint: 'Search by invoice number or customer…',
+            prefixIcon: Icons.search_rounded,
             onChanged: (v) =>
                 ref.read(invoiceSearchQueryProvider.notifier).state = v,
-            style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'Search by invoice number or customer…',
-              hintStyle: TextStyle(
-                color: AppColors.darkTextTertiary,
-                fontSize: 14,
-              ),
-              prefixIcon: Icon(
-                Icons.search_rounded,
-                color: AppColors.darkTextSecondary,
-                size: 20,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-            ),
           ),
         ),
         filterWidget: Column(
@@ -117,11 +97,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.brandAmber),
           ),
-          error: (e, _) => Center(
-            child: Text(
-              e.toString(),
-              style: const TextStyle(color: AppColors.error),
-            ),
+          error: (e, _) => AppErrorWidget(
+            message: 'Failed to load invoices. Please try again.',
+            onRetry: () => ref.refresh(invoicesListProvider),
           ),
         ),
       );
@@ -138,11 +116,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.brandAmber),
             ),
-            error: (e, _) => Center(
-              child: Text(
-                e.toString(),
-                style: const TextStyle(color: AppColors.error),
-              ),
+            error: (e, _) => AppErrorWidget(
+              message: 'Failed to load invoices. Please try again.',
+              onRetry: () => ref.refresh(invoicesListProvider),
             ),
           ),
         ),

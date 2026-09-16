@@ -254,7 +254,7 @@ class ExportFilterPanel extends StatelessWidget {
         Switch.adaptive(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.brandAmber,
+          activeThumbColor: AppColors.brandAmber,
         ),
         const SizedBox(width: 6),
         Text(label, style: const TextStyle(fontSize: 13)),

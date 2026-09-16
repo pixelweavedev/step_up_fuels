@@ -1,6 +1,5 @@
-library;
-
 import 'package:flutter/material.dart';
+import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 /// BuildContext extensions for responsive layout and theming.
 
@@ -10,6 +9,13 @@ extension ContextExtensions on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
   TextTheme get textTheme => Theme.of(this).textTheme;
   bool get isDarkMode => Theme.of(this).brightness == Brightness.dark;
+
+  Color get surfaceColor => colorScheme.surface;
+  Color get onSurfaceColor => colorScheme.onSurface;
+  Color get outlineColor => colorScheme.outline;
+  Color get outlineVariantColor => colorScheme.outlineVariant;
+  Color get primaryColor => colorScheme.primary;
+  Color get secondaryColor => colorScheme.secondary;
 
   // ── Media Query ────────────────────────────────────────────────────────────
   MediaQueryData get mediaQuery => MediaQuery.of(this);
@@ -41,10 +47,10 @@ extension ContextExtensions on BuildContext {
                 size: 18,
               ),
               const SizedBox(width: 10),
-              Text(message),
+              Expanded(child: Text(message)),
             ],
           ),
-          backgroundColor: const Color(0xFF22C55E),
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -65,7 +71,7 @@ extension ContextExtensions on BuildContext {
               Expanded(child: Text(message)),
             ],
           ),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -82,10 +88,10 @@ extension ContextExtensions on BuildContext {
             children: [
               const Icon(Icons.info_outline, color: Colors.white, size: 18),
               const SizedBox(width: 10),
-              Text(message),
+              Expanded(child: Text(message)),
             ],
           ),
-          backgroundColor: const Color(0xFF3B82F6),
+          backgroundColor: AppColors.info,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

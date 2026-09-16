@@ -239,7 +239,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          minimumSize: const Size(0, 42),
+          minimumSize: const Size(0, 48),
           textStyle: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -256,7 +256,7 @@ class AppTheme {
           ? AppColors.darkTextPrimary
           : AppColors.lightTextPrimary,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      minimumSize: const Size(0, 42),
+      minimumSize: const Size(0, 48),
       textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: BorderSide(
@@ -269,6 +269,7 @@ class AppTheme {
     style: TextButton.styleFrom(
       foregroundColor: AppColors.brandAmber,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      minimumSize: const Size(0, 48),
       textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
     ),
   );

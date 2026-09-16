@@ -58,6 +58,9 @@ dependencies:
   # ── Google Fonts ─────────────────────────────────────────────
   google_fonts: ^6.2.1
 
+  # ── Agent UI Testing & Automation ────────────────────────────
+  marionette_flutter: ^0.6.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

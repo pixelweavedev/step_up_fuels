@@ -14,6 +14,7 @@ import 'package:step_up_fuels/features/reports/domain/entities/report_models.dar
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/stat_card.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/templates/dashboard_template.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -187,11 +188,11 @@ class DashboardScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         backgroundColor: AppColors.darkBackground,
-        body: Center(
-          child: Text(
-            'Error loading dashboard: $e',
-            style: const TextStyle(color: AppColors.error),
-          ),
+        body: AppErrorWidget(
+          title: 'Dashboard Unavailable',
+          message:
+              'Unable to load dashboard metrics. Please check your connection and retry.',
+          onRetry: () => ref.read(dashboardStatsProvider.notifier).refresh(),
         ),
       ),
     );

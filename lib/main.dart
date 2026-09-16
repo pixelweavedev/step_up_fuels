@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:step_up_fuels/app/app.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/logging/app_logger.dart';
@@ -9,12 +11,16 @@ import 'package:step_up_fuels/core/logging/app_logger.dart';
 /// Application entry point.
 ///
 /// Initialisation order:
-/// 1. Ensure Flutter bindings are initialised.
+/// 1. Ensure Flutter / Marionette bindings are initialised.
 /// 2. Configure GetIt dependencies (database, services, repos).
 /// 3. Wrap the app in Riverpod [ProviderScope].
 /// 4. Launch [App].
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) {
+    MarionetteBinding.ensureInitialized();
+  } else {
+    WidgetsFlutterBinding.ensureInitialized();
+  }
 
   // Enable Windows-specific configurations.
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

@@ -164,7 +164,7 @@ class _CustomerMasterList extends ConsumerWidget {
               color: AppColors.brandAmber,
             ),
             onPressed: () {
-              showDialog(
+              showDialog<void>(
                 context: context,
                 builder: (context) => const CustomerFormDialog(),
               );
@@ -258,7 +258,7 @@ class _CustomerMasterList extends ConsumerWidget {
                       color: AppColors.brandAmber,
                     ),
                     onPressed: () {
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (context) => const CustomerFormDialog(),
                       );
@@ -797,7 +797,7 @@ class _CustomerDetailScaffoldState
                     Icons.edit_outlined,
                     color: AppColors.brandAmber,
                   ),
-                  onPressed: () => showDialog(
+                  onPressed: () => showDialog<void>(
                     context: context,
                     builder: (_) => CustomerFormDialog(customer: customer),
                   ),
@@ -1000,7 +1000,7 @@ class _CustomerDetailScaffoldState
               SecondaryButton(
                 label: 'Edit',
                 icon: Icons.edit_outlined,
-                onPressed: () => showDialog(
+                onPressed: () => showDialog<void>(
                   context: context,
                   builder: (_) => CustomerFormDialog(customer: customer),
                 ),
@@ -1048,7 +1048,7 @@ class _CustomerDetailScaffoldState
                   color: AppColors.brandAmber,
                 ),
                 tooltip: 'Edit',
-                onPressed: () => showDialog(
+                onPressed: () => showDialog<void>(
                   context: context,
                   builder: (_) => CustomerFormDialog(customer: customer),
                 ),
@@ -1249,7 +1249,7 @@ class _CustomerDetailScaffoldState
                   label: 'Add Site',
                   icon: Icons.add_location_alt_outlined,
                   onPressed: () {
-                    showDialog(
+                    showDialog<void>(
                       context: context,
                       builder: (context) =>
                           CustomerSiteFormDialog(customerId: customer.id),
@@ -1376,7 +1376,7 @@ class _CustomerDetailScaffoldState
                                   color: AppColors.darkTextSecondary,
                                 ),
                                 onPressed: () {
-                                  showDialog(
+                                  showDialog<void>(
                                     context: context,
                                     builder: (context) =>
                                         CustomerSiteFormDialog(
@@ -1457,7 +1457,7 @@ class _CustomerDetailScaffoldState
                   label: 'Add Contact',
                   icon: Icons.person_add_alt_1_outlined,
                   onPressed: () {
-                    showDialog(
+                    showDialog<void>(
                       context: context,
                       builder: (context) =>
                           CustomerContactFormDialog(customerId: customer.id),
@@ -1613,7 +1613,7 @@ class _CustomerDetailScaffoldState
                                   color: AppColors.darkTextSecondary,
                                 ),
                                 onPressed: () {
-                                  showDialog(
+                                  showDialog<void>(
                                     context: context,
                                     builder: (context) =>
                                         CustomerContactFormDialog(
@@ -2073,7 +2073,7 @@ class _CustomerDetailScaffoldState
     final fileUrlController = TextEditingController();
     DocumentType selectedType = DocumentType.gstCertificate;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -2315,7 +2315,7 @@ class _CustomerDetailScaffoldState
 
   Future<void> _showAddNoteDialog(String customerId) async {
     final noteController = TextEditingController();
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) {
         return Dialog(

@@ -15,6 +15,7 @@ import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle_service_
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
@@ -447,7 +448,10 @@ class _VehicleMasterList extends ConsumerWidget {
                 },
               );
             },
-            error: (err, st) => Center(child: Text('Error: $err')),
+            error: (err, st) => const AppErrorWidget(
+              isCompact: true,
+              message: 'Unable to load vehicle list.',
+            ),
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.brandAmber),
             ),
@@ -620,7 +624,11 @@ class _VehicleDetailView extends ConsumerWidget {
     return vehicleAsync.when(
       data: (vehicle) => _VehicleDetailCard(vehicle: vehicle),
       error: (err, st) {
-        final errorWidget = Center(child: Text('Error: $err'));
+        final errorWidget = AppErrorWidget(
+          title: 'Vehicle Unavailable',
+          message: 'Unable to load vehicle details. Please try again.',
+          onRetry: () => ref.refresh(selectedVehicleProvider),
+        );
         return isMobile
             ? Scaffold(
                 appBar: AppBar(
@@ -1327,7 +1335,10 @@ class _ServiceRecordsTab extends ConsumerWidget {
                 },
               );
             },
-            error: (err, st) => Center(child: Text('Error: $err')),
+            error: (err, st) => const AppErrorWidget(
+              isCompact: true,
+              message: 'Unable to load service records.',
+            ),
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.brandAmber),
             ),
@@ -1459,7 +1470,10 @@ class _AssignmentsHistoryTab extends ConsumerWidget {
           },
         );
       },
-      error: (err, st) => Center(child: Text('Error: $err')),
+      error: (err, st) => const AppErrorWidget(
+        isCompact: true,
+        message: 'Unable to load driver assignments.',
+      ),
       loading: () => const Center(
         child: CircularProgressIndicator(color: AppColors.brandAmber),
       ),

@@ -12,6 +12,7 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
@@ -547,7 +548,11 @@ class _LocationDetailDashboard extends ConsumerWidget {
             );
           },
           error: (err, st) {
-            final errWidget = Center(child: Text('Error: $err'));
+            final errWidget = AppErrorWidget(
+              title: 'Location Unavailable',
+              message: 'Unable to load location details. Please try again.',
+              onRetry: () => ref.refresh(selectedStorageLocationProvider),
+            );
             return isMobile
                 ? Scaffold(
                     appBar: AppBar(
@@ -842,7 +847,10 @@ class _StockBalanceCard extends ConsumerWidget {
             ],
           );
         },
-        error: (err, st) => Center(child: Text('Error: $err')),
+        error: (err, st) => const AppErrorWidget(
+          isCompact: true,
+          message: 'Unable to load inventory data.',
+        ),
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.brandAmber),
         ),
@@ -939,7 +947,10 @@ class _MovementsList extends ConsumerWidget {
           },
         );
       },
-      error: (err, st) => Center(child: Text('Error: $err')),
+      error: (err, st) => const AppErrorWidget(
+        isCompact: true,
+        message: 'Unable to load stock movements.',
+      ),
       loading: () => const Center(
         child: CircularProgressIndicator(color: AppColors.brandAmber),
       ),

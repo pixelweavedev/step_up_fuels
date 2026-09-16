@@ -93,20 +93,23 @@ class DangerButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.isLoading = false,
+    this.isExpanded = false,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool isLoading;
+  final bool isExpanded;
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    final button = ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.error,
         foregroundColor: Colors.white,
+        minimumSize: const Size(0, 48),
       ),
       child: isLoading
           ? const SizedBox(
@@ -128,5 +131,9 @@ class DangerButton extends StatelessWidget {
               ],
             ),
     );
+
+    return isExpanded
+        ? SizedBox(width: double.infinity, child: button)
+        : button;
   }
 }

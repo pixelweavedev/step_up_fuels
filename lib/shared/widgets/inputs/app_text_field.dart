@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 /// Standard text input field with consistent styling across the ERP.
@@ -58,10 +59,13 @@ class AppTextField extends StatelessWidget {
   final String? initialValue;
   final bool enabled;
   final TextInputAction? textInputAction;
-  final List<dynamic>? inputFormatters;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       key: key,
       controller: controller,
@@ -81,14 +85,34 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       onEditingComplete: onEditingComplete,
       onFieldSubmitted: onFieldSubmitted,
-      style: TextStyle(fontSize: 14, color: AppColors.darkTextPrimary),
+      inputFormatters: inputFormatters,
+      style:
+          theme.textTheme.bodyMedium?.copyWith(
+            fontSize: 14,
+            color: isDark
+                ? AppColors.darkThemeTextPrimary
+                : AppColors.lightTextPrimary,
+          ) ??
+          TextStyle(
+            fontSize: 14,
+            color: isDark
+                ? AppColors.darkThemeTextPrimary
+                : AppColors.lightTextPrimary,
+          ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         errorText: errorText,
         helperText: helperText,
+        constraints: const BoxConstraints(minHeight: 48),
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, size: 18, color: AppColors.darkTextTertiary)
+            ? Icon(
+                prefixIcon,
+                size: 18,
+                color: isDark
+                    ? AppColors.darkThemeTextTertiary
+                    : AppColors.lightTextTertiary,
+              )
             : null,
         suffixIcon: suffixIcon,
         suffix: suffix,
