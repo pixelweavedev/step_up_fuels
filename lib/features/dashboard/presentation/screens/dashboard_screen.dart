@@ -13,8 +13,10 @@ import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/reports/domain/entities/report_models.dart';
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
 import 'package:step_up_fuels/shared/widgets/cards/stat_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/templates/dashboard_template.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -244,434 +246,513 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildSalesTrendChart() {
-    return Card(
-      color: AppColors.darkSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.darkBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sales Trend (MTD)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkTextPrimary,
-              ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  barGroups: [
-                    _makeGroupData(0, 5000, 4200),
-                    _makeGroupData(1, 7500, 6800),
-                    _makeGroupData(2, 6000, 5000),
-                    _makeGroupData(3, 9000, 8500),
-                    _makeGroupData(4, 11000, 9800),
-                  ],
-                  titlesData: FlTitlesData(
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (val, _) {
-                          const days = [
-                            'Week 1',
-                            'Week 2',
-                            'Week 3',
-                            'Week 4',
-                            'Today',
-                          ];
-                          if (val.toInt() < days.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                days[val.toInt()],
-                                style: TextStyle(
-                                  color: AppColors.darkTextSecondary,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            );
-                          }
-                          return const Text('');
-                        },
-                      ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Sales Trend (MTD)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.lightTextPrimary,
                     ),
-                    leftTitles: const AxisTitles(),
-                    rightTitles: const AxisTitles(),
-                    topTitles: const AxisTitles(),
                   ),
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppColors.brandAmber,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Actual',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.brandNavyMid : const Color(0xFF94A3B8),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Prior',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 170,
+                child: BarChart(
+                  BarChartData(
+                    barGroups: [
+                      _makeGroupData(0, 5000, 4200, isDark),
+                      _makeGroupData(1, 7500, 6800, isDark),
+                      _makeGroupData(2, 6000, 5000, isDark),
+                      _makeGroupData(3, 9000, 8500, isDark),
+                      _makeGroupData(4, 11000, 9800, isDark),
+                    ],
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (val, _) {
+                            const days = ['W1', 'W2', 'W3', 'W4', 'Today'];
+                            if (val.toInt() < days.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Text(
+                                  days[val.toInt()],
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const Text('');
+                          },
+                        ),
+                      ),
+                      leftTitles: const AxisTitles(),
+                      rightTitles: const AxisTitles(),
+                      topTitles: const AxisTitles(),
+                    ),
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  BarChartGroupData _makeGroupData(int x, double y1, double y2) {
+  BarChartGroupData _makeGroupData(int x, double y1, double y2, bool isDark) {
     return BarChartGroupData(
       x: x,
       barRods: [
-        BarChartRodData(toY: y1, color: AppColors.brandAmber, width: 8),
-        BarChartRodData(toY: y2, color: AppColors.info, width: 8),
+        BarChartRodData(
+          toY: y1,
+          color: AppColors.brandAmber,
+          width: 8,
+          borderRadius: BorderRadius.circular(2),
+        ),
+        BarChartRodData(
+          toY: y2,
+          color: isDark ? AppColors.brandNavyMid : const Color(0xFFCBD5E1),
+          width: 8,
+          borderRadius: BorderRadius.circular(2),
+        ),
       ],
     );
   }
 
   Widget _buildRecentInvoices(List<Invoice> invoices) {
-    return Card(
-      color: AppColors.darkSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.darkBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recent Deliveries & Invoices',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkTextPrimary,
-              ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-            const SizedBox(height: 16),
-            if (invoices.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0),
-                child: Center(
-                  child: Text(
-                    'No invoices recorded recently',
-                    style: TextStyle(color: AppColors.darkTextTertiary),
-                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Recent Invoices & Dispatches',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: invoices.length,
-                separatorBuilder: (context, index) =>
-                    Divider(color: AppColors.darkBorder),
-                itemBuilder: (context, index) {
-                  final Invoice inv = invoices[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(
-                      backgroundColor: AppColors.brandNavyLight,
-                      child: Icon(
-                        Icons.receipt_rounded,
-                        color: AppColors.brandAmber,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(
-                      inv.invoiceNumber,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: Text(
-                      DateFormat('dd MMM yyyy').format(inv.invoiceDate),
-                      style: TextStyle(
-                        color: AppColors.darkTextTertiary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    trailing: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '₹${inv.totalAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.brandAmber,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          inv.status.name.toUpperCase(),
-                          style: TextStyle(
-                            color: _getInvoiceStatusColor(inv.status),
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
               ),
-          ],
-        ),
-      ),
+              const SizedBox(height: 12),
+              if (invoices.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Center(
+                    child: Text(
+                      'No invoices recorded recently',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.darkTextTertiary
+                            : AppColors.lightTextTertiary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: invoices.length,
+                  separatorBuilder: (context, index) => Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 1,
+                  ),
+                  itemBuilder: (context, index) {
+                    final Invoice inv = invoices[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  inv.invoiceNumber,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.lightTextPrimary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  DateFormat('dd MMM yyyy').format(inv.invoiceDate),
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.darkTextTertiary
+                                        : AppColors.lightTextTertiary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  color: isDark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.lightTextPrimary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              EntityStatusPresentation.invoiceBadge(inv.status),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
     );
-  }
-
-  Color _getInvoiceStatusColor(InvoiceStatus status) {
-    switch (status) {
-      case InvoiceStatus.draft:
-      case InvoiceStatus.verified:
-        return AppColors.darkTextTertiary;
-      case InvoiceStatus.posted:
-        return AppColors.statusPosted;
-      case InvoiceStatus.paid:
-        return AppColors.success;
-      case InvoiceStatus.partiallyPaid:
-        return AppColors.warningDark;
-      case InvoiceStatus.cancelled:
-        return AppColors.error;
-      default:
-        return AppColors.darkTextSecondary;
-    }
   }
 
   Widget _buildExpenseBreakdownChart(
     AsyncValue<Map<String, double>> expenseAsync,
   ) {
-    return Card(
-      color: AppColors.darkSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.darkBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Expense Breakdown (MTD)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkTextPrimary,
-              ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-            const SizedBox(height: 24),
-            expenseAsync.when(
-              data: (map) {
-                if (map.isEmpty) {
-                  return SizedBox(
-                    height: 180,
-                    child: Center(
-                      child: Text(
-                        'No expenses logged in this period',
-                        style: TextStyle(color: AppColors.darkTextTertiary),
-                      ),
-                    ),
-                  );
-                }
-
-                // Render dynamic PieChart
-                final sections = <PieChartSectionData>[];
-                final colors = [
-                  AppColors.brandAmber,
-                  AppColors.info,
-                  AppColors.success,
-                  AppColors.warningDark,
-                  AppColors.error,
-                  Colors.purpleAccent,
-                ];
-
-                int colorIdx = 0;
-                map.forEach((category, amount) {
-                  sections.add(
-                    PieChartSectionData(
-                      color: colors[colorIdx % colors.length],
-                      value: amount,
-                      title: '${(amount / 1000).toStringAsFixed(1)}k',
-                      radius: 35,
-                      titleStyle: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  );
-                  colorIdx++;
-                });
-
-                return Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: SizedBox(
-                        height: 180,
-                        child: PieChart(
-                          PieChartData(
-                            sections: sections,
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 40,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Expense Breakdown · MTD',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              expenseAsync.when(
+                data: (map) {
+                  if (map.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Center(
+                        child: Text(
+                          'No expenses logged in this period',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.darkTextTertiary
+                                : AppColors.lightTextTertiary,
+                            fontSize: 13,
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...map.keys.take(4).map((cat) {
-                            final idx = map.keys.toList().indexOf(cat);
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    color: colors[idx % colors.length],
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      cat.replaceAll('_', ' '),
-                                      style: TextStyle(
-                                        color: AppColors.darkTextSecondary,
-                                        fontSize: 11,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                    );
+                  }
+
+                  final totalExpense = map.values.fold<double>(0, (s, v) => s + v);
+                  final sortedEntries = map.entries.toList()
+                    ..sort((a, b) => b.value.compareTo(a.value));
+
+                  return Column(
+                    children: sortedEntries.take(5).map((entry) {
+                      final pct = totalExpense > 0 ? (entry.value / totalExpense) : 0.0;
+                      final name = entry.key
+                          .replaceAll('_', ' ')
+                          .split(' ')
+                          .map((w) => w.isNotEmpty
+                              ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}'
+                              : '')
+                          .join(' ');
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    name,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ],
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '₹${NumberFormat('#,##,###').format(entry.value)}  (${(pct * 100).toStringAsFixed(0)}%)',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                    color: isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.lightTextSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: LinearProgressIndicator(
+                                value: pct,
+                                minHeight: 6,
+                                backgroundColor: isDark
+                                    ? AppColors.darkThemeSurface
+                                    : const Color(0xFFE2E8F0),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.brandAmber,
+                                ),
                               ),
-                            );
-                          }),
-                        ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () => const SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.brandAmber,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ),
+                error: (err, _) => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: Text(
+                      'Failed to load expenses',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontSize: 12,
                       ),
                     ),
-                  ],
-                );
-              },
-              loading: () => const SizedBox(
-                height: 180,
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.brandAmber),
-                ),
-              ),
-              error: (err, _) => SizedBox(
-                height: 180,
-                child: Center(
-                  child: Text(
-                    'Error: $err',
-                    style: const TextStyle(color: AppColors.error),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildBowserStockLevels(Map<String, double> bowsers) {
-    return Card(
-      color: AppColors.darkSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.darkBorder),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Bowser Fuel Status',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkTextPrimary,
-              ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-            const SizedBox(height: 16),
-            if (bowsers.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Center(
-                  child: Text(
-                    'No active fuel bowser storage',
-                    style: TextStyle(color: AppColors.darkTextTertiary),
-                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Bowser Fuel Status',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
-              )
-            else
-              ...bowsers.entries.map((entry) {
-                const capacity = 10000.0; // Assume 10KL standard capacity
-                final pct = math.min(1.0, entry.value / capacity);
+              ),
+              const SizedBox(height: 14),
+              if (bowsers.isEmpty)
+                const EmptyStateWidget(
+                  isCompact: true,
+                  icon: Icons.local_gas_station_outlined,
+                  title: 'No Active Bowser Storage',
+                  subtitle: 'Mobile bowser storage units will show live dispatch inventory here.',
+                )
+              else
+                ...bowsers.entries.map((entry) {
+                  const capacity = 10000.0; // Assume 10KL standard capacity
+                  final pct = math.min(1.0, entry.value / capacity);
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            entry.key,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              entry.key,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${entry.value.toStringAsFixed(0)} L (${(pct * 100).toStringAsFixed(0)}%)',
-                            style: TextStyle(
-                              color: pct < 0.15
-                                  ? AppColors.error
-                                  : AppColors.brandAmber,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                            Text(
+                              '${entry.value.toStringAsFixed(0)} L (${(pct * 100).toStringAsFixed(0)}%)',
+                              style: TextStyle(
+                                color: pct < 0.15
+                                    ? AppColors.error
+                                    : (isDark
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.lightTextPrimary),
+                                fontWeight: FontWeight.w600,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: pct,
-                          minHeight: 8,
-                          backgroundColor: AppColors.brandNavyLight,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            pct < 0.15 ? AppColors.error : AppColors.brandAmber,
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: LinearProgressIndicator(
+                            value: pct,
+                            minHeight: 6,
+                            backgroundColor: isDark
+                                ? AppColors.darkThemeSurface
+                                : const Color(0xFFE2E8F0),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              pct < 0.15 ? AppColors.error : AppColors.brandAmber,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-          ],
-        ),
-      ),
+                      ],
+                    ),
+                  );
+                }),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -682,17 +763,21 @@ class DashboardScreen extends ConsumerWidget {
               Text(
                 'Dashboard',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.darkTextPrimary,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
-                'Real-time business performance & logistics insights',
+                'Fuel distribution and inventory metrics',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.darkTextSecondary,
+                  fontSize: 13,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
                 ),
               ),
             ],
@@ -706,8 +791,10 @@ class DashboardScreen extends ConsumerWidget {
               color: AppColors.brandAmber,
             ),
             style: IconButton.styleFrom(
-              backgroundColor: AppColors.darkSurface,
-              side: BorderSide(color: AppColors.darkBorder),
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              side: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
             ),
             onPressed: () =>
                 ref.read(dashboardStatsProvider.notifier).refresh(),
@@ -718,49 +805,105 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildLowStockWarning(List<LowStockAlert> alerts) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: AppColors.error,
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Low Stock Warning (${alerts.length})',
-                style: const TextStyle(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...alerts.map(
-            (a) => Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                '• ${a.locationName} is running low on ${a.productName}. Current: ${a.currentStock.toStringAsFixed(0)} Ltrs (Threshold: ${a.threshold.toStringAsFixed(0)} Ltrs)',
-                style: TextStyle(
-                  color: AppColors.darkTextPrimary,
-                  fontSize: 13,
-                ),
-              ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.error.withValues(alpha: isDark ? 0.4 : 0.25),
             ),
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.error,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Low Stock Alerts · ${alerts.length}',
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...alerts.map((a) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              a.productName,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
+                              ),
+                            ),
+                            Text(
+                              a.locationName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppColors.darkTextTertiary
+                                    : AppColors.lightTextTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${NumberFormat('#,##,###').format(a.currentStock)} L',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.error,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                          Text(
+                            'Threshold: ${NumberFormat('#,##,###').format(a.threshold)} L',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }

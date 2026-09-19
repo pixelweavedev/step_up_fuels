@@ -60,13 +60,6 @@ class StatCard extends StatelessWidget {
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,12 +82,17 @@ class StatCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8), // 8px spacing system
-                  Text(
-                    value,
-                    style: AppTypography.metricValue(context).copyWith(
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.lightTextPrimary,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: AppTypography.metricValue(context).copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary,
+                      ),
                     ),
                   ),
                   if (subtitle != null || trend != null) ...[

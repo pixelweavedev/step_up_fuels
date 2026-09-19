@@ -33,16 +33,12 @@ class CompactStatCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isMobile = context.isMobile;
 
-    final double height = isMobile
-        ? AppMobileTokens.statCardHeight
-        : 104.0; // Restrict height on mobile
-
     final double cardPadding = isMobile ? AppMobileTokens.cardPadding : 16.0;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: height,
+        constraints: BoxConstraints(minHeight: isMobile ? 74.0 : 88.0),
         padding: EdgeInsets.all(cardPadding),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkCard : AppColors.lightCard,
@@ -50,13 +46,6 @@ class CompactStatCard extends StatelessWidget {
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,6 +54,7 @@ class CompactStatCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title.toUpperCase(),
@@ -79,19 +69,22 @@ class CompactStatCard extends StatelessWidget {
                           : AppColors.lightTextSecondary,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: isMobile
-                          ? AppMobileTokens.fontSectionTitle
-                          : AppMobileTokens.fontPageTitle,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.lightTextPrimary,
+                  const SizedBox(height: 3),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: isMobile
+                            ? AppMobileTokens.fontSectionTitle
+                            : AppMobileTokens.fontPageTitle,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary,
+                      ),
                     ),
                   ),
                   if (!isMobile && (subtitle != null || trend != null)) ...[
@@ -146,18 +139,19 @@ class CompactStatCard extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: gradientColors
-                      .map((c) => c.withValues(alpha: 0.15))
-                      .toList(),
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: isDark
+                    ? AppColors.darkThemeSurface
+                    : AppColors.brandNavy.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
               ),
               child: Icon(
                 icon,
-                color: gradientColors.first,
+                color: isDark
+                    ? AppColors.brandAmberLight
+                    : AppColors.brandAmber,
                 size: AppMobileTokens.iconSM,
               ),
             ),

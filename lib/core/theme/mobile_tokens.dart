@@ -14,7 +14,6 @@ class AppMobileTokens {
   static const double pageMargin = 16.0;
 
   // Component Height Bounds (dp)
-  static const double statCardHeight = 80.0;
   static const double maxHeroHeight = 96.0;
 
   // Icon Sizes (dp)

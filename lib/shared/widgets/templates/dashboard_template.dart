@@ -29,17 +29,48 @@ class DashboardTemplate extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = context.isMobile;
 
-    // KPI layout: 2x2 grid on mobile/tablet, 4 columns on desktop
+    // KPI layout: adaptive 2-column or 1-column on mobile, responsive grid on desktop
     Widget kpiSection;
     if (isMobile) {
-      kpiSection = GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: AppMobileTokens.spacingSM,
-        mainAxisSpacing: AppMobileTokens.spacingSM,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 1.8, // Compact height on mobile
-        children: kpis,
+      kpiSection = LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 340;
+          if (isNarrow) {
+            return Column(
+              children: [
+                for (int i = 0; i < kpis.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppMobileTokens.spacingSM),
+                    child: kpis[i],
+                  ),
+              ],
+            );
+          }
+          final rows = <Widget>[];
+          for (int i = 0; i < kpis.length; i += 2) {
+            final hasSecond = i + 1 < kpis.length;
+            rows.add(
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppMobileTokens.spacingSM),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: kpis[i]),
+                    const SizedBox(width: AppMobileTokens.spacingSM),
+                    if (hasSecond)
+                      Expanded(child: kpis[i + 1])
+                    else
+                      const Expanded(child: SizedBox()),
+                  ],
+                ),
+              ),
+            );
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: rows,
+          );
+        },
       );
     } else {
       kpiSection = GridView.count(
@@ -132,10 +163,13 @@ class DashboardTemplate extends StatelessWidget {
           ],
         ),
       ),
-      if (floatingActionButton != null)
-        SliverToBoxAdapter(
-          child: SizedBox(height: MobilePageScaffold.bottomFabSpacing),
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: floatingActionButton != null
+              ? MobilePageScaffold.bottomFabSpacing
+              : 80.0,
         ),
+      ),
     ];
 
     Widget mainContent = CustomScrollView(slivers: slivers);

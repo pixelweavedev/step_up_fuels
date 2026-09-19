@@ -21,6 +21,8 @@ import 'package:step_up_fuels/features/payments/presentation/screens/payments_sc
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
+import 'package:step_up_fuels/shared/widgets/cards/financial_breakdown.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
@@ -267,82 +269,39 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   i.status == InvoiceStatus.overdue,
             )
             .fold<double>(0, (s, i) => s + i.outstanding);
-        final totalRevenue = invoices
-            .where(
-              (i) =>
-                  i.status != InvoiceStatus.cancelled &&
-                  i.status != InvoiceStatus.draft,
-            )
-            .fold<double>(0, (s, i) => s + i.totalAmount);
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _statChip(
-                'Total',
-                total.toString(),
-                Icons.description_outlined,
-                AppColors.brandAmber,
+        return Row(
+          children: [
+            Text(
+              '$total invoices',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkTextSecondary,
               ),
-              const SizedBox(width: 12),
-              _statChip(
-                'Outstanding',
-                '₹${_fmt(outstanding)}',
-                Icons.account_balance_wallet_outlined,
-                AppColors.statusOverdue,
+            ),
+            if (outstanding > 0) ...[
+              Text(
+                '  •  ',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.darkTextTertiary,
+                ),
               ),
-              const SizedBox(width: 12),
-              _statChip(
-                'Revenue',
-                '₹${_fmt(totalRevenue)}',
-                Icons.trending_up_rounded,
-                AppColors.success,
+              Text(
+                '₹${_fmt(outstanding)} outstanding',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.statusOverdue,
+                ),
               ),
             ],
-          ),
+          ],
         );
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _statChip(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: color.withValues(alpha: 0.7),
-                ),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -514,7 +473,6 @@ class _InvoiceListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusColor = _statusColor(invoice.status);
     final isOverdue = !isSelected && invoice.status == InvoiceStatus.overdue;
     final customers = ref.watch(customersListProvider).value ?? [];
     final customer = customers.cast<Customer?>().firstWhere(
@@ -528,7 +486,7 @@ class _InvoiceListTile extends ConsumerWidget {
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         color: isSelected ? AppColors.darkCard : AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isSelected
               ? AppColors.brandAmber.withValues(alpha: 0.6)
@@ -540,22 +498,12 @@ class _InvoiceListTile extends ConsumerWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Status indicator
-              Container(
-                width: 4,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 16),
-
               // Invoice info
               Expanded(
                 child: Column(
@@ -568,28 +516,29 @@ class _InvoiceListTile extends ConsumerWidget {
                             invoice.invoiceNumber,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.darkTextPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        _StatusBadge(invoice.status),
+                        const SizedBox(width: 8),
+                        EntityStatusPresentation.invoiceBadge(invoice.status),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
-                      'Customer: $customerDisplay',
+                      customerDisplay,
                       style: TextStyle(
                         fontSize: 12,
+                        fontWeight: FontWeight.w500,
                         color: AppColors.darkTextSecondary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
-                      'Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}  •  Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}',
+                      '${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}  •  Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}',
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.darkTextTertiary,
@@ -599,31 +548,43 @@ class _InvoiceListTile extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
 
               // Amount
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '₹${_fmt(invoice.totalAmount)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkTextPrimary,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '₹${_fmt(invoice.totalAmount)}',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: AppColors.darkTextPrimary,
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 4),
                   if (invoice.outstanding > 0)
                     Text(
                       'Due: ₹${_fmt(invoice.outstanding)}',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: [FontFeature.tabularFigures()],
                         color: AppColors.statusOverdue,
                       ),
                     )
                   else if (invoice.status == InvoiceStatus.paid)
                     const Text(
-                      'Paid ✓',
-                      style: TextStyle(fontSize: 12, color: AppColors.success),
+                      'Settled ✓',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.success,
+                      ),
                     ),
                 ],
               ),
@@ -758,63 +719,19 @@ class _DetailContent extends ConsumerWidget {
     );
 
     final bodyWidgets = [
-      if (isMobile) ...[
-        _DetailCard(
-          label: 'Subtotal',
-          value: '₹${_fmt(inv.subtotal)}',
-          icon: Icons.summarize_outlined,
-          color: AppColors.info,
-          isFullWidth: true,
-        ),
-        const SizedBox(height: 10),
-        _DetailCard(
-          label: 'GST',
-          value: '₹${_fmt(inv.totalGst)}',
-          icon: Icons.percent_rounded,
-          color: AppColors.brandAmber,
-          isFullWidth: true,
-        ),
-        const SizedBox(height: 10),
-        _DetailCard(
-          label: 'Total',
-          value: '₹${_fmt(inv.totalAmount)}',
-          icon: Icons.account_balance_wallet_outlined,
-          color: AppColors.success,
-          isFullWidth: true,
-        ),
-      ] else
-        Row(
-          children: [
-            _DetailCard(
-              label: 'Subtotal',
-              value: '₹${_fmt(inv.subtotal)}',
-              icon: Icons.summarize_outlined,
-              color: AppColors.info,
-            ),
-            const SizedBox(width: 12),
-            _DetailCard(
-              label: 'GST',
-              value: '₹${_fmt(inv.totalGst)}',
-              icon: Icons.percent_rounded,
-              color: AppColors.brandAmber,
-            ),
-            const SizedBox(width: 12),
-            _DetailCard(
-              label: 'Total',
-              value: '₹${_fmt(inv.totalAmount)}',
-              icon: Icons.account_balance_wallet_outlined,
-              color: AppColors.success,
-            ),
+      FinancialBreakdown(
+        subtotal: inv.subtotal,
+        taxRows: [
+          if (!inv.isInterstate) ...[
+            FinancialTaxLine(label: 'CGST', amount: inv.cgstAmount),
+            FinancialTaxLine(label: 'SGST', amount: inv.sgstAmount),
+          ] else ...[
+            FinancialTaxLine(label: 'IGST', amount: inv.igstAmount),
           ],
-        ),
-      const SizedBox(height: 20),
-
-      if (!inv.isInterstate) ...[
-        _GstBreakdownRow('CGST', inv.cgstAmount),
-        _GstBreakdownRow('SGST', inv.sgstAmount),
-      ] else ...[
-        _GstBreakdownRow('IGST', inv.igstAmount),
-      ],
+        ],
+        total: inv.totalAmount,
+        outstanding: inv.outstanding,
+      ),
 
       const SizedBox(height: 20),
       const _SectionHeader('Invoice Details'),
@@ -1120,7 +1037,7 @@ class _DetailContent extends ConsumerWidget {
       return DetailPageTemplate(
         title: inv.invoiceNumber,
         subtitle: 'Due: ${DateFormat('dd MMM yyyy').format(inv.dueDate)}',
-        statusWidget: _StatusBadge(inv.status),
+        statusWidget: EntityStatusPresentation.invoiceBadge(inv.status),
         onBack: onClose,
         actions: [
           if (inv.status == InvoiceStatus.draft ||
@@ -1274,8 +1191,8 @@ class _DetailContent extends ConsumerWidget {
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  _StatusBadge(inv.status),
+                  const SizedBox(height: 6),
+                  EntityStatusPresentation.invoiceBadge(inv.status),
                 ],
               ),
               const Spacer(),
@@ -2141,32 +2058,6 @@ class _LineItemRowState extends ConsumerState<_LineItemRow> {
 
 // ── Reusable Widgets ──────────────────────────────────────────────────────────
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge(this.status);
-  final InvoiceStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(status);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        status.displayName,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
 class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.icon,
@@ -2190,82 +2081,6 @@ class _ActionButton extends StatelessWidget {
         backgroundColor: color.withValues(alpha: 0.1),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-}
-
-class _DetailCard extends StatelessWidget {
-  const _DetailCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-    this.isFullWidth = false,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-  final bool isFullWidth;
-
-  @override
-  Widget build(BuildContext context) {
-    final container = Container(
-      width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return isFullWidth ? container : Expanded(child: container);
-  }
-}
-
-class _GstBreakdownRow extends StatelessWidget {
-  const _GstBreakdownRow(this.label, this.amount);
-  final String label;
-  final double amount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 13, color: AppColors.darkTextSecondary),
-          ),
-          Text(
-            '₹${_fmt(amount)}',
-            style: TextStyle(fontSize: 13, color: AppColors.darkTextPrimary),
-          ),
-        ],
       ),
     );
   }

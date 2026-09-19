@@ -21,6 +21,8 @@ import 'package:step_up_fuels/features/purchases/presentation/providers/purchase
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
+import 'package:step_up_fuels/shared/widgets/cards/financial_breakdown.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
@@ -273,7 +275,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                       ),
                     ),
                     Text(
-                      'Manage supplier fuel procurements and operational overhead cost logs',
+                      'Fuel procurements and operational expense tracking',
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.darkTextSecondary,
@@ -481,34 +483,21 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        '₹${_fmt(pur.totalAmount)}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkTextPrimary,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _statusColor(
-                            pur.paymentStatus,
-                          ).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
                         child: Text(
-                          pur.paymentStatus,
+                          '₹${_fmt(pur.totalAmount)}',
                           style: TextStyle(
-                            fontSize: 10,
-                            color: _statusColor(pur.paymentStatus),
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: AppColors.darkTextPrimary,
+                            fontSize: 15,
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      EntityStatusPresentation.purchasePaymentBadge(
+                        pur.paymentStatus,
                       ),
                     ],
                   ),
@@ -1087,13 +1076,19 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                         color: AppColors.darkTextPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Vendor Invoice: ${detail.purchase.supplierInvoiceNo}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkTextSecondary,
-                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Text(
+                          'Vendor Invoice: ${detail.purchase.supplierInvoiceNo}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        EntityStatusPresentation.purchasePaymentBadge(detail.purchase.paymentStatus),
+                      ],
                     ),
                   ],
                 ),
@@ -1114,55 +1109,28 @@ class _PurchaseDetailPanel extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (context.isMobile) ...[
-                    _detailCard(
-                      'Subtotal',
-                      '₹${_fmt(detail.purchase.subtotal)}',
-                      Icons.summarize_outlined,
-                      AppColors.info,
-                      isFullWidth: true,
-                    ),
-                    const SizedBox(height: 10),
-                    _detailCard(
-                      'Total Taxes',
-                      '₹${_fmt(detail.purchase.cgstAmount + detail.purchase.sgstAmount + detail.purchase.igstAmount)}',
-                      Icons.percent_rounded,
-                      AppColors.brandAmber,
-                      isFullWidth: true,
-                    ),
-                    const SizedBox(height: 10),
-                    _detailCard(
-                      'Net Payable',
-                      '₹${_fmt(detail.purchase.totalAmount)}',
-                      Icons.account_balance_wallet_outlined,
-                      AppColors.success,
-                      isFullWidth: true,
-                    ),
-                  ] else
-                    Row(
-                      children: [
-                        _detailCard(
-                          'Subtotal',
-                          '₹${_fmt(detail.purchase.subtotal)}',
-                          Icons.summarize_outlined,
-                          AppColors.info,
+                  FinancialBreakdown(
+                    subtotal: detail.purchase.subtotal,
+                    taxRows: [
+                      if (detail.purchase.cgstAmount > 0)
+                        FinancialTaxLine(
+                          label: 'CGST',
+                          amount: detail.purchase.cgstAmount,
                         ),
-                        const SizedBox(width: 12),
-                        _detailCard(
-                          'Total Taxes',
-                          '₹${_fmt(detail.purchase.cgstAmount + detail.purchase.sgstAmount + detail.purchase.igstAmount)}',
-                          Icons.percent_rounded,
-                          AppColors.brandAmber,
+                      if (detail.purchase.sgstAmount > 0)
+                        FinancialTaxLine(
+                          label: 'SGST',
+                          amount: detail.purchase.sgstAmount,
                         ),
-                        const SizedBox(width: 12),
-                        _detailCard(
-                          'Net Payable',
-                          '₹${_fmt(detail.purchase.totalAmount)}',
-                          Icons.account_balance_wallet_outlined,
-                          AppColors.success,
+                      if (detail.purchase.igstAmount > 0)
+                        FinancialTaxLine(
+                          label: 'IGST',
+                          amount: detail.purchase.igstAmount,
                         ),
-                      ],
-                    ),
+                    ],
+                    total: detail.purchase.totalAmount,
+                    totalLabel: 'Net Payable',
+                  ),
                   const SizedBox(height: 20),
                   _sectionHeader('Procurement Information'),
                   const SizedBox(height: 10),
@@ -1270,45 +1238,6 @@ class _PurchaseDetailPanel extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Widget _detailCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color, {
-    bool isFullWidth = false,
-  }) {
-    final container = Container(
-      width: isFullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return isFullWidth ? container : Expanded(child: container);
   }
 
   Widget _sectionHeader(String title) {
@@ -2249,18 +2178,6 @@ class _PurchaseItemDraft {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-Color _statusColor(String status) {
-  switch (status.toUpperCase()) {
-    case 'PAID':
-      return AppColors.success;
-    case 'PARTIALLY_PAID':
-      return AppColors.brandAmber;
-    case 'UNPAID':
-    default:
-      return AppColors.error;
-  }
-}
 
 String _fmt(double v) {
   final f = NumberFormat('#,##,##0.00', 'en_IN');

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:step_up_fuels/core/responsive/adaptive_grid.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
@@ -23,6 +22,7 @@ import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/customer_financial_metrics.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
@@ -557,9 +557,12 @@ class _CustomerMasterList extends ConsumerWidget {
             : AppColors.darkCard,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isDeleted
+          color: isSelected
+              ? AppColors.brandAmber.withValues(alpha: 0.6)
+              : isDeleted
               ? AppColors.error.withValues(alpha: 0.3)
               : AppColors.darkBorder,
+          width: isSelected ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -569,23 +572,11 @@ class _CustomerMasterList extends ConsumerWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: 4,
-                color: isSelected ? AppColors.brandAmber : Colors.transparent,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -654,11 +645,6 @@ class _CustomerMasterList extends ConsumerWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -1289,64 +1275,70 @@ class _CustomerDetailScaffoldState
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
-                        child: Row(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.location_on_rounded,
-                              color: site.isDefault
-                                  ? AppColors.brandAmber
-                                  : AppColors.darkTextSecondary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  color: site.isDefault
+                                      ? AppColors.brandAmber
+                                      : AppColors.darkTextSecondary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        site.name,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkTextPrimary,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              site.name,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.darkTextPrimary,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (site.isDefault) ...[
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.brandAmber
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(
+                                                  4,
+                                                ),
+                                                border: Border.all(
+                                                  color: AppColors.brandAmber
+                                                      .withValues(alpha: 0.3),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                'Default',
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.brandAmber,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                      if (site.isDefault) ...[
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.brandAmber
-                                                .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.brandAmber
-                                                  .withValues(alpha: 0.3),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Default',
-                                            style: TextStyle(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.brandAmber,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    [
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        [
                                           site.addressLine1,
                                           site.addressLine2,
                                           site.city,
@@ -1357,60 +1349,83 @@ class _CustomerDetailScaffoldState
                                             site.state,
                                           site.pincode,
                                         ]
-                                        .where((x) => x != null && x.isNotEmpty)
-                                        .join(', '),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.darkTextSecondary,
-                                      height: 1.4,
-                                    ),
+                                            .where((x) => x != null && x.isNotEmpty)
+                                            .join(', '),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.darkTextSecondary,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                             if (customer.deletedAt == null) ...[
-                              IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  size: 18,
-                                  color: AppColors.darkTextSecondary,
-                                ),
-                                onPressed: () {
-                                  showDialog<void>(
-                                    context: context,
-                                    builder: (context) =>
-                                        CustomerSiteFormDialog(
-                                          customerId: customer.id,
-                                          site: site,
-                                        ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline_rounded,
-                                  size: 18,
-                                  color: AppColors.error,
-                                ),
-                                onPressed: () async {
-                                  final confirmed = await showConfirmDialog(
-                                    context: context,
-                                    title: 'Delete Delivery Site',
-                                    message:
-                                        'Are you sure you want to delete this delivery site?',
-                                    confirmLabel: 'Delete',
-                                    isDangerous: true,
-                                  );
-                                  if (confirmed) {
-                                    final repo = ref.read(
-                                      customerRepositoryProvider,
-                                    );
-                                    await repo.deleteSite(site.id);
-                                    ref.invalidate(
-                                      customerSitesProvider(customer.id),
-                                    );
-                                  }
-                                },
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton.icon(
+                                    icon: Icon(
+                                      Icons.edit_outlined,
+                                      size: 16,
+                                      color: AppColors.darkTextSecondary,
+                                    ),
+                                    label: Text(
+                                      'Edit',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.darkTextSecondary,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      showDialog<void>(
+                                        context: context,
+                                        builder: (context) =>
+                                            CustomerSiteFormDialog(
+                                              customerId: customer.id,
+                                              site: site,
+                                            ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  TextButton.icon(
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 16,
+                                      color: AppColors.error,
+                                    ),
+                                    label: const Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.error,
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      final confirmed = await showConfirmDialog(
+                                        context: context,
+                                        title: 'Delete Delivery Site',
+                                        message:
+                                            'Are you sure you want to delete this delivery site?',
+                                        confirmLabel: 'Delete',
+                                        isDangerous: true,
+                                      );
+                                      if (confirmed) {
+                                        final repo = ref.read(
+                                          customerRepositoryProvider,
+                                        );
+                                        await repo.deleteSite(site.id);
+                                        ref.invalidate(
+                                          customerSitesProvider(customer.id),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ],
@@ -2443,54 +2458,11 @@ class _CustomerDetailScaffoldState
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: AdaptiveGrid.fixed(
-                columns: const {
-                  ScreenType.mobile: 2,
-                  ScreenType.smallTablet: 2,
-                  ScreenType.tablet: 2,
-                  ScreenType.desktop: 4,
-                  ScreenType.wideDesktop: 4,
-                },
-                childAspectRatio: context.responsiveValue(
-                  desktop: 2.3,
-                  tablet: 2.2,
-                  smallTablet: 2.0,
-                  mobile: 1.8,
-                ),
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _KpiCard(
-                    title: 'Total Invoiced',
-                    value:
-                        '₹${NumberUtils.formatCurrency(totalInvoiced).replaceAll('₹', '')}',
-                    icon: Icons.receipt_long_rounded,
-                    color: AppColors.info,
-                  ),
-                  _KpiCard(
-                    title: 'Total Paid',
-                    value:
-                        '₹${NumberUtils.formatCurrency(totalPayments).replaceAll('₹', '')}',
-                    icon: Icons.check_circle_rounded,
-                    color: AppColors.success,
-                  ),
-                  _KpiCard(
-                    title: 'Outstanding',
-                    value:
-                        '₹${NumberUtils.formatCurrency(totalOutstanding).replaceAll('₹', '')}',
-                    icon: Icons.warning_amber_rounded,
-                    color: totalOutstanding > 0
-                        ? AppColors.error
-                        : AppColors.success,
-                  ),
-                  _KpiCard(
-                    title: 'Advance Balance',
-                    value:
-                        '₹${NumberUtils.formatCurrency(advanceBalance).replaceAll('₹', '')}',
-                    icon: Icons.account_balance_wallet_rounded,
-                    color: AppColors.brandAmber,
-                  ),
-                ],
+              child: CustomerFinancialMetrics(
+                totalInvoiced: totalInvoiced,
+                totalPaid: totalPayments,
+                totalOutstanding: totalOutstanding,
+                advanceBalance: advanceBalance,
               ),
             );
           },
@@ -2500,87 +2472,6 @@ class _CustomerDetailScaffoldState
       },
       loading: () => const SizedBox(height: 100),
       error: (_, __) => const SizedBox(),
-    );
-  }
-}
-
-class _KpiCard extends StatelessWidget {
-  const _KpiCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.6,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.lightTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppColors.darkTextPrimary
-                        : AppColors.lightTextPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Icon(
-            icon,
-            color: isDark
-                ? AppColors.darkTextTertiary
-                : AppColors.lightTextTertiary,
-            size: 22,
-          ),
-        ],
-      ),
     );
   }
 }

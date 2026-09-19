@@ -106,7 +106,7 @@ class AppColors {
   // ── Invoice Status Colors ─────────────────────────────────────────────────
   static const Color statusDraft = Color(0xFF6B7280);
   static const Color statusVerified = Color(0xFF2563EB);
-  static const Color statusPosted = Color(0xFF7C3AED);
+  static const Color statusPosted = Color(0xFF334155);
   static const Color statusPaid = Color(0xFF2E7D32);
   static const Color statusPartiallyPaid = Color(0xFFD58B18);
   static const Color statusOverdue = Color(0xFFB3261E);
@@ -126,8 +126,8 @@ class AppColors {
     Color(0xFF1B5E20),
   ];
   static const List<Color> gradientInvoices = [
-    Color(0xFF7C3AED),
-    Color(0xFF5B21B6),
+    Color(0xFFD97706),
+    Color(0xFFB45309),
   ];
 
   // ── Overlay / Scrim ────────────────────────────────────────────────────────

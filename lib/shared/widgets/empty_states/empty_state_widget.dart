@@ -9,53 +9,80 @@ class EmptyStateWidget extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.action,
+    this.isCompact = false,
   });
 
   final IconData icon;
   final String title;
   final String? subtitle;
   final Widget? action;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final boxSize = isCompact ? 40.0 : 56.0;
+    final iconSize = isCompact ? 20.0 : 26.0;
+    final padding = isCompact
+        ? const EdgeInsets.symmetric(horizontal: 16, vertical: 20)
+        : const EdgeInsets.all(32);
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: padding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: boxSize,
+              height: boxSize,
               decoration: BoxDecoration(
-                color: AppColors.darkCard,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.darkBorder),
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
               ),
-              child: Icon(icon, size: 32, color: AppColors.darkTextTertiary),
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.lightTextTertiary,
+              ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: isCompact ? 10 : 16),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: isCompact ? 13 : 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.darkTextPrimary,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
               ),
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.darkTextSecondary,
-                  height: 1.5,
+                  fontSize: isCompact ? 11 : 12,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
+                  height: 1.4,
                 ),
               ),
             ],
-            if (action != null) ...[const SizedBox(height: 24), action!],
+            if (action != null) ...[
+              SizedBox(height: isCompact ? 12 : 20),
+              action!,
+            ],
           ],
         ),
       ),
