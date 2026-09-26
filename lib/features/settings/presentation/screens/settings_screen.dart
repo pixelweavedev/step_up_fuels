@@ -1,1040 +1,652 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:step_up_fuels/app/database/seeds/database_seeder.dart';
-import 'package:step_up_fuels/app/di/injection_container.dart';
-import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
+import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
-import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
-import 'package:step_up_fuels/features/settings/domain/entities/company_profile.dart';
-import 'package:step_up_fuels/features/settings/domain/entities/invoice_settings.dart';
-import 'package:step_up_fuels/features/settings/domain/entities/print_settings.dart';
+import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/features/settings/presentation/providers/settings_provider.dart';
+import 'package:step_up_fuels/features/settings/presentation/views/company_profile_view.dart';
+import 'package:step_up_fuels/features/settings/presentation/views/invoice_settings_view.dart';
+import 'package:step_up_fuels/features/settings/presentation/views/print_settings_view.dart';
+import 'package:step_up_fuels/features/settings/presentation/views/system_maintenance_view.dart';
+import 'package:step_up_fuels/features/settings/presentation/widgets/settings_category_nav_tile.dart';
+import 'package:step_up_fuels/features/settings/presentation/widgets/settings_mobile_tile.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
-import 'package:universal_io/io.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
+/// Provider holding the currently selected settings category index on Desktop/Tablet.
+/// 0: Company Profile, 1: Invoice Configuration, 2: Print Layout, 3: System & Maintenance.
+final selectedSettingsCategoryProvider = StateProvider<int>((ref) => 0);
+
+/// Redesigned Settings Screen.
+///
+/// Features an adaptive responsive layout:
+/// - Desktop / Tablet: Dual-pane master-detail with sleek category sidebar navigation and rich detail cards.
+/// - Mobile: Native grouped settings hub with corporate identity banner, quick theme toggle, and dedicated subpart pages.
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends ConsumerState<SettingsScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final _profileFormKey = GlobalKey<FormState>();
-  final _invoiceFormKey = GlobalKey<FormState>();
-  final _printFormKey = GlobalKey<FormState>();
-
-  // Company Profile Controllers
-  final _companyNameController = TextEditingController();
-  final _gstinController = TextEditingController();
-  final _panController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _bankNameController = TextEditingController();
-  final _bankBranchController = TextEditingController();
-  final _bankAccountController = TextEditingController();
-  final _bankIfscController = TextEditingController();
-
-  // Invoice Controllers
-  final _prefixController = TextEditingController();
-  final _startNumberController = TextEditingController();
-  final _termsController = TextEditingController();
-  final _signatoryController = TextEditingController();
-
-  // Print Controllers
-  String _selectedPaperSize = 'A4';
-  final _marginTopController = TextEditingController();
-  final _marginBottomController = TextEditingController();
-  final _marginLeftController = TextEditingController();
-  final _marginRightController = TextEditingController();
-
-  // Maintenance Controllers
-  final _backupPathController = TextEditingController();
-  final _restorePathController = TextEditingController();
-  String _activeDbLocation = '';
-  bool _isSeeding = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _initializePaths();
-  }
-
-  Future<void> _initializePaths() async {
-    try {
-      final docsDir = await getApplicationDocumentsDirectory();
-      final backupFolder = docsDir.path;
-      final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-
-      setState(() {
-        _activeDbLocation = p.join(
-          docsDir.path,
-          'StepUpFuels',
-          'step_up_fuels.db',
-        );
-        _backupPathController.text = p.join(
-          backupFolder,
-          'step_up_fuels_backup_$dateStr.db',
-        );
-        _restorePathController.text = p.join(
-          backupFolder,
-          'step_up_fuels_backup.db',
-        );
-      });
-    } catch (_) {}
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _companyNameController.dispose();
-    _gstinController.dispose();
-    _panController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    _bankNameController.dispose();
-    _bankBranchController.dispose();
-    _bankAccountController.dispose();
-    _bankIfscController.dispose();
-    _prefixController.dispose();
-    _startNumberController.dispose();
-    _termsController.dispose();
-    _signatoryController.dispose();
-    _marginTopController.dispose();
-    _marginBottomController.dispose();
-    _marginLeftController.dispose();
-    _marginRightController.dispose();
-    _backupPathController.dispose();
-    _restorePathController.dispose();
-    super.dispose();
-  }
-
-  void _populateProfile(CompanyProfile profile) {
-    if (_companyNameController.text.isEmpty && profile.companyName.isNotEmpty) {
-      _companyNameController.text = profile.companyName;
-      _gstinController.text = profile.gstin;
-      _panController.text = profile.pan ?? '';
-      _emailController.text = profile.email;
-      _phoneController.text = profile.phone;
-      _addressController.text = profile.address;
-      _bankNameController.text = profile.bankName;
-      _bankBranchController.text = profile.bankBranch;
-      _bankAccountController.text = profile.bankAccountNo;
-      _bankIfscController.text = profile.bankIfsc;
-    }
-  }
-
-  void _populateInvoiceSettings(InvoiceSettings settings) {
-    if (_prefixController.text.isEmpty) {
-      _prefixController.text = settings.prefix;
-      _startNumberController.text = settings.startingNumber.toString();
-      _termsController.text = settings.termsAndConditions;
-      _signatoryController.text = settings.authorizedSignatoryName;
-    }
-  }
-
-  void _populatePrintSettings(PrintSettings settings) {
-    if (_marginTopController.text.isEmpty) {
-      _selectedPaperSize = settings.paperSize;
-      _marginTopController.text = settings.marginTop.toStringAsFixed(0);
-      _marginBottomController.text = settings.marginBottom.toStringAsFixed(0);
-      _marginLeftController.text = settings.marginLeft.toStringAsFixed(0);
-      _marginRightController.text = settings.marginRight.toStringAsFixed(0);
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_profileFormKey.currentState!.validate()) return;
-
-    final updated = CompanyProfile(
-      companyName: _companyNameController.text.trim(),
-      gstin: _gstinController.text.trim().toUpperCase(),
-      pan: _panController.text.trim().toUpperCase().isEmpty
-          ? null
-          : _panController.text.trim().toUpperCase(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
-      bankName: _bankNameController.text.trim(),
-      bankBranch: _bankBranchController.text.trim(),
-      bankAccountNo: _bankAccountController.text.trim(),
-      bankIfsc: _bankIfscController.text.trim().toUpperCase(),
-    );
-
-    final res = await ref
-        .read(companyProfileProvider.notifier)
-        .saveProfile(updated);
-    _showResultSnackbar(res, 'Company profile saved successfully!');
-  }
-
-  Future<void> _saveInvoiceSettings() async {
-    if (!_invoiceFormKey.currentState!.validate()) return;
-
-    final updated = InvoiceSettings(
-      prefix: _prefixController.text.trim().toUpperCase(),
-      startingNumber: int.parse(_startNumberController.text.trim()),
-      termsAndConditions: _termsController.text.trim(),
-      authorizedSignatoryName: _signatoryController.text.trim(),
-    );
-
-    final res = await ref
-        .read(invoiceSettingsProvider.notifier)
-        .saveSettings(updated);
-    _showResultSnackbar(res, 'Invoice settings saved successfully!');
-  }
-
-  Future<void> _savePrintSettings() async {
-    if (!_printFormKey.currentState!.validate()) return;
-
-    final updated = PrintSettings(
-      paperSize: _selectedPaperSize,
-      marginTop: double.parse(_marginTopController.text.trim()),
-      marginBottom: double.parse(_marginBottomController.text.trim()),
-      marginLeft: double.parse(_marginLeftController.text.trim()),
-      marginRight: double.parse(_marginRightController.text.trim()),
-    );
-
-    final res = await ref
-        .read(printSettingsProvider.notifier)
-        .saveSettings(updated);
-    _showResultSnackbar(res, 'Print layout settings saved successfully!');
-  }
-
-  Future<void> _backupDb() async {
-    final dest = _backupPathController.text.trim();
-    if (dest.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please provide a valid backup path.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    final repo = ref.read(settingsRepositoryProvider);
-    final res = await repo.backupDatabase(dest);
-    _showResultSnackbar(res, 'Database backup created successfully!');
-
-    // Refresh date string for next potential backup
-    await _initializePaths();
-  }
-
-  Future<void> _restoreDb() async {
-    final src = _restorePathController.text.trim();
-    if (src.isEmpty || !File(src).existsSync()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Backup source file does not exist.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    // Confirm restore
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.darkSurface,
-        title: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: AppColors.error),
-            const SizedBox(width: 8),
-            Text(
-              'Confirm Database Restore',
-              style: TextStyle(color: AppColors.darkTextPrimary),
-            ),
-          ],
-        ),
-        content: Text(
-          'Warning: Restoring the database will overwrite all current system data. This action is irreversible. Do you want to continue?',
-          style: TextStyle(color: AppColors.darkTextSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.darkTextSecondary),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Yes, Overwrite Data',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (proceed != true) return;
-
-    final repo = ref.read(settingsRepositoryProvider);
-    final res = await repo.restoreDatabase(src);
-    _showResultSnackbar(
-      res,
-      'Database restored successfully! Please restart the application.',
-    );
-  }
-
-  Future<void> _seedDemoData() async {
-    setState(() => _isSeeding = true);
-    try {
-      final db = ref.read(databaseProvider);
-      final seeder = DatabaseSeeder(db);
-      final counts = await seeder.seedAll();
-      final totalRows = counts.values.fold<int>(0, (sum, c) => sum + c);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Successfully seeded $totalRows demo records across ${counts.length} tables!',
-          ),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to seed demo data: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isSeeding = false);
-      }
-    }
-  }
-
-  void _showResultSnackbar(Result<dynamic> result, String successMsg) {
-    if (!mounted) return;
-    if (result.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successMsg), backgroundColor: AppColors.success),
-      );
-    } else {
-      final msg = result.failureOrNull?.message ?? 'An error occurred';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: AppColors.error),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(themeModeProvider);
-    final profileAsync = ref.watch(companyProfileProvider);
-    final invoiceAsync = ref.watch(invoiceSettingsProvider);
-    final printAsync = ref.watch(printSettingsProvider);
+    final isMobile = context.isMobile;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedCategory = ref.watch(selectedSettingsCategoryProvider);
 
-    profileAsync.whenData(_populateProfile);
-    invoiceAsync.whenData(_populateInvoiceSettings);
-    printAsync.whenData(_populatePrintSettings);
+    if (isMobile) {
+      return _buildMobileSettings(context, ref, isDark);
+    }
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
-      appBar: AppBar(
-        backgroundColor: AppColors.brandNavy,
-        elevation: 0,
-        title: const Text(
-          'System Settings',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          labelColor: AppColors.brandAmber,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: AppColors.brandAmber,
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(icon: Icon(Icons.business_rounded), text: 'Company Profile'),
-            Tab(
-              icon: Icon(Icons.receipt_long_rounded),
-              text: 'Invoice Configuration',
-            ),
-            Tab(icon: Icon(Icons.print_rounded), text: 'Print Layout'),
-            Tab(
-              icon: Icon(Icons.settings_suggest_rounded),
-              text: 'System & Maintenance',
-            ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // 1. Company Profile
-          profileAsync.when(
-            data: (_) => _buildProfileTab(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-            error: (e, _) => Center(
-              child: Text(
-                'Error: $e',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-
-          // 2. Invoice Config
-          invoiceAsync.when(
-            data: (_) => _buildInvoiceTab(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-            error: (e, _) => Center(
-              child: Text(
-                'Error: $e',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-
-          // 3. Print Layout
-          printAsync.when(
-            data: (_) => _buildPrintTab(),
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-            error: (e, _) => Center(
-              child: Text(
-                'Error: $e',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-
-          // 4. System Maintenance
-          _buildMaintenanceTab(),
-        ],
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
+      body: AdaptiveMasterDetail(
+        masterWidth: AppDimensions.masterListWidth(context).clamp(280.0, 340.0),
+        hasSelection: true,
+        dividerColor: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        master: _buildDesktopMasterList(context, ref, selectedCategory, isDark),
+        detail: _buildDetailView(selectedCategory),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AppColors.brandAmber),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
+  // ── Desktop Master List ───────────────────────────────────────────────────
 
-  Widget _buildSaveButton({
-    required VoidCallback onPressed,
-    required String label,
-    required IconData icon,
-  }) {
-    final btn = ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.brandAmber,
-        foregroundColor: AppColors.darkBackground,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 14,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-      ),
-    );
+  Widget _buildDesktopMasterList(
+    BuildContext context,
+    WidgetRef ref,
+    int selectedIndex,
+    bool isDark,
+  ) {
+    final textPrimary = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.lightTextPrimary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+    final surfaceBg = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final mode = ref.watch(themeModeProvider);
 
-    if (context.isMobile) {
-      return SizedBox(
-        width: double.infinity,
-        height: 48,
-        child: btn,
-      );
-    }
-
-    return Align(
-      alignment: Alignment.centerRight,
-      child: btn,
-    );
-  }
-
-  Widget _buildProfileTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
-      child: Form(
-        key: _profileFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Company Legal Details', Icons.domain_rounded),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Company Name',
-                  controller: _companyNameController,
-                  validator: (v) => v!.isEmpty ? 'Name required' : null,
-                ),
-                _buildTextField(
-                  label: 'GSTIN',
-                  controller: _gstinController,
-                  validator: (v) {
-                    if (v!.isEmpty) return 'GSTIN required';
-                    final reg = RegExp(
-                      r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
-                    );
-                    if (!reg.hasMatch(v.toUpperCase())) {
-                      return 'Invalid GSTIN format';
-                    }
-                    return null;
-                  },
-                ),
-                _buildTextField(
-                  label: 'PAN (Optional)',
-                  controller: _panController,
-                  validator: (v) {
-                    if (v != null && v.isNotEmpty) {
-                      final reg = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$');
-                      if (!reg.hasMatch(v.toUpperCase())) {
-                        return 'Invalid PAN';
-                      }
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Email Address',
-                  controller: _emailController,
-                  validator: (v) => !v!.contains('@') ? 'Invalid email' : null,
-                ),
-                _buildTextField(
-                  label: 'Contact Phone',
-                  controller: _phoneController,
-                  validator: (v) => v!.length < 10 ? 'Invalid phone' : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              label: 'Office Registered Address',
-              controller: _addressController,
-              maxLines: 2,
-              validator: (v) => v!.isEmpty ? 'Address required' : null,
-            ),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-              'Bank Account Configurations',
-              Icons.account_balance_rounded,
-            ),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Bank Name',
-                  controller: _bankNameController,
-                  validator: (v) => v!.isEmpty ? 'Bank required' : null,
-                ),
-                _buildTextField(
-                  label: 'Branch Name',
-                  controller: _bankBranchController,
-                  validator: (v) => v!.isEmpty ? 'Branch required' : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Bank Account Number',
-                  controller: _bankAccountController,
-                  validator: (v) =>
-                      v!.isEmpty ? 'Account number required' : null,
-                ),
-                _buildTextField(
-                  label: 'IFSC Code',
-                  controller: _bankIfscController,
-                  validator: (v) {
-                    if (v!.isEmpty) return 'IFSC required';
-                    final reg = RegExp(r'^[A-Z]{4}0[A-Z0-9]{6}$');
-                    if (!reg.hasMatch(v.toUpperCase())) {
-                      return 'Invalid IFSC code';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            _buildSaveButton(
-              onPressed: _saveProfile,
-              label: 'Save Profile Details',
-              icon: Icons.save_rounded,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInvoiceTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
-      child: Form(
-        key: _invoiceFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(
-              'Invoice Numbering Configurations',
-              Icons.format_list_numbered_rounded,
-            ),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Invoice Prefix',
-                  controller: _prefixController,
-                  validator: (v) => v!.isEmpty ? 'Prefix required' : null,
-                ),
-                _buildTextField(
-                  label: 'Starting Sequence Number',
-                  controller: _startNumberController,
-                  validator: (v) {
-                    if (v!.isEmpty) return 'Number required';
-                    if (int.tryParse(v) == null) return 'Must be digits';
-                    return null;
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              label: 'Authorized Signatory Name',
-              controller: _signatoryController,
-              validator: (v) => v!.isEmpty ? 'Signatory name required' : null,
-            ),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-              'Default Invoice Terms & Notes',
-              Icons.gavel_rounded,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              label: 'Terms and Conditions',
-              controller: _termsController,
-              maxLines: 5,
-              validator: (v) => v!.isEmpty ? 'Terms required' : null,
-            ),
-            const SizedBox(height: 32),
-            _buildSaveButton(
-              onPressed: _saveInvoiceSettings,
-              label: 'Save Invoice Rules',
-              icon: Icons.save_rounded,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrintTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
-      child: Form(
-        key: _printFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(
-              'Document Margins & Print Layout',
-              Icons.photo_size_select_large_rounded,
-            ),
-            const SizedBox(height: 24),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: 'Default Paper Size',
-                labelStyle: TextStyle(color: AppColors.darkTextSecondary),
-                filled: true,
-                fillColor: AppColors.darkSurface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.darkBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.brandAmber,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              dropdownColor: AppColors.darkSurface,
-              style: const TextStyle(color: Colors.white),
-              initialValue: _selectedPaperSize,
-              items: const [
-                DropdownMenuItem(value: 'A4', child: Text('A4 (Standard)')),
-                DropdownMenuItem(value: 'LETTER', child: Text('Letter')),
-              ],
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedPaperSize = val;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Page Margins (in Pixels/Points)',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            AdaptiveFormRow(
-              children: [
-                _buildTextField(
-                  label: 'Margin Top',
-                  controller: _marginTopController,
-                  validator: (v) => double.tryParse(v ?? '') == null
-                      ? 'Must be double'
-                      : null,
-                ),
-                _buildTextField(
-                  label: 'Margin Bottom',
-                  controller: _marginBottomController,
-                  validator: (v) => double.tryParse(v ?? '') == null
-                      ? 'Must be double'
-                      : null,
-                ),
-                _buildTextField(
-                  label: 'Margin Left',
-                  controller: _marginLeftController,
-                  validator: (v) => double.tryParse(v ?? '') == null
-                      ? 'Must be double'
-                      : null,
-                ),
-                _buildTextField(
-                  label: 'Margin Right',
-                  controller: _marginRightController,
-                  validator: (v) => double.tryParse(v ?? '') == null
-                      ? 'Must be double'
-                      : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            _buildSaveButton(
-              onPressed: _savePrintSettings,
-              label: 'Save Print Layout',
-              icon: Icons.save_rounded,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMaintenanceTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
+    return Container(
+      color: surfaceBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Theme Configuration', Icons.palette_rounded),
-          const SizedBox(height: 16),
-          Card(
-            color: AppColors.darkSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: AppColors.darkBorder),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.brandAmber,
+                            AppColors.brandAmberDark,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.tune_rounded,
+                        color: AppColors.brandNavy,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                        color: textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Manage organization profile, invoice parameters, printing formats, and storage maintenance.',
+                  style: TextStyle(fontSize: 12, color: textSecondary),
+                ),
+              ],
             ),
-            child: const ThemeModeTile(),
           ),
-          const SizedBox(height: 32),
-          _buildSectionHeader(
-            'Database Maintenance & Lifecycle',
-            Icons.dns_rounded,
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
           ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: 'Active SQL Database File Location',
-            controller: TextEditingController(text: _activeDbLocation),
-            readOnly: true,
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
-          // Demo Data Seeder Card
-          Card(
-            color: AppColors.darkSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: AppColors.brandAmber.withValues(alpha: 0.5),
-              ),
+          // Categories List
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                SettingsCategoryNavTile(
+                  title: 'Company Profile',
+                  subtitle: 'Legal details, GSTIN & bank',
+                  icon: Icons.business_rounded,
+                  accentColor: AppColors.brandAmber,
+                  isSelected: selectedIndex == 0,
+                  onTap: () =>
+                      ref
+                              .read(selectedSettingsCategoryProvider.notifier)
+                              .state =
+                          0,
+                ),
+                SettingsCategoryNavTile(
+                  title: 'Invoice Configuration',
+                  subtitle: 'Prefix, numbering & terms',
+                  icon: Icons.receipt_long_rounded,
+                  accentColor: const Color(0xFF6366F1),
+                  isSelected: selectedIndex == 1,
+                  onTap: () =>
+                      ref
+                              .read(selectedSettingsCategoryProvider.notifier)
+                              .state =
+                          1,
+                ),
+                SettingsCategoryNavTile(
+                  title: 'Print Layout',
+                  subtitle: 'Margins & document format',
+                  icon: Icons.print_rounded,
+                  accentColor: const Color(0xFF8B5CF6),
+                  isSelected: selectedIndex == 2,
+                  onTap: () =>
+                      ref
+                              .read(selectedSettingsCategoryProvider.notifier)
+                              .state =
+                          2,
+                ),
+                SettingsCategoryNavTile(
+                  title: 'System & Maintenance',
+                  subtitle: 'Theme, diagnostics & backups',
+                  icon: Icons.settings_suggest_rounded,
+                  accentColor: const Color(0xFF10B981),
+                  isSelected: selectedIndex == 3,
+                  onTap: () =>
+                      ref
+                              .read(selectedSettingsCategoryProvider.notifier)
+                              .state =
+                          3,
+                ),
+              ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.auto_awesome_rounded,
-                        color: AppColors.brandAmber,
+          ),
+
+          // Bottom Quick Theme & Version Footer
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      mode == ThemeMode.dark
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded,
+                      size: 16,
+                      color: AppColors.brandAmber,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      mode == ThemeMode.dark ? 'Dark Mode' : 'Light Mode',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton(
+                  icon: Icon(
+                    mode == ThemeMode.dark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    size: 18,
+                    color: textSecondary,
+                  ),
+                  tooltip: 'Toggle Theme',
+                  onPressed: () => ref.toggleTheme(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Desktop Detail View ───────────────────────────────────────────────────
+
+  Widget _buildDetailView(int selectedIndex) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: KeyedSubtree(
+        key: ValueKey<int>(selectedIndex),
+        child: switch (selectedIndex) {
+          0 => const CompanyProfileView(),
+          1 => const InvoiceSettingsView(),
+          2 => const PrintSettingsView(),
+          _ => const SystemMaintenanceView(),
+        },
+      ),
+    );
+  }
+
+  // ── Mobile Settings Hub ───────────────────────────────────────────────────
+
+  Widget _buildMobileSettings(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
+    final textPrimary = isDark
+        ? AppColors.darkTextPrimary
+        : AppColors.lightTextPrimary;
+    final textSecondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+    final cardBg = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final mode = ref.watch(themeModeProvider);
+
+    final profileAsync = ref.watch(companyProfileProvider);
+    final companyName = profileAsync.valueOrNull?.companyName.isNotEmpty == true
+        ? profileAsync.valueOrNull!.companyName
+        : 'Step Up Fuels & Logistics';
+    final gstin = profileAsync.valueOrNull?.gstin.isNotEmpty == true
+        ? profileAsync.valueOrNull!.gstin
+        : 'GSTIN Pending';
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // Mobile App Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.brandAmber,
+                            AppColors.brandAmberDark,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.settings_suggest_rounded,
+                        color: AppColors.brandNavy,
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                            color: textPrimary,
+                          ),
+                        ),
+                        Text(
+                          'System & Operations Config',
+                          style: TextStyle(fontSize: 12, color: textSecondary),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Hero Profile Card
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Material(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(AppMobileTokens.radiusLG),
+                  child: InkWell(
+                    onTap: () => _navigateToSubpart(
+                      context,
+                      const CompanyProfileView(isStandaloneScreen: true),
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      AppMobileTokens.radiusLG,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          AppMobileTokens.radiusLG,
+                        ),
+                        border: Border.all(
+                          color: AppColors.brandAmber.withValues(
+                            alpha: isDark ? 0.35 : 0.25,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  AppColors.brandAmber,
+                                  AppColors.brandAmberDark,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.business_rounded,
+                                color: AppColors.brandNavy,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  companyName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  gstin,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.brandAmber,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 22,
+                            color: isDark ? Colors.white38 : Colors.black38,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Section 1: Business Operations
+            SliverToBoxAdapter(
+              child: _buildSectionLabel('BUSINESS & INVOICING', textSecondary),
+            ),
+            SliverToBoxAdapter(
+              child: _buildGroupedCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  SettingsMobileTile(
+                    title: 'Company Profile',
+                    subtitle: 'Legal address, GSTIN, PAN & bank account',
+                    icon: Icons.apartment_rounded,
+                    iconColor: AppColors.brandAmber,
+                    iconBgColor: AppColors.brandAmber.withValues(
+                      alpha: isDark ? 0.15 : 0.1,
+                    ),
+                    onTap: () => _navigateToSubpart(
+                      context,
+                      const CompanyProfileView(isStandaloneScreen: true),
+                    ),
+                  ),
+                  _buildCardDivider(borderColor),
+                  SettingsMobileTile(
+                    title: 'Invoice Configuration',
+                    subtitle: 'Prefix series, sequence starting number & terms',
+                    icon: Icons.receipt_long_rounded,
+                    iconColor: const Color(0xFF6366F1),
+                    iconBgColor: const Color(
+                      0xFF6366F1,
+                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    onTap: () => _navigateToSubpart(
+                      context,
+                      const InvoiceSettingsView(isStandaloneScreen: true),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Section 2: Layout & Hardware
+            SliverToBoxAdapter(
+              child: _buildSectionLabel('DOCUMENT PRINTING', textSecondary),
+            ),
+            SliverToBoxAdapter(
+              child: _buildGroupedCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  SettingsMobileTile(
+                    title: 'Print Layout & Margins',
+                    subtitle:
+                        'A4 / Letter formats, live preview & page padding',
+                    icon: Icons.print_rounded,
+                    iconColor: const Color(0xFF8B5CF6),
+                    iconBgColor: const Color(
+                      0xFF8B5CF6,
+                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    onTap: () => _navigateToSubpart(
+                      context,
+                      const PrintSettingsView(isStandaloneScreen: true),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Section 3: System & Storage
+            SliverToBoxAdapter(
+              child: _buildSectionLabel('SYSTEM & STORAGE', textSecondary),
+            ),
+            SliverToBoxAdapter(
+              child: _buildGroupedCard(
+                cardBg: cardBg,
+                borderColor: borderColor,
+                isDark: isDark,
+                children: [
+                  SettingsMobileTile(
+                    title: 'Theme & Appearance',
+                    subtitle: mode == ThemeMode.dark
+                        ? 'Industrial Dark'
+                        : 'Sandstone Light',
+                    icon: Icons.palette_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    iconBgColor: const Color(
+                      0xFFF59E0B,
+                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    showChevron: false,
+                    trailingWidget: Switch(
+                      value: mode == ThemeMode.dark,
+                      activeThumbColor: AppColors.brandAmber,
+                      onChanged: (_) => ref.toggleTheme(),
+                    ),
+                    onTap: () => ref.toggleTheme(),
+                  ),
+                  _buildCardDivider(borderColor),
+                  SettingsMobileTile(
+                    title: 'System & Maintenance',
+                    subtitle: 'Database diagnostics, seed demo data & backups',
+                    icon: Icons.dns_rounded,
+                    iconColor: const Color(0xFF10B981),
+                    iconBgColor: const Color(
+                      0xFF10B981,
+                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    onTap: () => _navigateToSubpart(
+                      context,
+                      const SystemMaintenanceView(isStandaloneScreen: true),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Section 4: About ERP & Footer
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkSurface
+                              : const Color(0xFFEBE6DC),
+                          borderRadius: BorderRadius.circular(
+                            AppMobileTokens.radiusPill,
+                          ),
+                        ),
+                        child: Text(
+                          'Step Up Fuels ERP • v1.0.0 (Build 2627)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
                       Text(
-                        'Seed Demo ERP Dataset',
+                        'Offline-First Local SQLite Storage • High Precision ERP',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.brandAmber,
-                          fontSize: 15,
+                          fontSize: 11,
+                          color: textSecondary.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Populates a fully reconciled, realistic demo dataset: 8 active customers, 10 delivery challans, 12 invoices, purchases, payments, 58 balanced ledger entries, and 54,300 L inventory across all locations.',
-                    style: TextStyle(
-                      color: AppColors.darkTextSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: context.isMobile ? double.infinity : null,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandAmber,
-                        foregroundColor: AppColors.darkBackground,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _isSeeding ? null : _seedDemoData,
-                      icon: _isSeeding
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.black,
-                              ),
-                            )
-                          : const Icon(Icons.dataset_linked_rounded),
-                      label: Text(
-                        _isSeeding
-                            ? 'Seeding Demo Data...'
-                            : 'Seed Realistic Demo Data',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-
-          // Backup Card
-          Card(
-            color: AppColors.darkSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: AppColors.darkBorder),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Create System Backup',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Exports a standalone SQLite database backup file that can be restored on any terminal.',
-                    style: TextStyle(
-                      color: AppColors.darkTextSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Target Backup File Path',
-                    controller: _backupPathController,
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: context.isMobile ? double.infinity : null,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandAmber,
-                        foregroundColor: AppColors.darkBackground,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _backupDb,
-                      icon: const Icon(Icons.backup_rounded),
-                      label: const Text(
-                        'Export Backup File',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Restore Card
-          Card(
-            color: AppColors.darkSurface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: AppColors.darkBorder),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Restore Database from Backup',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Restores the database state from a backup file. All current customer balances, inventory counts, and sales logs will be replaced.',
-                    style: TextStyle(
-                      color: AppColors.darkTextSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Source Backup File Path',
-                    controller: _restorePathController,
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: context.isMobile ? double.infinity : null,
-                    height: 48,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _restoreDb,
-                      icon: const Icon(Icons.restore_rounded),
-                      label: const Text(
-                        'Restore System Database',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    String? Function(String?)? validator,
-    int maxLines = 1,
-    bool readOnly = false,
-  }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      maxLines: maxLines,
-      readOnly: readOnly,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: AppColors.darkTextSecondary),
-        filled: true,
-        fillColor: readOnly
-            ? AppColors.darkSurface.withValues(alpha: 0.5)
-            : AppColors.darkSurface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.darkBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.brandAmber, width: 1.5),
+  void _navigateToSubpart(BuildContext context, Widget screen) {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+  }
+
+  Widget _buildSectionLabel(String title, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.1,
+          color: textColor,
         ),
       ),
+    );
+  }
+
+  Widget _buildGroupedCard({
+    required Color cardBg,
+    required Color borderColor,
+    required bool isDark,
+    required List<Widget> children,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(AppMobileTokens.radiusLG),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: children),
+      ),
+    );
+  }
+
+  Widget _buildCardDivider(Color borderColor) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: 56,
+      color: borderColor.withValues(alpha: 0.7),
     );
   }
 }
