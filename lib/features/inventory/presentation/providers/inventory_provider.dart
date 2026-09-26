@@ -11,6 +11,8 @@ import 'package:step_up_fuels/features/inventory/domain/entities/storage_locatio
 import 'package:step_up_fuels/shared/providers/provider_invalidator.dart';
 
 final selectedStorageLocationIdProvider = StateProvider<String?>((ref) => null);
+final inventorySearchQueryProvider = StateProvider<String>((ref) => '');
+final inventoryTypeFilterProvider = StateProvider<StorageLocationType?>((ref) => null);
 
 final storageLocationsProvider =
     AsyncNotifierProvider<StorageLocationsNotifier, List<StorageLocation>>(

@@ -9,13 +9,11 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
-import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class ProductsScreen extends ConsumerWidget {
@@ -69,113 +67,12 @@ class _ProductMasterList extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return ListPageTemplate(
-        title: 'Products',
-        searchWidget: AppTextField(
-          hint: 'Search code or name...',
-          prefixIcon: Icons.search_rounded,
-          onChanged: (val) {
-            ref.read(productSearchQueryProvider.notifier).state = val;
-          },
-        ),
-        filterWidget: ResponsiveSection(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Show Inactive/Deleted:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.darkTextSecondary,
-                  ),
-                ),
-                Switch(
-                  value: statusFilter == null || statusFilter == false,
-                  activeThumbColor: AppColors.brandAmber,
-                  onChanged: (val) {
-                    ref.read(productStatusFilterProvider.notifier).state = val
-                        ? null
-                        : true;
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: AppColors.brandAmber,
-            ),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) => const ProductFormDialog(),
-              );
-            },
-            tooltip: 'Add New Product',
-          ),
-        ],
-        body: productsAsync.when(
-          data: (list) {
-            if (list.isEmpty) {
-              return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: EmptyStateWidget(
-                    icon: Icons.inventory_2_outlined,
-                    title: 'No Products Found',
-                    subtitle: 'Add a new product to configure HSN/GST rates.',
-                  ),
-                ),
-              );
-            }
-            return SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final product = list[index];
-                final isSelected = product.id == selectedId;
-                final isDeleted = product.deletedAt != null;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: InkWell(
-                    onTap: () {
-                      ref.read(selectedProductIdProvider.notifier).state =
-                          product.id;
-                      if (onMobileTap != null) {
-                        onMobileTap!(product);
-                      }
-                    },
-                    child: _buildProductCard(
-                      context,
-                      product,
-                      isSelected,
-                      isDeleted,
-                    ),
-                  ),
-                );
-              }, childCount: list.length),
-            );
-          },
-          loading: () => const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-          ),
-          error: (err, st) => SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Text(
-                'Error: $err',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-        ),
-        isSliver: true,
+      return _buildMobileProductList(
+        context,
+        ref,
+        productsAsync,
+        statusFilter,
+        selectedId,
       );
     }
 
@@ -395,90 +292,354 @@ class _ProductMasterList extends ConsumerWidget {
     );
   }
 
-  Widget _buildProductCard(
+  Widget _buildMobileProductList(
     BuildContext context,
-    Product product,
-    bool isSelected,
-    bool isDeleted,
+    WidgetRef ref,
+    AsyncValue<List<Product>> productsAsync,
+    bool? statusFilter,
+    String? selectedId,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.darkSurface : AppColors.darkCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isSelected
-              ? AppColors.brandAmber
-              : (isDeleted
-                    ? AppColors.error.withValues(alpha: 0.3)
-                    : AppColors.darkBorder),
-          width: isSelected ? 1.5 : 1.0,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: Colors.black,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(
+          'New Product',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        onPressed: () {
+          showDialog<void>(
+            context: context,
+            builder: (context) => const ProductFormDialog(),
+          );
+        },
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.brandNavyLight,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  product.productCode,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.brandAmber,
-                  ),
-                ),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Sticky Mobile Search
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              child: AppTextField(
+                hint: 'Search code or name...',
+                prefixIcon: Icons.search_rounded,
+                showClearButton: true,
+                onChanged: (val) {
+                  ref.read(productSearchQueryProvider.notifier).state = val;
+                },
+                onClear: () {
+                  ref.read(productSearchQueryProvider.notifier).state = '';
+                },
               ),
-              Text(
-                'GST: ${(product.gstRate * 100).toInt()}%',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.darkTextSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            product.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkTextPrimary,
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'HSN: ${product.hsnCode}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.darkTextTertiary,
+
+            // Summary Metrics & Filter Bar
+            productsAsync.maybeWhen(
+              data: (list) {
+                final total = list.length;
+                final active = list.where((p) => p.deletedAt == null).length;
+                final inactive = total - active;
+
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.lightSurface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                                : AppColors.lightBorder,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'CATALOGUE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$total Products',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ACTIVE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$active Items',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'INACTIVE',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$inactive Items',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? AppColors.darkTextSecondary
+                                          : AppColors.lightTextSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Show Inactive / Archived',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.lightTextSecondary,
+                            ),
+                          ),
+                          Switch(
+                            value:
+                                statusFilter == null || statusFilter == false,
+                            activeThumbColor: AppColors.brandAmber,
+                            onChanged: (val) {
+                              ref
+                                  .read(productStatusFilterProvider.notifier)
+                                  .state = val ? null : true;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+
+            // Products List
+            Expanded(
+              child: productsAsync.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return const Center(
+                      child: EmptyStateWidget(
+                        icon: Icons.inventory_2_outlined,
+                        title: 'No Products Found',
+                        subtitle:
+                            'Add a new product or check your filter search.',
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      final product = list[index];
+                      final isDeleted = product.deletedAt != null;
+                      final priceText = product.currentSellingPrice != null
+                          ? '₹${product.currentSellingPrice!.toStringAsFixed(2)}'
+                          : 'Not set';
+
+                      return MobileCard(
+                        title: product.name,
+                        subtitle:
+                            'Code: ${product.productCode} • HSN: ${product.hsnCode}',
+                        statusBadge: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDeleted
+                                ? AppColors.error.withValues(alpha: 0.15)
+                                : AppColors.success.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            isDeleted ? 'ARCHIVED' : 'ACTIVE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isDeleted
+                                  ? AppColors.error
+                                  : AppColors.success,
+                            ),
+                          ),
+                        ),
+                        heroMetric: priceText,
+                        heroLabel: '/ ${product.unitOfMeasure}',
+                        attributes: [
+                          MobileCardAttribute(
+                            label: 'GST Rate',
+                            value: '${(product.gstRate * 100).toInt()}%',
+                          ),
+                          MobileCardAttribute(
+                            label: 'CGST / SGST',
+                            value:
+                                '${(product.cgstRate * 100).toInt()}% / ${(product.sgstRate * 100).toInt()}%',
+                          ),
+                          MobileCardAttribute(
+                            label: 'Base Unit',
+                            value: product.unitOfMeasure,
+                          ),
+                        ],
+                        onTap: () {
+                          ref.read(selectedProductIdProvider.notifier).state =
+                              product.id;
+                          if (onMobileTap != null) {
+                            onMobileTap!(product);
+                          }
+                        },
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
                 ),
-              ),
-              if (product.currentSellingPrice != null)
-                Text(
-                  '₹${product.currentSellingPrice!.toStringAsFixed(2)} / ${product.unitOfMeasure}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.darkTextPrimary,
+                error: (err, _) => Center(
+                  child: AppErrorWidget(
+                    title: 'Failed to load products',
+                    message: err.toString(),
                   ),
                 ),
-            ],
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -563,56 +724,11 @@ class _ProductDetailCard extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return DetailPageTemplate(
-        title: product.name,
-        subtitle:
-            'Code: ${product.productCode} • Unit: ${product.unitOfMeasure}',
-        actions: !isDeleted
-            ? [
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.brandAmber,
-                  ),
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) => ProductFormDialog(product: product),
-                    );
-                  },
-                ),
-              ]
-            : null,
-        sections: [
-          _buildInfoTile('HSN Code', product.hsnCode, Icons.tag),
-          _buildInfoTile(
-            'GST Rate',
-            '${(product.gstRate * 100).toInt()}%',
-            Icons.percent,
-          ),
-          _buildInfoTile(
-            'CGST Rate',
-            '${(product.cgstRate * 100).toInt()}%',
-            Icons.arrow_downward,
-          ),
-          _buildInfoTile(
-            'SGST Rate',
-            '${(product.sgstRate * 100).toInt()}%',
-            Icons.arrow_downward,
-          ),
-          _buildInfoTile(
-            'IGST Rate',
-            '${(product.igstRate * 100).toInt()}%',
-            Icons.arrow_upward,
-          ),
-          _buildInfoTile(
-            'Current Selling Price',
-            product.currentSellingPrice != null
-                ? '₹${product.currentSellingPrice!.toStringAsFixed(2)} / ${product.unitOfMeasure}'
-                : 'Not configured',
-            Icons.currency_rupee,
-          ),
-        ],
+      return _buildMobileProductDetail(
+        context,
+        ref,
+        product,
+        isDeleted,
       );
     }
 
@@ -798,6 +914,349 @@ class _ProductDetailCard extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildMobileProductDetail(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+    bool isDeleted,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        foregroundColor:
+            isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            ref.read(selectedProductIdProvider.notifier).state = null;
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Code: ${product.productCode}',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (!isDeleted)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              tooltip: 'Edit Product',
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (ctx) => ProductFormDialog(product: product),
+                );
+              },
+            ),
+        ],
+      ),
+      bottomNavigationBar: !isDeleted
+          ? SafeArea(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  border: Border(
+                    top: BorderSide(
+                      color:
+                          isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                ),
+                child: PrimaryButton(
+                  label: 'Edit Product Details',
+                  icon: Icons.edit_rounded,
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (ctx) => ProductFormDialog(product: product),
+                    );
+                  },
+                ),
+              ),
+            )
+          : null,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Price & Status Hero Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'SELLING PRICE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.lightTextTertiary,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDeleted
+                              ? AppColors.error.withValues(alpha: 0.15)
+                              : AppColors.success.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          isDeleted ? 'ARCHIVED' : 'ACTIVE',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isDeleted
+                                ? AppColors.error
+                                : AppColors.success,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        product.currentSellingPrice != null
+                            ? '₹${product.currentSellingPrice!.toStringAsFixed(2)}'
+                            : 'Not Configured',
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.brandAmber,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '/ ${product.unitOfMeasure}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.lightTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (product.description != null &&
+                      product.description!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      product.description!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.lightTextSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Tax Structure Card
+            Text(
+              'TAX STRUCTURE (GST)',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildMobileDetailRow('HSN Code', product.hsnCode, isDark),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'Total GST Rate',
+                    '${(product.gstRate * 100).toInt()}%',
+                    isDark,
+                    isHighlight: true,
+                  ),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'CGST Rate (Intra-state)',
+                    '${(product.cgstRate * 100).toInt()}%',
+                    isDark,
+                  ),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'SGST Rate (Intra-state)',
+                    '${(product.sgstRate * 100).toInt()}%',
+                    isDark,
+                  ),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'IGST Rate (Inter-state)',
+                    '${(product.igstRate * 100).toInt()}%',
+                    isDark,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Product Specifications Card
+            Text(
+              'SPECIFICATIONS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildMobileDetailRow(
+                    'Product Code',
+                    product.productCode,
+                    isDark,
+                  ),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'Base Unit of Measure',
+                    product.unitOfMeasure,
+                    isDark,
+                  ),
+                  Divider(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    height: 20,
+                  ),
+                  _buildMobileDetailRow(
+                    'Status',
+                    isDeleted ? 'Archived' : 'Active',
+                    isDark,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileDetailRow(
+    String label,
+    String value,
+    bool isDark, {
+    bool isHighlight = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
+            color: isHighlight
+                ? AppColors.brandAmber
+                : (isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class ProductFormDialog extends ConsumerStatefulWidget {
@@ -839,11 +1298,13 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
 
     return Dialog(
       backgroundColor: AppColors.darkSurface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        width: 480,
-        padding: const EdgeInsets.all(24),
-        child: Form(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
@@ -987,6 +1448,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

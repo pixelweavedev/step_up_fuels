@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:step_up_fuels/app/database/seeds/database_seeder.dart';
 import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
+import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/result/result.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/settings/domain/entities/company_profile.dart';
@@ -356,9 +357,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         ),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           labelColor: AppColors.brandAmber,
           unselectedLabelColor: Colors.white70,
           indicatorColor: AppColors.brandAmber,
+          indicatorWeight: 3,
           tabs: const [
             Tab(icon: Icon(Icons.business_rounded), text: 'Company Profile'),
             Tab(
@@ -425,22 +429,71 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.brandAmber),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton({
+    required VoidCallback onPressed,
+    required String label,
+    required IconData icon,
+  }) {
+    final btn = ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: AppColors.darkBackground,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 14,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+      ),
+    );
+
+    if (context.isMobile) {
+      return SizedBox(
+        width: double.infinity,
+        height: 48,
+        child: btn,
+      );
+    }
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: btn,
+    );
+  }
+
   Widget _buildProfileTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
       child: Form(
         key: _profileFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Company Legal Details',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+            _buildSectionHeader('Company Legal Details', Icons.domain_rounded),
             const SizedBox(height: 16),
             AdaptiveFormRow(
               children: [
@@ -501,13 +554,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               validator: (v) => v!.isEmpty ? 'Address required' : null,
             ),
             const SizedBox(height: 32),
-            const Text(
+            _buildSectionHeader(
               'Bank Account Configurations',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              Icons.account_balance_rounded,
             ),
             const SizedBox(height: 16),
             AdaptiveFormRow(
@@ -548,27 +597,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ],
             ),
             const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandAmber,
-                  foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: _saveProfile,
-                icon: const Icon(Icons.save_rounded),
-                label: const Text(
-                  'Save Profile Details',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+            _buildSaveButton(
+              onPressed: _saveProfile,
+              label: 'Save Profile Details',
+              icon: Icons.save_rounded,
             ),
           ],
         ),
@@ -578,19 +610,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Widget _buildInvoiceTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
       child: Form(
         key: _invoiceFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            _buildSectionHeader(
               'Invoice Numbering Configurations',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              Icons.format_list_numbered_rounded,
             ),
             const SizedBox(height: 16),
             AdaptiveFormRow(
@@ -618,13 +646,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               validator: (v) => v!.isEmpty ? 'Signatory name required' : null,
             ),
             const SizedBox(height: 32),
-            const Text(
+            _buildSectionHeader(
               'Default Invoice Terms & Notes',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              Icons.gavel_rounded,
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -634,27 +658,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               validator: (v) => v!.isEmpty ? 'Terms required' : null,
             ),
             const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandAmber,
-                  foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: _saveInvoiceSettings,
-                icon: const Icon(Icons.save_rounded),
-                label: const Text(
-                  'Save Invoice Rules',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+            _buildSaveButton(
+              onPressed: _saveInvoiceSettings,
+              label: 'Save Invoice Rules',
+              icon: Icons.save_rounded,
             ),
           ],
         ),
@@ -664,19 +671,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Widget _buildPrintTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
       child: Form(
         key: _printFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            _buildSectionHeader(
               'Document Margins & Print Layout',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              Icons.photo_size_select_large_rounded,
             ),
             const SizedBox(height: 24),
             DropdownButtonFormField<String>(
@@ -686,7 +689,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 filled: true,
                 fillColor: AppColors.darkSurface,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.darkBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.brandAmber,
+                    width: 1.5,
+                  ),
                 ),
               ),
               dropdownColor: AppColors.darkSurface,
@@ -747,27 +761,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ],
             ),
             const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brandAmber,
-                  foregroundColor: AppColors.darkBackground,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: _savePrintSettings,
-                icon: const Icon(Icons.save_rounded),
-                label: const Text(
-                  'Save Print Layout',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+            _buildSaveButton(
+              onPressed: _savePrintSettings,
+              label: 'Save Print Layout',
+              icon: Icons.save_rounded,
             ),
           ],
         ),
@@ -777,35 +774,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   Widget _buildMaintenanceTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(context.isMobile ? 16 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Theme Configuration',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          _buildSectionHeader('Theme Configuration', Icons.palette_rounded),
           const SizedBox(height: 16),
           Card(
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: AppColors.darkBorder),
             ),
             child: const ThemeModeTile(),
           ),
           const SizedBox(height: 32),
-          const Text(
+          _buildSectionHeader(
             'Database Maintenance & Lifecycle',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            Icons.dns_rounded,
           ),
           const SizedBox(height: 16),
           _buildTextField(
@@ -819,7 +805,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Card(
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               side: BorderSide(
                 color: AppColors.brandAmber.withValues(alpha: 0.5),
               ),
@@ -856,27 +842,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandAmber,
-                      foregroundColor: AppColors.darkBackground,
-                    ),
-                    onPressed: _isSeeding ? null : _seedDemoData,
-                    icon: _isSeeding
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.black,
-                            ),
-                          )
-                        : const Icon(Icons.dataset_linked_rounded),
-                    label: Text(
-                      _isSeeding
-                          ? 'Seeding Demo Data...'
-                          : 'Seed Realistic Demo Data',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                  SizedBox(
+                    width: context.isMobile ? double.infinity : null,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.brandAmber,
+                        foregroundColor: AppColors.darkBackground,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _isSeeding ? null : _seedDemoData,
+                      icon: _isSeeding
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Icon(Icons.dataset_linked_rounded),
+                      label: Text(
+                        _isSeeding
+                            ? 'Seeding Demo Data...'
+                            : 'Seed Realistic Demo Data',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -889,7 +882,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Card(
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: AppColors.darkBorder),
             ),
             child: Padding(
@@ -919,16 +912,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     controller: _backupPathController,
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brandAmber,
-                      foregroundColor: AppColors.darkBackground,
-                    ),
-                    onPressed: _backupDb,
-                    icon: const Icon(Icons.backup_rounded),
-                    label: const Text(
-                      'Export Backup File',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  SizedBox(
+                    width: context.isMobile ? double.infinity : null,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.brandAmber,
+                        foregroundColor: AppColors.darkBackground,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _backupDb,
+                      icon: const Icon(Icons.backup_rounded),
+                      label: const Text(
+                        'Export Backup File',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -941,7 +941,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           Card(
             color: AppColors.darkSurface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               side: BorderSide(color: AppColors.darkBorder),
             ),
             child: Padding(
@@ -971,16 +971,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     controller: _restorePathController,
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _restoreDb,
-                    icon: const Icon(Icons.restore_rounded),
-                    label: const Text(
-                      'Restore System Database',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  SizedBox(
+                    width: context.isMobile ? double.infinity : null,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _restoreDb,
+                      icon: const Icon(Icons.restore_rounded),
+                      label: const Text(
+                        'Restore System Database',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -1012,14 +1019,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         fillColor: readOnly
             ? AppColors.darkSurface.withValues(alpha: 0.5)
             : AppColors.darkSurface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.brandAmber),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.brandAmber, width: 1.5),
         ),
       ),
     );

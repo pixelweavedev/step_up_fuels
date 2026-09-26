@@ -279,45 +279,79 @@ class _MobileAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final WidgetRef ref;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(56);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return AppBar(
-      backgroundColor: AppColors.darkSurface,
-      foregroundColor: AppColors.darkTextPrimary,
+      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+      foregroundColor:
+          isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
       elevation: 0,
       titleSpacing: 0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          height: 1,
+        ),
+      ),
       title: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
-            margin: const EdgeInsets.only(left: 4),
+            width: 32,
+            height: 32,
+            margin: const EdgeInsets.only(left: 2),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [AppColors.brandAmber, AppColors.brandAmberDark],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.brandAmber.withValues(alpha: 0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: const Icon(
               Icons.local_gas_station_rounded,
               color: AppColors.brandNavy,
-              size: 16,
+              size: 18,
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            'Step Up Fuels',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.darkTextPrimary,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Step Up Fuels',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary,
+                ),
+              ),
+              Text(
+                'ERP • Main Terminal',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.lightTextTertiary,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -325,21 +359,24 @@ class _MobileAppBar extends ConsumerWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(
             isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            color: AppColors.darkTextSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
+            size: 20,
           ),
           tooltip: isDark ? 'Light Mode' : 'Dark Mode',
           onPressed: () => ref.toggleTheme(),
         ),
         Padding(
-          padding: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.only(right: 12),
           child: Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.brandAmber.withValues(alpha: 0.2),
+              color: AppColors.brandAmber.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppColors.brandAmber.withValues(alpha: 0.4),
+                color: AppColors.brandAmber.withValues(alpha: 0.3),
               ),
             ),
             child: const Icon(

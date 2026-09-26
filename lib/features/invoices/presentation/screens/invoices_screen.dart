@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
@@ -23,13 +25,15 @@ import 'package:step_up_fuels/features/products/presentation/providers/products_
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
 import 'package:step_up_fuels/shared/widgets/cards/financial_breakdown.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
+import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
 import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
@@ -58,52 +62,10 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     if (context.isMobile) {
-      return ListPageTemplate(
-        title: 'Invoices',
-        searchWidget: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: AppTextField(
-            controller: _searchCtrl,
-            hint: 'Search by invoice number or customer…',
-            prefixIcon: Icons.search_rounded,
-            onChanged: (v) =>
-                ref.read(invoiceSearchQueryProvider.notifier).state = v,
-          ),
-        ),
-        filterWidget: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _StatusFilterDropdown(),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildStatSummary(),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _openCreateInvoiceDialog(context),
-          backgroundColor: AppColors.brandAmber,
-          foregroundColor: AppColors.darkBackground,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text(
-            'New Invoice',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        body: invoicesAsync.when(
-          data: (invoices) => _buildInvoiceList(invoices, selectedId, true),
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.brandAmber),
-          ),
-          error: (e, _) => AppErrorWidget(
-            message: 'Failed to load invoices. Please try again.',
-            onRetry: () => ref.refresh(invoicesListProvider),
-          ),
-        ),
+      return _buildMobileInvoices(
+        context: context,
+        invoicesAsync: invoicesAsync,
+        statusFilter: statusFilter,
       );
     }
 
@@ -391,6 +353,362 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             }
           },
         );
+      },
+    );
+  }
+
+  Widget _buildMobileInvoices({
+    required BuildContext context,
+    required AsyncValue<List<Invoice>> invoicesAsync,
+    required InvoiceStatus? statusFilter,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openCreateInvoiceDialog(context),
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: AppColors.brandNavy,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(
+          'New Invoice',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => ref.refresh(invoicesListProvider.future),
+        color: AppColors.brandAmber,
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppMobileTokens.pageMargin,
+                  AppMobileTokens.spacingMD,
+                  AppMobileTokens.pageMargin,
+                  AppMobileTokens.spacingXS,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppTextField(
+                      controller: _searchCtrl,
+                      hint: 'Search invoice # or customer...',
+                      prefixIcon: Icons.search_rounded,
+                      showClearButton: true,
+                      onChanged: (v) =>
+                          ref.read(invoiceSearchQueryProvider.notifier).state = v,
+                    ),
+                    const SizedBox(height: AppMobileTokens.spacingMD),
+                    invoicesAsync.when(
+                      data: (invoices) =>
+                          _buildMobileInvoiceKpiSummary(invoices, isDark),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: AppMobileTokens.spacingMD),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: invoicesAsync.when(
+                data: (invoices) =>
+                    _buildMobileStatusChips(invoices, statusFilter),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+            ),
+            invoicesAsync.when(
+              data: (invoices) {
+                if (invoices.isEmpty) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: EmptyStateWidget(
+                        icon: Icons.receipt_long_outlined,
+                        title: 'No Invoices Found',
+                        subtitle:
+                            'Tap "New Invoice" to generate your first invoice.',
+                        action: ElevatedButton.icon(
+                          onPressed: () => _openCreateInvoiceDialog(context),
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Create Invoice'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.brandAmber,
+                            foregroundColor: AppColors.brandNavy,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppMobileTokens.pageMargin,
+                    AppMobileTokens.spacingMD,
+                    AppMobileTokens.pageMargin,
+                    80,
+                  ),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final inv = invoices[index];
+                        return _buildMobileInvoiceCard(context, inv, isDark);
+                      },
+                      childCount: invoices.length,
+                    ),
+                  ),
+                );
+              },
+              loading: () => const SliverFillRemaining(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
+                ),
+              ),
+              error: (e, _) => SliverFillRemaining(
+                child: Center(
+                  child: AppErrorWidget(
+                    message: 'Failed to load invoices.',
+                    onRetry: () => ref.refresh(invoicesListProvider),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileInvoiceKpiSummary(List<Invoice> invoices, bool isDark) {
+    final totalInvoiced =
+        invoices.fold<double>(0, (s, i) => s + i.totalAmount);
+    final totalOutstanding = invoices
+        .where((i) =>
+            i.status == InvoiceStatus.posted ||
+            i.status == InvoiceStatus.partiallyPaid ||
+            i.status == InvoiceStatus.overdue)
+        .fold<double>(0, (s, i) => s + i.outstanding);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : Colors.white,
+              borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total Invoiced',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '₹${NumberFormat('#,##,###').format(totalInvoiced)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: AppMobileTokens.spacingSM),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : Colors.white,
+              borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Outstanding Due',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '₹${NumberFormat('#,##,###').format(totalOutstanding)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: totalOutstanding > 0
+                        ? const Color(0xFFEF4444)
+                        : AppColors.success,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileStatusChips(
+    List<Invoice> invoices,
+    InvoiceStatus? statusFilter,
+  ) {
+    final options = <FilterChipOption<InvoiceStatus?>>[
+      FilterChipOption(
+        value: null,
+        label: 'All Invoices',
+        count: invoices.length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.overdue,
+        label: 'Overdue',
+        count: invoices.where((i) => i.status == InvoiceStatus.overdue).length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.partiallyPaid,
+        label: 'Partially Paid',
+        count: invoices
+            .where((i) => i.status == InvoiceStatus.partiallyPaid)
+            .length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.posted,
+        label: 'Posted',
+        count: invoices.where((i) => i.status == InvoiceStatus.posted).length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.paid,
+        label: 'Paid',
+        count: invoices.where((i) => i.status == InvoiceStatus.paid).length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.verified,
+        label: 'Verified',
+        count:
+            invoices.where((i) => i.status == InvoiceStatus.verified).length,
+      ),
+      FilterChipOption(
+        value: InvoiceStatus.draft,
+        label: 'Draft',
+        count: invoices.where((i) => i.status == InvoiceStatus.draft).length,
+      ),
+    ];
+
+    return AppFilterChipsBar<InvoiceStatus?>(
+      options: options,
+      selectedValue: statusFilter,
+      onSelected: (val) {
+        ref.read(invoiceStatusFilterProvider.notifier).state = val;
+      },
+    );
+  }
+
+  Widget _buildMobileInvoiceCard(
+    BuildContext context,
+    Invoice inv,
+    bool isDark,
+  ) {
+    final customers = ref.watch(customersListProvider).value ?? [];
+    final customer = customers.cast<Customer?>().firstWhere(
+      (c) => c?.id == inv.customerId,
+      orElse: () => null,
+    );
+    final customerTitle = customer?.name ??
+        (inv.customerId.isNotEmpty
+            ? 'Customer ID: ${inv.customerId.substring(0, 8)}...'
+            : 'Walk-in Customer');
+
+    return MobileCard(
+      title: customerTitle,
+      subtitle:
+          '${inv.invoiceNumber} • ${DateFormat('dd MMM yyyy').format(inv.invoiceDate)}',
+      statusBadge: EntityStatusPresentation.invoiceBadge(inv.status),
+      heroMetric:
+          '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}',
+      heroLabel: 'Invoice Amount',
+      heroColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+      leadingIcon: Icons.receipt_long_rounded,
+      attributes: [
+        MobileCardAttribute(
+          label: 'Due',
+          value: DateFormat('dd MMM').format(inv.dueDate),
+        ),
+        MobileCardAttribute(
+          label: 'Balance',
+          value: '₹${NumberFormat('#,##,###').format(inv.outstanding)}',
+          isHighlighted: inv.outstanding > 0,
+        ),
+        MobileCardAttribute(
+          label: 'Supply',
+          value: inv.supplyType,
+        ),
+      ],
+      actions: [
+        if (inv.outstanding > 0)
+          TextButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (ctx) => _InvoiceDetailPanel(
+                    invoiceId: inv.id,
+                    onClose: () => Navigator.of(ctx).pop(),
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.payment_rounded, size: 16),
+            label: const Text('Record Payment'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.brandAmber,
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+      ],
+      onTap: () {
+        ref.read(selectedInvoiceIdProvider.notifier).state = inv.id;
+        Navigator.of(context)
+            .push(
+              MaterialPageRoute<void>(
+                builder: (ctx) => _InvoiceDetailPanel(
+                  invoiceId: inv.id,
+                  onClose: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            )
+            .then((_) {
+              ref.read(selectedInvoiceIdProvider.notifier).state = null;
+            });
       },
     );
   }

@@ -5,22 +5,23 @@ import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
 import 'package:step_up_fuels/features/inventory/presentation/providers/inventory_provider.dart';
+import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle_service_record.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
-import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
 import 'package:uuid/uuid.dart';
 
 class VehiclesScreen extends ConsumerWidget {
@@ -74,113 +75,12 @@ class _VehicleMasterList extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return ListPageTemplate(
-        title: 'Bowsers / Fleet',
-        searchWidget: AppTextField(
-          hint: 'Search reg no or model...',
-          prefixIcon: Icons.search_rounded,
-          onChanged: (val) {
-            ref.read(vehicleSearchQueryProvider.notifier).state = val;
-          },
-        ),
-        filterWidget: ResponsiveSection(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Show Inactive/Deleted:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.darkTextSecondary,
-                  ),
-                ),
-                Switch(
-                  value: statusFilter == null || statusFilter == false,
-                  activeThumbColor: AppColors.brandAmber,
-                  onChanged: (val) {
-                    ref.read(vehicleStatusFilterProvider.notifier).state = val
-                        ? null
-                        : true;
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: AppColors.brandAmber,
-            ),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) => const VehicleFormDialog(),
-              );
-            },
-            tooltip: 'Register Bowser',
-          ),
-        ],
-        body: vehiclesAsync.when(
-          data: (list) {
-            if (list.isEmpty) {
-              return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: EmptyStateWidget(
-                    icon: Icons.local_shipping_outlined,
-                    title: 'No Bowsers Registered',
-                    subtitle: 'Add a new mobile fuel delivery vehicle.',
-                  ),
-                ),
-              );
-            }
-            return SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final vehicle = list[index];
-                final isSelected = vehicle.id == selectedId;
-                final isDeleted = vehicle.deletedAt != null;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: InkWell(
-                    onTap: () {
-                      ref.read(selectedVehicleIdProvider.notifier).state =
-                          vehicle.id;
-                      if (onMobileTap != null) {
-                        onMobileTap!(vehicle);
-                      }
-                    },
-                    child: _buildVehicleCard(
-                      context,
-                      vehicle,
-                      isSelected,
-                      isDeleted,
-                    ),
-                  ),
-                );
-              }, childCount: list.length),
-            );
-          },
-          loading: () => const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-          ),
-          error: (err, st) => SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Text(
-                'Error: $err',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-        ),
-        isSliver: true,
+      return _buildMobileVehicleList(
+        context,
+        ref,
+        vehiclesAsync,
+        statusFilter,
+        selectedId,
       );
     }
 
@@ -461,130 +361,345 @@ class _VehicleMasterList extends ConsumerWidget {
     );
   }
 
-  Widget _buildVehicleCard(
+  Widget _buildMobileVehicleList(
     BuildContext context,
-    Vehicle vehicle,
-    bool isSelected,
-    bool isDeleted,
+    WidgetRef ref,
+    AsyncValue<List<Vehicle>> vehiclesAsync,
+    bool? statusFilter,
+    String? selectedId,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.darkSurface : AppColors.darkCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isSelected
-              ? AppColors.brandAmber
-              : (isDeleted
-                    ? AppColors.error.withValues(alpha: 0.3)
-                    : AppColors.darkBorder),
-          width: isSelected ? 1.5 : 1.0,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                vehicle.registrationNumber,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkTextPrimary,
-                ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Sticky Mobile Search
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              child: AppTextField(
+                hint: 'Search reg number or model...',
+                prefixIcon: Icons.search_rounded,
+                showClearButton: true,
+                onChanged: (val) {
+                  ref.read(vehicleSearchQueryProvider.notifier).state = val;
+                },
+                onClear: () {
+                  ref.read(vehicleSearchQueryProvider.notifier).state = '';
+                },
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: vehicle.status == VehicleStatus.active
-                      ? AppColors.success.withValues(alpha: 0.15)
-                      : AppColors.error.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
+            ),
+
+            // Summary Metrics & Filter Bar
+            vehiclesAsync.maybeWhen(
+              data: (list) {
+                final totalCount = list.length;
+                final activeCount = list
+                    .where((v) => v.status == VehicleStatus.active)
+                    .length;
+                final maintCount = list
+                    .where((v) => v.status == VehicleStatus.maintenance)
+                    .length;
+                final totalCap = list.fold<double>(
+                  0,
+                  (acc, v) => acc + v.capacity,
+                );
+
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.lightSurface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                                : AppColors.lightBorder,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(
+                                  AppMobileTokens.radiusSM,
+                                ),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ACTIVE FLEET',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$activeCount / $totalCount Active',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(
+                                  AppMobileTokens.radiusSM,
+                                ),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TOTAL CAPACITY',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${totalCap.toStringAsFixed(0)} Litres',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      fontFeatures: [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                      color: AppColors.brandAmber,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AppFilterChipsBar<String>(
+                      options: [
+                        FilterChipOption<String>(
+                          value: 'ALL',
+                          label: 'All Fleet',
+                          count: totalCount,
+                        ),
+                        FilterChipOption<String>(
+                          value: 'ACTIVE',
+                          label: 'Active',
+                          count: activeCount,
+                        ),
+                        FilterChipOption<String>(
+                          value: 'MAINTENANCE',
+                          label: 'Maintenance',
+                          count: maintCount,
+                        ),
+                      ],
+                      selectedValue: statusFilter == null
+                          ? 'ALL'
+                          : (statusFilter ? 'ACTIVE' : 'ALL'),
+                      onSelected: (id) {
+                        if (id == 'ALL') {
+                          ref
+                              .read(vehicleStatusFilterProvider.notifier)
+                              .state = null;
+                        } else if (id == 'ACTIVE') {
+                          ref
+                              .read(vehicleStatusFilterProvider.notifier)
+                              .state = true;
+                        }
+                      },
+                    ),
+                  ],
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+
+            // Vehicle List
+            Expanded(
+              child: vehiclesAsync.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return RefreshIndicator(
+                      color: AppColors.brandAmber,
+                      onRefresh: () async => ref.refresh(vehiclesListProvider),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 60),
+                          Center(
+                            child: EmptyStateWidget(
+                              icon: Icons.local_shipping_outlined,
+                              title: 'No Bowsers Registered',
+                              subtitle:
+                                  'Tap the + button to add a new delivery bowser.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: AppColors.brandAmber,
+                    onRefresh: () async => ref.refresh(vehiclesListProvider),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final vehicle = list[index];
+                        final isDeleted = vehicle.deletedAt != null;
+
+                        Color statusColor = AppColors.success;
+                        if (vehicle.status == VehicleStatus.maintenance) {
+                          statusColor = AppColors.warning;
+                        } else if (vehicle.status == VehicleStatus.inactive ||
+                            isDeleted) {
+                          statusColor = AppColors.error;
+                        }
+
+                        return MobileCard(
+                          title: vehicle.registrationNumber,
+                          subtitle: vehicle.model,
+                          leadingIcon: Icons.local_shipping_rounded,
+                          leadingColor: AppColors.brandAmber,
+                          heroLabel: 'CAPACITY',
+                          heroMetric:
+                              '${vehicle.capacity.toStringAsFixed(0)} L',
+                          heroColor: AppColors.brandAmber,
+                          statusBadge: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isDeleted
+                                  ? 'Deleted'
+                                  : vehicle.status.displayName,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                          attributes: [
+                            MobileCardAttribute(
+                              label: 'Model',
+                              value: vehicle.model.isNotEmpty
+                                  ? vehicle.model
+                                  : 'Standard Bowser',
+                            ),
+                            if (vehicle.notes != null && vehicle.notes!.isNotEmpty)
+                              MobileCardAttribute(
+                                label: 'Notes',
+                                value: vehicle.notes!,
+                              ),
+                          ],
+                          onTap: () {
+                            ref
+                                .read(selectedVehicleIdProvider.notifier)
+                                .state = vehicle.id;
+                            if (onMobileTap != null) {
+                              onMobileTap!(vehicle);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
                 ),
-                child: Text(
-                  vehicle.status.displayName,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: vehicle.status == VehicleStatus.active
-                        ? AppColors.success
-                        : AppColors.error,
+                error: (err, st) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Error: $err',
+                      style: const TextStyle(color: AppColors.error),
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            vehicle.model,
-            style: TextStyle(fontSize: 12, color: AppColors.darkTextSecondary),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Capacity: ${vehicle.capacity} LTRS',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.darkTextTertiary,
-                ),
-              ),
-              Consumer(
-                builder: (context, ref, child) {
-                  final assignmentsAsync = ref.watch(
-                    vehicleAssignmentsProvider(vehicle.id),
-                  );
-                  return assignmentsAsync.when(
-                    data: (assignments) {
-                      final activeAssignment = assignments.firstWhere(
-                        (a) => a.isActive,
-                        orElse: () => DriverAssignment(
-                          id: '',
-                          driverId: '',
-                          vehicleId: '',
-                          assignedAt: DateTime.now(),
-                          isActive: false,
-                        ),
-                      );
-
-                      if (!activeAssignment.isActive) {
-                        return Text(
-                          'Unassigned',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.darkTextTertiary,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        );
-                      }
-
-                      final driverAsync = ref.watch(
-                        driverByIdProvider(activeAssignment.driverId),
-                      );
-                      return driverAsync.when(
-                        data: (driver) => Text(
-                          driver.name,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.brandAmber,
-                          ),
-                        ),
-                        error: (_, __) => const SizedBox(),
-                        loading: () => const SizedBox(),
-                      );
-                    },
-                    error: (_, __) => const SizedBox(),
-                    loading: () => const SizedBox(),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(
+          'New Bowser',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              fullscreenDialog: true,
+              builder: (_) => const VehicleFormDialog(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -691,245 +806,11 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return DetailPageTemplate(
-        title: vehicle.registrationNumber,
-        subtitle: 'Model: ${vehicle.model} • Capacity: ${vehicle.capacity} L',
-        actions: vehicle.deletedAt == null
-            ? [
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.brandAmber,
-                  ),
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (context) => VehicleFormDialog(vehicle: vehicle),
-                    );
-                  },
-                ),
-              ]
-            : null,
-        sections: [
-          // Live stock
-          productsAsync.when(
-            data: (prods) {
-              if (prods.isEmpty) return const SizedBox();
-              final firstProd = prods.first;
-              final stockAsync = ref.watch(
-                stockBalanceProvider((
-                  locationId: vehicle.id,
-                  productId: firstProd.id,
-                )),
-              );
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.darkCard,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.darkBorder),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.gas_meter_outlined,
-                      color: AppColors.brandAmber,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'LIVE BOWSER FUEL STOCK',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        stockAsync.when(
-                          data: (stock) => Text(
-                            '${stock.toStringAsFixed(2)} LTRS',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.brandAmber,
-                            ),
-                          ),
-                          error: (_, __) => const Text(
-                            'N/A',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.error,
-                            ),
-                          ),
-                          loading: () => const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-            error: (_, __) => const SizedBox(),
-            loading: () => const SizedBox(),
-          ),
-          const SizedBox(height: 12),
-          // Active driver
-          assignmentsAsync.when(
-            data: (assignments) {
-              final activeAssignment = assignments.firstWhere(
-                (a) => a.isActive,
-                orElse: () => DriverAssignment(
-                  id: '',
-                  driverId: '',
-                  vehicleId: '',
-                  assignedAt: DateTime.now(),
-                  isActive: false,
-                ),
-              );
-
-              if (!activeAssignment.isActive) {
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.darkCard,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.darkBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.badge_outlined,
-                        color: AppColors.darkTextTertiary,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'CURRENT ASSIGNED DRIVER',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: AppColors.darkTextTertiary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Not Assigned',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              final driverAsync = ref.watch(
-                driverByIdProvider(activeAssignment.driverId),
-              );
-
-              return driverAsync.when(
-                data: (driver) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.badge_outlined,
-                          color: AppColors.brandAmber,
-                          size: 30,
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'CURRENT ASSIGNED DRIVER',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.darkTextTertiary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              driver.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkTextPrimary,
-                              ),
-                            ),
-                            if (driver.phone.isNotEmpty)
-                              Text(
-                                'Mob: ${driver.phone}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.darkTextSecondary,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                error: (_, __) => const SizedBox(),
-                loading: () => const SizedBox(
-                  height: 60,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.brandAmber,
-                    ),
-                  ),
-                ),
-              );
-            },
-            error: (_, __) => const SizedBox(),
-            loading: () => const SizedBox(),
-          ),
-          const SizedBox(height: 16),
-          // Tab bar & View
-          TabBar(
-            controller: _tabController,
-            dividerColor: AppColors.darkBorder,
-            indicatorColor: AppColors.brandAmber,
-            labelColor: AppColors.brandAmber,
-            unselectedLabelColor: AppColors.darkTextSecondary,
-            tabs: const [
-              Tab(text: 'Service & Expenses'),
-              Tab(text: 'Assignment History'),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.6,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _ServiceRecordsTab(vehicleId: vehicle.id),
-                _AssignmentsHistoryTab(vehicleId: vehicle.id),
-              ],
-            ),
-          ),
-        ],
+      return _buildMobileVehicleDetail(
+        context,
+        vehicle,
+        productsAsync,
+        assignmentsAsync,
       );
     }
 
@@ -1215,6 +1096,274 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
           const SizedBox(height: 16),
 
           // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _ServiceRecordsTab(vehicleId: vehicle.id),
+                _AssignmentsHistoryTab(vehicleId: vehicle.id),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileVehicleDetail(
+    BuildContext context,
+    Vehicle vehicle,
+    AsyncValue<List<Product>> productsAsync,
+    AsyncValue<List<DriverAssignment>> assignmentsAsync,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDeleted = vehicle.deletedAt != null;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      appBar: AppBar(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              vehicle.registrationNumber,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
+              ),
+            ),
+            Text(
+              '${vehicle.model} • ${vehicle.capacity.toStringAsFixed(0)} L',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.lightTextTertiary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (!isDeleted)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  fullscreenDialog: true,
+                  builder: (_) => VehicleFormDialog(vehicle: vehicle),
+                ),
+              ),
+            ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.brandAmber,
+          labelColor: AppColors.brandAmber,
+          unselectedLabelColor: isDark
+              ? AppColors.darkTextSecondary
+              : AppColors.lightTextSecondary,
+          labelStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+          tabs: const [
+            Tab(text: 'Service & Expenses'),
+            Tab(text: 'Driver Assignments'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          // Live Stock & Driver Quick Info Strip
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                ),
+              ),
+            ),
+            child: Column(
+              children: [
+                // Live Bowser Stock
+                productsAsync.when(
+                  data: (prods) {
+                    if (prods.isEmpty) return const SizedBox.shrink();
+                    final firstProd = prods.first;
+                    final stockAsync = ref.watch(
+                      stockBalanceProvider((
+                        locationId: vehicle.id,
+                        productId: firstProd.id,
+                      )),
+                    );
+
+                    return stockAsync.when(
+                      data: (stock) {
+                        final fillPct = vehicle.capacity > 0
+                            ? (stock / vehicle.capacity).clamp(0.0, 1.0)
+                            : 0.0;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.local_gas_station_rounded,
+                                      color: AppColors.brandAmber,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'LIVE BOWSER STOCK',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppColors.darkTextSecondary
+                                            : AppColors.lightTextSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '${stock.toStringAsFixed(0)} / ${vehicle.capacity.toStringAsFixed(0)} L',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    fontFeatures: [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                    color: AppColors.brandAmber,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: fillPct,
+                                minHeight: 6,
+                                backgroundColor: isDark
+                                    ? AppColors.darkBorder
+                                    : AppColors.lightBorder,
+                                valueColor: const AlwaysStoppedAnimation(
+                                  AppColors.brandAmber,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const LinearProgressIndicator(minHeight: 4),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+
+                const SizedBox(height: 12),
+                // Driver info
+                assignmentsAsync.when(
+                  data: (assignments) {
+                    final activeAssignment = assignments.firstWhere(
+                      (a) => a.isActive,
+                      orElse: () => DriverAssignment(
+                        id: '',
+                        driverId: '',
+                        vehicleId: '',
+                        assignedAt: DateTime.now(),
+                        isActive: false,
+                      ),
+                    );
+
+                    if (!activeAssignment.isActive) {
+                      return Row(
+                        children: [
+                          Icon(
+                            Icons.person_off_rounded,
+                            size: 16,
+                            color: isDark
+                                ? AppColors.darkTextTertiary
+                                : AppColors.lightTextTertiary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'No driver currently assigned',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    final driverAsync = ref.watch(
+                      driverByIdProvider(activeAssignment.driverId),
+                    );
+                    return driverAsync.when(
+                      data: (driver) => Row(
+                        children: [
+                          const Icon(
+                            Icons.badge_rounded,
+                            size: 18,
+                            color: AppColors.brandAmber,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Driver: ${driver.name}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
+                              ),
+                            ),
+                          ),
+                          if (driver.phone.isNotEmpty)
+                            Text(
+                              driver.phone,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.brandAmber,
+                              ),
+                            ),
+                        ],
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+
           Expanded(
             child: TabBarView(
               controller: _tabController,

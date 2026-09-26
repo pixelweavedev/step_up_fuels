@@ -3,10 +3,14 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/app/router/route_names.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_grid.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/theme/spacing.dart';
 import 'package:step_up_fuels/features/dashboard/presentation/providers/dashboard_provider.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
@@ -14,10 +18,10 @@ import 'package:step_up_fuels/features/reports/domain/entities/report_models.dar
 import 'package:step_up_fuels/features/reports/presentation/providers/reports_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/cards/stat_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
-import 'package:step_up_fuels/shared/widgets/templates/dashboard_template.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -32,54 +36,7 @@ class DashboardScreen extends ConsumerWidget {
     return statsAsync.when(
       data: (stats) {
         if (isMobile) {
-          return DashboardTemplate(
-            greeting: _buildHeader(context, ref),
-            alerts: stats.lowStockAlerts.isNotEmpty
-                ? [_buildLowStockWarning(stats.lowStockAlerts)]
-                : null,
-            kpis: [
-              StatCard(
-                title: 'Revenue (This Month)',
-                value:
-                    '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
-                icon: Icons.trending_up_rounded,
-                gradientColors: AppColors.gradientRevenue,
-                subtitle: 'Month-to-date sales',
-              ),
-              StatCard(
-                title: 'Outstanding Receivables',
-                value:
-                    '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
-                icon: Icons.account_balance_wallet_outlined,
-                gradientColors: AppColors.gradientOutstanding,
-                subtitle: 'Customer unpaid balance',
-              ),
-              StatCard(
-                title: 'Main Stock (Litres)',
-                value:
-                    '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
-                icon: Icons.local_gas_station_rounded,
-                gradientColors: AppColors.gradientStock,
-                subtitle: 'Terminal storage stock',
-              ),
-              StatCard(
-                title: 'Today Deliveries',
-                value: '${stats.todayDeliveriesCount}',
-                icon: Icons.local_shipping_rounded,
-                gradientColors: AppColors.gradientInvoices,
-                subtitle:
-                    '${stats.todaySalesLitres.toStringAsFixed(0)} Litres sold today',
-              ),
-            ],
-            charts: [
-              _buildSalesTrendChart(),
-              _buildExpenseBreakdownChart(expenseAsync),
-              _buildBowserStockLevels(stats.bowserStockLevels),
-            ],
-            recentActivity: _buildRecentInvoices(stats.recentInvoices),
-            onRefresh: () =>
-                ref.read(dashboardStatsProvider.notifier).refresh(),
-          );
+          return _buildMobileDashboard(context, ref, stats, expenseAsync);
         }
 
         return Scaffold(
@@ -906,4 +863,568 @@ class DashboardScreen extends ConsumerWidget {
       },
     );
   }
+
+  Widget _buildMobileDashboard(
+    BuildContext context,
+    WidgetRef ref,
+    DashboardStats stats,
+    AsyncValue<Map<String, double>> expenseAsync,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(dashboardStatsProvider.notifier).refresh(),
+      color: AppColors.brandAmber,
+      backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppMobileTokens.pageMargin,
+                AppMobileTokens.spacingMD,
+                AppMobileTokens.pageMargin,
+                AppMobileTokens.spacingSM,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildMobileGreeting(),
+                  const SizedBox(height: AppMobileTokens.spacingMD),
+                  _buildMobileQuickActions(context),
+                  const SizedBox(height: AppMobileTokens.spacingLG),
+                  if (stats.lowStockAlerts.isNotEmpty) ...[
+                    _buildLowStockWarning(stats.lowStockAlerts),
+                    const SizedBox(height: AppMobileTokens.spacingMD),
+                  ],
+                  _buildMobileKpis(stats, isDark),
+                  const SizedBox(height: AppMobileTokens.spacingLG),
+                  _buildMobileBowserSection(context, stats.bowserStockLevels, isDark),
+                  const SizedBox(height: AppMobileTokens.spacingLG),
+                  _buildSalesTrendChart(),
+                  const SizedBox(height: AppMobileTokens.spacingMD),
+                  _buildExpenseBreakdownChart(expenseAsync),
+                  const SizedBox(height: AppMobileTokens.spacingLG),
+                  _buildMobileRecentInvoices(context, stats.recentInvoices, isDark),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileGreeting() {
+    final now = DateTime.now();
+    final dateStr = DateFormat('EEEE, dd MMMM').format(now);
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Operations Overview',
+                  style: GoogleFonts.inter(
+                    fontSize: AppMobileTokens.fontPageTitle,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.lightTextPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dateStr,
+                  style: GoogleFonts.inter(
+                    fontSize: AppMobileTokens.fontCaption,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(AppMobileTokens.radiusPill),
+                border: Border.all(
+                  color: AppColors.success.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Online',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileQuickActions(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const actions = [
+      _QuickActionData(
+        label: 'New Invoice',
+        icon: Icons.receipt_long_rounded,
+        route: RouteNames.invoices,
+        color: AppColors.brandAmber,
+      ),
+      _QuickActionData(
+        label: 'Payment',
+        icon: Icons.payments_rounded,
+        route: RouteNames.payments,
+        color: Color(0xFF10B981),
+      ),
+      _QuickActionData(
+        label: 'Customer',
+        icon: Icons.person_add_alt_1_rounded,
+        route: RouteNames.customers,
+        color: Color(0xFF3B82F6),
+      ),
+      _QuickActionData(
+        label: 'Stock Dip',
+        icon: Icons.local_gas_station_rounded,
+        route: RouteNames.inventory,
+        color: Color(0xFF8B5CF6),
+      ),
+    ];
+
+    return Row(
+      children: actions.map((act) {
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.go(act.route),
+                borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : Colors.white,
+                    borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: act.color.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(act.icon, size: 18, color: act.color),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        act.label,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.lightTextPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMobileKpis(DashboardStats stats, bool isDark) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildCompactMetricCard(
+                title: 'Revenue (MTD)',
+                value: '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
+                subtitle: 'Sales to date',
+                icon: Icons.trending_up_rounded,
+                accentColor: const Color(0xFF10B981),
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: AppMobileTokens.spacingSM),
+            Expanded(
+              child: _buildCompactMetricCard(
+                title: 'Receivables',
+                value: '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
+                subtitle: 'Customer unpaid',
+                icon: Icons.account_balance_wallet_outlined,
+                accentColor: const Color(0xFFF59E0B),
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppMobileTokens.spacingSM),
+        Row(
+          children: [
+            Expanded(
+              child: _buildCompactMetricCard(
+                title: 'Main Stock',
+                value: '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
+                subtitle: 'Terminal storage',
+                icon: Icons.local_gas_station_rounded,
+                accentColor: AppColors.brandAmber,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: AppMobileTokens.spacingSM),
+            Expanded(
+              child: _buildCompactMetricCard(
+                title: 'Today Deliveries',
+                value: '${stats.todayDeliveriesCount}',
+                subtitle: '${stats.todaySalesLitres.toStringAsFixed(0)} L dispatched',
+                icon: Icons.local_shipping_rounded,
+                accentColor: const Color(0xFF3B82F6),
+                isDark: isDark,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppMobileTokens.spacingMD),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.lightTextSecondary,
+                ),
+              ),
+              Icon(icon, size: 16, color: accentColor),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: isDark
+                  ? AppColors.darkTextPrimary
+                  : AppColors.lightTextPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              color: isDark
+                  ? AppColors.darkTextTertiary
+                  : AppColors.lightTextTertiary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileBowserSection(
+    BuildContext context,
+    Map<String, double> bowsers,
+    bool isDark,
+  ) {
+    if (bowsers.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Fleet Bowser Levels',
+              style: GoogleFonts.inter(
+                fontSize: AppMobileTokens.fontSectionTitle,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.go(RouteNames.vehicles),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'View All',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.brandAmber,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppMobileTokens.spacingSM),
+        SizedBox(
+          height: 110,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: bowsers.length,
+            separatorBuilder: (context, index) =>
+                const SizedBox(width: AppMobileTokens.spacingSM),
+            itemBuilder: (context, index) {
+              final entry = bowsers.entries.elementAt(index);
+              const capacity = 6000.0;
+              final pct = (entry.value / capacity).clamp(0.0, 1.0);
+
+              return Container(
+                width: 170,
+                padding: const EdgeInsets.all(AppMobileTokens.spacingMD),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkCard : Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(AppMobileTokens.radiusMD),
+                  border: Border.all(
+                    color:
+                        isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.local_shipping_rounded,
+                          size: 16,
+                          color: AppColors.brandAmber,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            entry.key,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.value.toStringAsFixed(0)} L',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: pct < 0.2
+                                ? AppColors.error
+                                : (isDark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: LinearProgressIndicator(
+                            value: pct,
+                            minHeight: 5,
+                            backgroundColor: isDark
+                                ? AppColors.darkSurface
+                                : const Color(0xFFE2E8F0),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              pct < 0.2 ? AppColors.error : AppColors.brandAmber,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileRecentInvoices(
+    BuildContext context,
+    List<Invoice> invoices,
+    bool isDark,
+  ) {
+    if (invoices.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Invoices',
+              style: GoogleFonts.inter(
+                fontSize: AppMobileTokens.fontSectionTitle,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.go(RouteNames.invoices),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'View All',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.brandAmber,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppMobileTokens.spacingSM),
+        ...invoices.take(5).map((inv) {
+          final title = inv.invoiceNumber;
+          final subtitle =
+              DateFormat('dd MMM yyyy').format(inv.invoiceDate);
+          final amountStr =
+              '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}';
+
+          return MobileCard(
+            title: title,
+            subtitle: subtitle,
+            statusBadge: EntityStatusPresentation.invoiceBadge(inv.status),
+            heroMetric: amountStr,
+            heroLabel: 'Total Invoice Value',
+            leadingIcon: Icons.receipt_long_rounded,
+            onTap: () => context.go(RouteNames.invoices),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _QuickActionData {
+  const _QuickActionData({
+    required this.label,
+    required this.icon,
+    required this.route,
+    required this.color,
+  });
+
+  final String label;
+  final IconData icon;
+  final String route;
+  final Color color;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
@@ -324,6 +325,127 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
+    if (isMobile) {
+      return Scaffold(
+        backgroundColor: AppColors.darkSurface,
+        appBar: AppBar(
+          backgroundColor: AppColors.darkSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.close, color: AppColors.darkTextPrimary),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text(
+            _isEditMode ? 'Edit Customer' : 'Register Customer',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: AppColors.brandAmber,
+            labelColor: AppColors.brandAmber,
+            unselectedLabelColor: AppColors.darkTextSecondary,
+            labelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            tabs: const [
+              Tab(text: 'General & Address'),
+              Tab(text: 'GST & Compliance'),
+              Tab(text: 'Credit & Terms'),
+              Tab(text: 'Preferences & PO'),
+              Tab(text: 'Additional Details'),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: AppColors.error, fontSize: 13),
+                ),
+              ),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildGeneralAddressTab(),
+                    _buildGstComplianceTab(),
+                    _buildCreditAccountingTab(),
+                    _buildPreferencesPoTab(),
+                    _buildAdditionalNotesTab(),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                MediaQuery.paddingOf(context).bottom + 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.darkCard,
+                border: Border(top: BorderSide(color: AppColors.darkBorder)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(
+                          AppMobileTokens.preferredButtonHeight,
+                        ),
+                        side: BorderSide(color: AppColors.darkBorder),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppMobileTokens.radiusMD,
+                          ),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: PrimaryButton(
+                      label: _isEditMode ? 'Save Changes' : 'Create Customer',
+                      isLoading: _isLoading,
+                      onPressed: _handleSubmit,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Dialog(
       backgroundColor: AppColors.darkSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -337,14 +459,17 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _isEditMode
-                        ? 'Edit Enterprise Customer'
-                        : 'Register Enterprise Customer',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.darkTextPrimary,
+                  Expanded(
+                    child: Text(
+                      _isEditMode
+                          ? 'Edit Enterprise Customer'
+                          : 'Register Enterprise Customer',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.darkTextPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
@@ -417,14 +542,16 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             // Actions footer
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 8,
                 children: [
                   SecondaryButton(
                     label: 'Cancel',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  const SizedBox(width: 12),
                   PrimaryButton(
                     label: _isEditMode ? 'Save Changes' : 'Create Customer',
                     isLoading: _isLoading,
@@ -477,35 +604,34 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ),
           ),
           const SizedBox(height: 8),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: CustomerType.values.map((type) {
               final isSelected = _selectedType == type;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(type.displayName),
-                  selected: isSelected,
-                  onSelected: (val) {
-                    if (val) setState(() => _selectedType = type);
-                  },
-                  backgroundColor: AppColors.darkCard,
-                  selectedColor: AppColors.brandAmber.withValues(alpha: 0.2),
-                  labelStyle: TextStyle(
+              return ChoiceChip(
+                label: Text(type.displayName),
+                selected: isSelected,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedType = type);
+                },
+                backgroundColor: AppColors.darkCard,
+                selectedColor: AppColors.brandAmber.withValues(alpha: 0.2),
+                labelStyle: TextStyle(
+                  color: isSelected
+                      ? AppColors.brandAmber
+                      : AppColors.darkTextSecondary,
+                  fontSize: 12,
+                  fontWeight: isSelected
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
                     color: isSelected
                         ? AppColors.brandAmber
-                        : AppColors.darkTextSecondary,
-                    fontSize: 12,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppColors.brandAmber
-                          : AppColors.darkBorder,
-                    ),
+                        : AppColors.darkBorder,
                   ),
                 ),
               );

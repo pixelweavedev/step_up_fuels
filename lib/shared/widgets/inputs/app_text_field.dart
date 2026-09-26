@@ -32,6 +32,10 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.textInputAction,
     this.inputFormatters,
+    this.isCurrency = false,
+    this.isQuantity = false,
+    this.showClearButton = false,
+    this.onClear,
   });
 
   final TextEditingController? controller;
@@ -60,11 +64,64 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
+  final bool isCurrency;
+  final bool isQuantity;
+  final bool showClearButton;
+  final VoidCallback? onClear;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final effectiveKeyboardType = keyboardType ??
+        ((isCurrency || isQuantity)
+            ? const TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text);
+
+    Widget? effectiveSuffixIcon = suffixIcon;
+    if (showClearButton && controller != null && controller!.text.isNotEmpty) {
+      effectiveSuffixIcon = IconButton(
+        icon: const Icon(Icons.clear_rounded, size: 18),
+        onPressed: () {
+          controller!.clear();
+          onChanged?.call('');
+          onClear?.call();
+        },
+      );
+    }
+
+    Widget? effectivePrefix = prefix;
+    if (isCurrency && effectivePrefix == null) {
+      effectivePrefix = Padding(
+        padding: const EdgeInsets.only(right: 4),
+        child: Text(
+          '₹',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.brandAmber : AppColors.brandAmberDark,
+          ),
+        ),
+      );
+    }
+
+    Widget? effectiveSuffix = suffix;
+    if (isQuantity && effectiveSuffix == null) {
+      effectiveSuffix = Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          'L',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
+          ),
+        ),
+      );
+    }
 
     return TextFormField(
       key: key,
@@ -75,7 +132,7 @@ class AppTextField extends StatelessWidget {
       enabled: enabled,
       obscureText: obscureText,
       autofocus: autofocus,
-      keyboardType: keyboardType,
+      keyboardType: effectiveKeyboardType,
       textCapitalization: textCapitalization,
       maxLines: maxLines,
       minLines: minLines,
@@ -89,12 +146,18 @@ class AppTextField extends StatelessWidget {
       style:
           theme.textTheme.bodyMedium?.copyWith(
             fontSize: 14,
+            fontFeatures: (isCurrency || isQuantity)
+                ? const [FontFeature.tabularFigures()]
+                : null,
             color: isDark
                 ? AppColors.darkThemeTextPrimary
                 : AppColors.lightTextPrimary,
           ) ??
           TextStyle(
             fontSize: 14,
+            fontFeatures: (isCurrency || isQuantity)
+                ? const [FontFeature.tabularFigures()]
+                : null,
             color: isDark
                 ? AppColors.darkThemeTextPrimary
                 : AppColors.lightTextPrimary,
@@ -104,7 +167,7 @@ class AppTextField extends StatelessWidget {
         hintText: hint,
         errorText: errorText,
         helperText: helperText,
-        constraints: const BoxConstraints(minHeight: 48),
+        constraints: const BoxConstraints(minHeight: 50),
         prefixIcon: prefixIcon != null
             ? Icon(
                 prefixIcon,
@@ -114,9 +177,9 @@ class AppTextField extends StatelessWidget {
                     : AppColors.lightTextTertiary,
               )
             : null,
-        suffixIcon: suffixIcon,
-        suffix: suffix,
-        prefix: prefix,
+        suffixIcon: effectiveSuffixIcon,
+        suffix: effectiveSuffix,
+        prefix: effectivePrefix,
         counterText: '',
       ),
     );

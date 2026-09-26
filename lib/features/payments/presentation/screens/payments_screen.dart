@@ -15,9 +15,9 @@ import 'package:step_up_fuels/features/payments/domain/entities/payment.dart';
 import 'package:step_up_fuels/features/payments/presentation/providers/payments_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
 import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
@@ -56,8 +56,13 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
             hint: 'Search payment no. or reference...',
             prefixIcon: Icons.search_rounded,
             controller: _searchCtrl,
+            showClearButton: true,
             onChanged: (val) {
               ref.read(paymentSearchQueryProvider.notifier).state = val;
+            },
+            onClear: () {
+              _searchCtrl.clear();
+              ref.read(paymentSearchQueryProvider.notifier).state = '';
             },
           ),
         ),
@@ -333,6 +338,169 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     }
 
     final customers = ref.watch(customersListProvider).value ?? [];
+
+    if (context.isMobile) {
+      final totalReceived =
+          payments.fold<double>(0, (sum, p) => sum + p.amount);
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TOTAL COLLECTED',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '₹${totalReceived.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brandAmber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'RECEIPTS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${payments.length} Records',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+              itemCount: payments.length,
+              itemBuilder: (context, index) {
+                final payment = payments[index];
+                final customer = customers.cast<Customer?>().firstWhere(
+                  (c) => c?.id == payment.customerId,
+                  orElse: () => null,
+                );
+                final customerName = customer?.name ?? 'Unknown Customer';
+                final isReversed = payment.status == PaymentStatus.reversed;
+
+                return MobileCard(
+                  title: payment.paymentNumber,
+                  subtitle: customerName,
+                  statusBadge: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isReversed
+                          ? AppColors.error.withValues(alpha: 0.15)
+                          : AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      payment.status.displayName.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isReversed ? AppColors.error : AppColors.success,
+                      ),
+                    ),
+                  ),
+                  heroMetric: '₹${payment.amount.toStringAsFixed(2)}',
+                  heroLabel: 'RECEIVED',
+                  heroColor: isReversed
+                      ? AppColors.darkTextTertiary
+                      : AppColors.brandAmber,
+                  attributes: [
+                    MobileCardAttribute(
+                      label: 'Payment Date',
+                      value: DateFormat('dd MMM yyyy')
+                          .format(payment.paymentDate),
+                    ),
+                    MobileCardAttribute(
+                      label: 'Payment Mode',
+                      value: payment.paymentMode,
+                    ),
+                    MobileCardAttribute(
+                      label: 'Reference No',
+                      value: payment.referenceNumber ?? 'None',
+                    ),
+                    MobileCardAttribute(
+                      label: 'Allocation',
+                      value: payment.invoiceId != null
+                          ? 'Invoice Linked'
+                          : 'Advance / Auto',
+                    ),
+                  ],
+                  onTap: () {
+                    ref.read(selectedPaymentIdProvider.notifier).state =
+                        payment.id;
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute<void>(
+                            builder: (ctx) => _buildDetailPanel(payment.id),
+                          ),
+                        )
+                        .then((_) {
+                          ref.read(selectedPaymentIdProvider.notifier).state =
+                              null;
+                        });
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }
 
     return ListView.builder(
       itemCount: payments.length,
@@ -623,12 +791,221 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
         ];
 
         if (isMobile) {
-          return DetailPageTemplate(
-            title: payment.paymentNumber,
-            subtitle:
-                'Recorded on ${DateFormat('dd MMM yyyy, hh:mm a').format(payment.createdAt)}',
-            onBack: () => Navigator.of(context).pop(),
-            sections: bodyWidgets,
+          final isReversed = payment.status == PaymentStatus.reversed;
+          return Scaffold(
+            backgroundColor: AppColors.darkBackground,
+            appBar: AppBar(
+              backgroundColor: AppColors.darkSurface,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.darkTextPrimary,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    payment.paymentNumber,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkTextPrimary,
+                    ),
+                  ),
+                  Text(
+                    'Receipt Voucher',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Hero Amount Card
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.brandAmber.withValues(alpha: 0.15),
+                          AppColors.darkCard,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.brandAmber.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'AMOUNT RECEIVED',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                                color: AppColors.darkTextTertiary,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isReversed
+                                    ? AppColors.error.withValues(alpha: 0.15)
+                                    : AppColors.success.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                payment.status.displayName.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isReversed
+                                      ? AppColors.error
+                                      : AppColors.success,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '₹${payment.amount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: isReversed
+                                ? AppColors.darkTextTertiary
+                                : AppColors.brandAmber,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Recorded on ${DateFormat('dd MMM yyyy, hh:mm a').format(payment.createdAt)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Customer Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Customer Details',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brandAmber,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow('Customer Name', customer.name),
+                        _buildDetailRow(
+                          'Customer Code',
+                          customer.customerCode,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Settlement & Banking Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Settlement & Banking',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brandAmber,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          'Payment Date',
+                          DateFormat(
+                            'dd MMM yyyy',
+                          ).format(payment.paymentDate),
+                        ),
+                        _buildDetailRow('Payment Mode', payment.paymentMode),
+                        _buildDetailRow(
+                          'Reference / Txn ID',
+                          payment.referenceNumber ?? 'None',
+                        ),
+                        _buildDetailRow(
+                          'Depositing Bank',
+                          payment.bankName ?? 'N/A',
+                        ),
+                        _buildDetailRow('Allocated Invoice', invoiceDisplay),
+                        if (payment.notes != null && payment.notes!.isNotEmpty)
+                          _buildDetailRow('Notes', payment.notes!),
+                      ],
+                    ),
+                  ),
+                  if (payment.status == PaymentStatus.posted) ...[
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error.withValues(alpha: 0.2),
+                        foregroundColor: AppColors.error,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.undo_rounded),
+                      label: const Text(
+                        'Reverse Payment (Audit Rollback)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () =>
+                          _handleReversePayment(context, ref, payment),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           );
         }
 
@@ -833,11 +1210,13 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
 
     return Dialog(
       backgroundColor: AppColors.darkSurface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: 520,
-        padding: const EdgeInsets.all(24),
-        child: Form(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
@@ -1378,7 +1757,8 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Future<void> _save() async {

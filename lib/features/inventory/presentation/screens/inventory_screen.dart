@@ -12,11 +12,11 @@ import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
 import 'package:uuid/uuid.dart';
 
 class InventoryScreen extends ConsumerWidget {
@@ -31,105 +31,7 @@ class InventoryScreen extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return locationsAsync.when(
-        data: (locations) {
-          if (locations.isEmpty) {
-            return const Scaffold(
-              body: SafeArea(
-                child: EmptyStateWidget(
-                  icon: Icons.local_gas_station_rounded,
-                  title: 'No Storage Locations Found',
-                  subtitle:
-                      'Please seed default settings or register storage locations.',
-                ),
-              ),
-            );
-          }
-
-          return ListPageTemplate(
-            title: 'Locations',
-            actions: [
-              IconButton(
-                icon: const Icon(
-                  Icons.add_circle_outline,
-                  color: AppColors.brandAmber,
-                ),
-                onPressed: () => _showAddLocationDialog(context, ref),
-              ),
-            ],
-            body: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final loc = locations[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  color: AppColors.darkCard,
-                  child: ListTile(
-                    leading: Icon(
-                      loc.type == StorageLocationType.mainStorage
-                          ? Icons.store_rounded
-                          : Icons.local_shipping_rounded,
-                      color: AppColors.brandAmber,
-                    ),
-                    title: Text(
-                      loc.name,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      loc.type == StorageLocationType.mainStorage
-                          ? 'Main Terminal'
-                          : 'Mobile Bowser',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.darkTextSecondary,
-                      ),
-                    ),
-                    onTap: () {
-                      ref
-                              .read(selectedStorageLocationIdProvider.notifier)
-                              .state =
-                          loc.id;
-                      Navigator.of(context)
-                          .push(
-                            MaterialPageRoute<void>(
-                              builder: (ctx) =>
-                                  const _LocationDetailDashboard(),
-                            ),
-                          )
-                          .then((_) {
-                            ref
-                                    .read(
-                                      selectedStorageLocationIdProvider
-                                          .notifier,
-                                    )
-                                    .state =
-                                null;
-                          });
-                    },
-                  ),
-                );
-              }, childCount: locations.length),
-            ),
-            isSliver: true,
-          );
-        },
-        error: (err, st) => Scaffold(
-          body: Center(
-            child: Text(
-              'Error: $err',
-              style: const TextStyle(color: AppColors.error),
-            ),
-          ),
-        ),
-        loading: () => const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(color: AppColors.brandAmber),
-          ),
-        ),
-      );
+      return _buildMobileInventory(context, ref, locationsAsync);
     }
 
     return Scaffold(
@@ -271,6 +173,391 @@ class InventoryScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildMobileInventory(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<StorageLocation>> locationsAsync,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final searchQuery = ref.watch(inventorySearchQueryProvider);
+    final typeFilter = ref.watch(inventoryTypeFilterProvider);
+    final productsAsync = ref.watch(productsListProvider);
+
+    return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: Colors.black,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(
+          'Register Tank / Site',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () => _showAddLocationDialog(context, ref),
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Sticky Mobile Search
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              child: AppTextField(
+                hint: 'Search tanks, sites, bowsers...',
+                prefixIcon: Icons.search_rounded,
+                showClearButton: true,
+                onChanged: (val) {
+                  ref.read(inventorySearchQueryProvider.notifier).state = val;
+                },
+                onClear: () {
+                  ref.read(inventorySearchQueryProvider.notifier).state = '';
+                },
+              ),
+            ),
+
+            // Summary Metrics & Filter Bar
+            locationsAsync.maybeWhen(
+              data: (locations) {
+                final total = locations.length;
+                final terminals = locations
+                    .where((l) => l.type == StorageLocationType.mainStorage)
+                    .length;
+                final bowsers = locations
+                    .where((l) => l.type == StorageLocationType.bowser)
+                    .length;
+
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.lightSurface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                                : AppColors.lightBorder,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'LOCATIONS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$total Sites',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TERMINALS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$terminals Tanks',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.brandAmber,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'BOWSERS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$bowsers Fleet',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: AppFilterChipsBar<StorageLocationType?>(
+                        selectedValue: typeFilter,
+                        onSelected: (val) {
+                          ref
+                              .read(inventoryTypeFilterProvider.notifier)
+                              .state = val;
+                        },
+                        options: [
+                          FilterChipOption(
+                            label: 'All',
+                            value: null,
+                            count: total,
+                          ),
+                          FilterChipOption(
+                            label: 'Terminals',
+                            value: StorageLocationType.mainStorage,
+                            count: terminals,
+                          ),
+                          FilterChipOption(
+                            label: 'Bowsers',
+                            value: StorageLocationType.bowser,
+                            count: bowsers,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+
+            // Locations List
+            Expanded(
+              child: locationsAsync.when(
+                data: (locations) {
+                  final filtered = locations.where((loc) {
+                    final matchesSearch = searchQuery.isEmpty ||
+                        loc.name
+                            .toLowerCase()
+                            .contains(searchQuery.toLowerCase());
+                    final matchesType =
+                        typeFilter == null || loc.type == typeFilter;
+                    return matchesSearch && matchesType;
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: EmptyStateWidget(
+                        icon: Icons.inventory_2_outlined,
+                        title: 'No Locations Found',
+                        subtitle: searchQuery.isNotEmpty
+                            ? 'No tank or bowser matching "$searchQuery".'
+                            : 'No storage locations registered in this category.',
+                      ),
+                    );
+                  }
+
+                  final firstProduct = productsAsync.asData?.value.firstOrNull;
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final loc = filtered[index];
+                      final isTerminal =
+                          loc.type == StorageLocationType.mainStorage;
+
+                      return Consumer(
+                        builder: (context, ref, _) {
+                          final stockAsync = firstProduct != null
+                              ? ref.watch(
+                                  stockBalanceProvider((
+                                    locationId: loc.id,
+                                    productId: firstProduct.id,
+                                  )),
+                                )
+                              : null;
+
+                          final stockValue = stockAsync?.asData?.value;
+                          final stockText = stockValue != null
+                              ? '${stockValue.toStringAsFixed(1)} L'
+                              : 'Loading...';
+
+                          return MobileCard(
+                            title: loc.name,
+                            subtitle: isTerminal
+                                ? 'Main Storage Terminal'
+                                : 'Mobile Bowser Vehicle',
+                            statusBadge: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isTerminal
+                                    ? AppColors.brandAmber.withValues(alpha: 0.15)
+                                    : Colors.blue.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                isTerminal ? 'TERMINAL' : 'BOWSER',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: isTerminal
+                                      ? AppColors.brandAmber
+                                      : Colors.blueAccent,
+                                ),
+                              ),
+                            ),
+                            heroMetric: stockText,
+                            heroLabel: 'EST. DIESEL STOCK',
+                            attributes: [
+                              MobileCardAttribute(
+                                label: 'Status',
+                                value: loc.isActive ? 'Active' : 'Inactive',
+                              ),
+                              MobileCardAttribute(
+                                label: 'Type',
+                                value:
+                                    isTerminal ? 'Fixed Tank' : 'Vehicle Tank',
+                              ),
+                              if (firstProduct != null)
+                                MobileCardAttribute(
+                                  label: 'Product',
+                                  value: firstProduct.name,
+                                ),
+                            ],
+                            onTap: () {
+                              ref
+                                  .read(
+                                    selectedStorageLocationIdProvider.notifier,
+                                  )
+                                  .state = loc.id;
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (ctx) =>
+                                      const _LocationDetailDashboard(),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
+                ),
+                error: (err, _) => Center(
+                  child: AppErrorWidget(
+                    title: 'Failed to load locations',
+                    message: err.toString(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showAddLocationDialog(BuildContext context, WidgetRef ref) async {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
@@ -283,16 +570,21 @@ class InventoryScreen extends ConsumerWidget {
           builder: (context, setState) {
             return Dialog(
               backgroundColor: AppColors.darkSurface,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Register Storage Location',
@@ -370,6 +662,7 @@ class InventoryScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+            ),
             );
           },
         );
@@ -414,44 +707,11 @@ class _LocationDetailDashboard extends ConsumerWidget {
             final firstProduct = products.first;
 
             if (isMobile) {
-              return DetailPageTemplate(
-                title: location.name,
-                subtitle: 'Real-Time Balance & Historical Stock Ledger',
-                actions: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.tune_rounded,
-                      color: AppColors.brandAmber,
-                    ),
-                    onPressed: () => _showAdjustmentDialog(
-                      context,
-                      ref,
-                      location,
-                      firstProduct,
-                    ),
-                  ),
-                ],
-                sections: [
-                  _StockBalanceCard(
-                    locationId: location.id,
-                    productId: firstProduct.id,
-                    product: firstProduct,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Inventory Movements Logs',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkTextPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: MediaQuery.sizeOf(context).height * 0.5,
-                    child: _MovementsList(locationId: location.id),
-                  ),
-                ],
+              return _buildMobileLocationDetail(
+                context,
+                ref,
+                location,
+                firstProduct,
               );
             }
 
@@ -632,12 +892,17 @@ class _LocationDetailDashboard extends ConsumerWidget {
           builder: (context, setState) {
             return Dialog(
               backgroundColor: AppColors.darkSurface,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
                   key: formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -741,10 +1006,138 @@ class _LocationDetailDashboard extends ConsumerWidget {
                   ),
                 ),
               ),
+            ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildMobileLocationDetail(
+    BuildContext context,
+    WidgetRef ref,
+    StorageLocation location,
+    Product firstProduct,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isTerminal = location.type == StorageLocationType.mainStorage;
+
+    return Scaffold(
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      appBar: AppBar(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        foregroundColor:
+            isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            ref.read(selectedStorageLocationIdProvider.notifier).state = null;
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              location.name,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              isTerminal ? 'Terminal Tank' : 'Mobile Bowser',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune_rounded, color: AppColors.brandAmber),
+            tooltip: 'Adjust Stock',
+            onPressed: () => _showAdjustmentDialog(
+              context,
+              ref,
+              location,
+              firstProduct,
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            border: Border(
+              top: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+          ),
+          child: PrimaryButton(
+            label: 'Record Stock Adjustment',
+            icon: Icons.tune_rounded,
+            onPressed: () => _showAdjustmentDialog(
+              context,
+              ref,
+              location,
+              firstProduct,
+            ),
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _StockBalanceCard(
+              locationId: location.id,
+              productId: firstProduct.id,
+              product: firstProduct,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'STOCK MOVEMENTS',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+                Text(
+                  'Real-time Ledger',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppColors.darkTextTertiary
+                        : AppColors.lightTextTertiary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _MovementsList(
+              locationId: location.id,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -860,8 +1253,15 @@ class _StockBalanceCard extends ConsumerWidget {
 }
 
 class _MovementsList extends ConsumerWidget {
-  const _MovementsList({required this.locationId});
+  const _MovementsList({
+    required this.locationId,
+    this.shrinkWrap = false,
+    this.physics,
+  });
+
   final String locationId;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -882,6 +1282,8 @@ class _MovementsList extends ConsumerWidget {
         }
 
         return ListView.builder(
+          shrinkWrap: shrinkWrap,
+          physics: physics,
           itemCount: list.length,
           itemBuilder: (context, index) {
             final mov = list[index];

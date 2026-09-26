@@ -30,20 +30,42 @@ class AppBottomNav extends StatelessWidget {
     );
     if (selectedIndex < 0) selectedIndex = 0;
 
-    return NavigationBar(
-      backgroundColor: isDark ? AppColors.darkThemeSidebar : Colors.white,
-      selectedIndex: selectedIndex,
-      indicatorColor: AppColors.brandAmber.withValues(alpha: 0.15),
-      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      onDestinationSelected: (index) => context.go(items[index].route),
-      destinations: items.map((item) {
-        return NavigationDestination(
-          icon: Icon(item.icon, color: AppColors.sidebarIconInactive),
-          selectedIcon: Icon(item.activeIcon, color: AppColors.brandAmber),
-          label: item.label,
-          tooltip: item.label,
-        );
-      }).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+      ),
+      child: NavigationBar(
+        height: 64,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        selectedIndex: selectedIndex,
+        indicatorColor: AppColors.brandAmber.withValues(alpha: 0.18),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        onDestinationSelected: (index) => context.go(items[index].route),
+        destinations: items.map((item) {
+          return NavigationDestination(
+            icon: Icon(
+              item.icon,
+              size: 22,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.lightTextSecondary,
+            ),
+            selectedIcon: Icon(
+              item.activeIcon,
+              size: 22,
+              color: AppColors.brandAmber,
+            ),
+            label: item.label,
+            tooltip: item.label,
+          );
+        }).toList(),
+      ),
     );
   }
 }

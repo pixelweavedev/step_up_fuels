@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
@@ -10,10 +11,10 @@ import 'package:step_up_fuels/features/vehicles/domain/entities/vehicle.dart';
 import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
 import 'package:uuid/uuid.dart';
 
 class DriversScreen extends ConsumerWidget {
@@ -26,73 +27,7 @@ class DriversScreen extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return ListPageTemplate(
-        title: 'Drivers Directory',
-        searchWidget: AppTextField(
-          hint: 'Search driver name, phone, license...',
-          prefixIcon: Icons.search_rounded,
-          onChanged: (val) {
-            ref.read(driverSearchQueryProvider.notifier).state = val;
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.person_add_alt_1_rounded,
-              color: AppColors.brandAmber,
-            ),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) => const DriverFormDialog(),
-              );
-            },
-            tooltip: 'Add New Driver',
-          ),
-        ],
-        body: driversAsync.when(
-          data: (list) {
-            if (list.isEmpty) {
-              return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: EmptyStateWidget(
-                    icon: Icons.badge_outlined,
-                    title: 'No Drivers Found',
-                    subtitle:
-                        'Register a driver profile to manage assignments.',
-                  ),
-                ),
-              );
-            }
-            return SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final driver = list[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _DriverGridCard(driver: driver),
-                );
-              }, childCount: list.length),
-            );
-          },
-          loading: () => const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-          ),
-          error: (err, st) => SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Text(
-                'Error: $err',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-        ),
-        isSliver: true,
-      );
+      return _buildMobileDrivers(context, ref, driversAsync);
     }
 
     return Scaffold(
@@ -218,6 +153,400 @@ class DriversScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMobileDrivers(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<Driver>> driversAsync,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Sticky Search Bar
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              child: AppTextField(
+                hint: 'Search driver name, phone, license...',
+                prefixIcon: Icons.search_rounded,
+                showClearButton: true,
+                onChanged: (val) {
+                  ref.read(driverSearchQueryProvider.notifier).state = val;
+                },
+                onClear: () {
+                  ref.read(driverSearchQueryProvider.notifier).state = '';
+                },
+              ),
+            ),
+
+            // Summary Metrics & Alert Bar
+            driversAsync.maybeWhen(
+              data: (list) {
+                final totalDrivers = list.length;
+                final activeDrivers = list
+                    .where((d) => d.status == DriverStatus.active)
+                    .length;
+                final now = DateTime.now();
+                final expiringSoonCount = list.where((d) {
+                  return d.licenseExpiry.isBefore(
+                        now.add(const Duration(days: 30)),
+                      ) &&
+                      d.licenseExpiry.isAfter(now);
+                }).length;
+                final expiredCount = list
+                    .where((d) => d.licenseExpiry.isBefore(now))
+                    .length;
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.darkSurface
+                        : AppColors.lightSurface,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: isDark
+                            ? AppColors.darkBorder.withValues(alpha: 0.5)
+                            : AppColors.lightBorder,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkCard
+                                : AppColors.lightCard,
+                            borderRadius: BorderRadius.circular(
+                              AppMobileTokens.radiusSM,
+                            ),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ACTIVE DRIVERS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                  color: isDark
+                                      ? AppColors.darkTextTertiary
+                                      : AppColors.lightTextTertiary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$activeDrivers / $totalDrivers Available',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.success,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkCard
+                                : AppColors.lightCard,
+                            borderRadius: BorderRadius.circular(
+                              AppMobileTokens.radiusSM,
+                            ),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'LICENSE ALERTS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                  color: expiredCount > 0
+                                      ? AppColors.error
+                                      : (expiringSoonCount > 0
+                                          ? AppColors.warning
+                                          : AppColors.success),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                expiredCount > 0
+                                    ? '$expiredCount Expired!'
+                                    : (expiringSoonCount > 0
+                                        ? '$expiringSoonCount Expiring'
+                                        : 'All Valid'),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: expiredCount > 0
+                                      ? AppColors.error
+                                      : (expiringSoonCount > 0
+                                          ? AppColors.warning
+                                          : AppColors.success),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+
+            // Driver List
+            Expanded(
+              child: driversAsync.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return RefreshIndicator(
+                      color: AppColors.brandAmber,
+                      onRefresh: () async => ref.refresh(driversListProvider),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 60),
+                          Center(
+                            child: EmptyStateWidget(
+                              icon: Icons.badge_outlined,
+                              title: 'No Drivers Found',
+                              subtitle:
+                                  'Adjust your search query or tap + to register.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: AppColors.brandAmber,
+                    onRefresh: () async => ref.refresh(driversListProvider),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final driver = list[index];
+                        final now = DateTime.now();
+                        final isLicenseExpired = driver.licenseExpiry.isBefore(
+                          now,
+                        );
+                        final isLicenseExpiringSoon =
+                            driver.licenseExpiry.isBefore(
+                              now.add(const Duration(days: 30)),
+                            ) &&
+                            !isLicenseExpired;
+
+                        Color statusColor = AppColors.success;
+                        if (driver.status == DriverStatus.suspended ||
+                            isLicenseExpired) {
+                          statusColor = AppColors.error;
+                        } else if (driver.status == DriverStatus.inactive) {
+                          statusColor = AppColors.darkTextTertiary;
+                        }
+
+                        return MobileCard(
+                          title: driver.name,
+                          subtitle: driver.phone.isNotEmpty
+                              ? 'Contact: ${driver.phone}'
+                              : 'No phone registered',
+                          leadingIcon: Icons.person_rounded,
+                          leadingColor: AppColors.brandAmber,
+                          heroLabel: 'License Expiry',
+                          heroMetric: AppDateUtils.toDisplay(
+                            driver.licenseExpiry,
+                          ),
+                          heroColor: isLicenseExpired
+                              ? AppColors.error
+                              : (isLicenseExpiringSoon
+                                  ? AppColors.warning
+                                  : (isDark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.lightTextPrimary)),
+                          statusBadge: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isLicenseExpired
+                                  ? 'License Expired'
+                                  : driver.status.displayName,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                          attributes: [
+                            MobileCardAttribute(
+                              label: 'License No',
+                              value: driver.licenseNumber,
+                            ),
+                          ],
+                          onTap: () {
+                            showModalBottomSheet<void>(
+                              context: context,
+                              backgroundColor: isDark
+                                  ? AppColors.darkSurface
+                                  : AppColors.lightSurface,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              builder: (sheetCtx) => SafeArea(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        driver.name,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? AppColors.darkTextPrimary
+                                              : AppColors.lightTextPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'License: ${driver.licenseNumber} • Expiry: ${AppDateUtils.toDisplay(driver.licenseExpiry)}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? AppColors.darkTextTertiary
+                                              : AppColors.lightTextTertiary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      ListTile(
+                                        leading: const Icon(
+                                          Icons.assignment_ind_rounded,
+                                          color: AppColors.brandAmber,
+                                        ),
+                                        title: const Text('Manage Bowser Assignment'),
+                                        onTap: () {
+                                          Navigator.pop(sheetCtx);
+                                          showDialog<void>(
+                                            context: context,
+                                            builder: (_) => DriverAssignmentDialog(
+                                              driver: driver,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(
+                                          Icons.edit_outlined,
+                                          color: AppColors.brandAmber,
+                                        ),
+                                        title: const Text('Edit Driver Profile'),
+                                        onTap: () {
+                                          Navigator.pop(sheetCtx);
+                                          showDialog<void>(
+                                            context: context,
+                                            builder: (_) => DriverFormDialog(
+                                              driver: driver,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
+                ),
+                error: (err, st) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Error: $err',
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text(
+          'New Driver',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              fullscreenDialog: true,
+              builder: (_) => const DriverFormDialog(),
+            ),
+          );
+        },
       ),
     );
   }

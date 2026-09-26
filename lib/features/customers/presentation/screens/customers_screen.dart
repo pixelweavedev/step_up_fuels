@@ -5,12 +5,14 @@ import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/theme/spacing.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/core/utils/number_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_document.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_note.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/document_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
 import 'package:step_up_fuels/features/customers/presentation/widgets/customer_contact_form_dialog.dart';
@@ -23,12 +25,11 @@ import 'package:step_up_fuels/features/payments/presentation/providers/payments_
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/cards/customer_financial_metrics.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/layout/responsive_section.dart';
-import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
 import 'package:uuid/uuid.dart';
 
 /// Customers Screen implementing a responsive adaptive Master-Detail layout.
@@ -87,149 +88,12 @@ class _CustomerMasterList extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return ListPageTemplate(
-        title: 'Customers',
-        searchWidget: AppTextField(
-          hint: 'Search code or name...',
-          prefixIcon: Icons.search_rounded,
-          onChanged: (val) {
-            ref.read(customerSearchQueryProvider.notifier).state = val;
-          },
-        ),
-        filterWidget: ResponsiveSection(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Type:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.darkTextSecondary,
-                  ),
-                ),
-                DropdownButton<String?>(
-                  value: typeFilter,
-                  dropdownColor: AppColors.darkSurface,
-                  underline: const SizedBox(),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.brandAmber,
-                  ),
-                  items: const [
-                    DropdownMenuItem(child: Text('All Types')),
-                    DropdownMenuItem(value: 'COMPANY', child: Text('Company')),
-                    DropdownMenuItem(
-                      value: 'INDIVIDUAL',
-                      child: Text('Individual'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'GOVERNMENT',
-                      child: Text('Government'),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    ref.read(customerTypeFilterProvider.notifier).state = val;
-                  },
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Show Soft-Deleted:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.darkTextSecondary,
-                  ),
-                ),
-                Switch(
-                  value: statusFilter == null || statusFilter == false,
-                  activeThumbColor: AppColors.brandAmber,
-                  onChanged: (val) {
-                    ref.read(customerStatusFilterProvider.notifier).state = val
-                        ? null
-                        : true;
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: AppColors.brandAmber,
-            ),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) => const CustomerFormDialog(),
-              );
-            },
-            tooltip: 'Register New Customer',
-          ),
-        ],
-        body: customersAsync.when(
-          data: (list) {
-            if (list.isEmpty) {
-              return const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: EmptyStateWidget(
-                    icon: Icons.people_outline_rounded,
-                    title: 'No Customers Found',
-                    subtitle: 'Register a new customer or adjust filters.',
-                  ),
-                ),
-              );
-            }
-            return SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final customer = list[index];
-                final isSelected = customer.id == selectedId;
-                final isDeleted = customer.deletedAt != null;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: InkWell(
-                    onTap: () {
-                      ref.read(selectedCustomerIdProvider.notifier).state =
-                          customer.id;
-                      if (onMobileTap != null) {
-                        onMobileTap!(customer);
-                      }
-                    },
-                    child: _buildCustomerCard(
-                      context,
-                      customer,
-                      isSelected,
-                      isDeleted,
-                    ),
-                  ),
-                );
-              }, childCount: list.length),
-            );
-          },
-          loading: () => const SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: CircularProgressIndicator(color: AppColors.brandAmber),
-            ),
-          ),
-          error: (err, st) => SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Text(
-                'Error: $err',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            ),
-          ),
-        ),
-        isSliver: true,
+      return _buildMobileCustomerList(
+        context,
+        ref,
+        customersAsync,
+        typeFilter,
+        selectedId,
       );
     }
 
@@ -542,109 +406,382 @@ class _CustomerMasterList extends ConsumerWidget {
     );
   }
 
-  Widget _buildCustomerCard(
+  Widget _buildMobileCustomerList(
     BuildContext context,
-    Customer customer,
-    bool isSelected,
-    bool isDeleted,
+    WidgetRef ref,
+    AsyncValue<List<Customer>> customersAsync,
+    String? typeFilter,
+    String? selectedId,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected
-            ? (Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkSurface
-                  : const Color(0xFFEFE9DF))
-            : AppColors.darkCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: isSelected
-              ? AppColors.brandAmber.withValues(alpha: 0.6)
-              : isDeleted
-              ? AppColors.error.withValues(alpha: 0.3)
-              : AppColors.darkBorder,
-          width: isSelected ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isSelected ? 0.08 : 0.02),
-            blurRadius: isSelected ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      body: SafeArea(
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Sticky Mobile Search & Header
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextField(
+                    hint: 'Search name, code, phone or GSTIN...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(customerSearchQueryProvider.notifier).state = val;
+                    },
+                    onClear: () {
+                      ref.read(customerSearchQueryProvider.notifier).state = '';
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Summary Metrics & Filter Bar
+            customersAsync.maybeWhen(
+              data: (list) {
+                final totalCount = list.length;
+                final companyCount = list
+                    .where((c) => c.type == CustomerType.company)
+                    .length;
+                final individualCount = list
+                    .where((c) => c.type == CustomerType.individual)
+                    .length;
+                final govCount = list
+                    .where((c) => c.type == CustomerType.government)
+                    .length;
+                final totalBalance = list.fold<double>(
+                  0.0,
+                  (acc, c) => acc + c.currentBalance,
+                );
+
+                return Column(
+                  children: [
+                    // Mini KPI summary bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurface
+                            : AppColors.lightSurface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder.withValues(alpha: 0.5)
+                                : AppColors.lightBorder,
+                          ),
+                        ),
+                      ),
+                      child: Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              customer.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppColors.darkTextPrimary
-                                    : AppColors.lightTextPrimary,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(
+                                  AppMobileTokens.radiusSM,
+                                ),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'CUSTOMERS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: isDark
+                                          ? AppColors.darkTextTertiary
+                                          : AppColors.lightTextTertiary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$totalCount Listed',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Container(
-                            width: 8,
-                            height: 8,
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkCard
+                                    : AppColors.lightCard,
+                                borderRadius: BorderRadius.circular(
+                                  AppMobileTokens.radiusSM,
+                                ),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'TOTAL OUTSTANDING',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: totalBalance > 0
+                                          ? AppColors.warning
+                                          : AppColors.success,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    NumberUtils.formatCurrency(totalBalance),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                      color: totalBalance > 0
+                                          ? AppColors.warning
+                                          : (isDark
+                                              ? AppColors.darkTextPrimary
+                                              : AppColors.lightTextPrimary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Filter chips
+                    AppFilterChipsBar<String>(
+                      options: [
+                        FilterChipOption<String>(value: 'ALL', label: 'All', count: totalCount),
+                        FilterChipOption<String>(
+                          value: 'COMPANY',
+                          label: 'Company',
+                          count: companyCount,
+                        ),
+                        FilterChipOption<String>(
+                          value: 'INDIVIDUAL',
+                          label: 'Individual',
+                          count: individualCount,
+                        ),
+                        FilterChipOption<String>(
+                          value: 'GOVERNMENT',
+                          label: 'Govt',
+                          count: govCount,
+                        ),
+                      ],
+                      selectedValue: typeFilter ?? 'ALL',
+                      onSelected: (id) {
+                        ref.read(customerTypeFilterProvider.notifier).state =
+                            id == 'ALL' ? null : id;
+                      },
+                    ),
+                  ],
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+
+            // Customer List
+            Expanded(
+              child: customersAsync.when(
+                data: (list) {
+                  if (list.isEmpty) {
+                    return RefreshIndicator(
+                      color: AppColors.brandAmber,
+                      onRefresh: () async => ref.refresh(customersListProvider),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 60),
+                          Center(
+                            child: EmptyStateWidget(
+                              icon: Icons.people_outline_rounded,
+                              title: 'No Customers Found',
+                              subtitle:
+                                  'Adjust your search query or tap + to register.',
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: AppColors.brandAmber,
+                    onRefresh: () async => ref.refresh(customersListProvider),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      itemCount: list.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final customer = list[index];
+                        final isDeleted = customer.deletedAt != null;
+
+                        IconData typeIcon = Icons.business_rounded;
+                        if (customer.type == CustomerType.individual) {
+                          typeIcon = Icons.person_rounded;
+                        } else if (customer.type == CustomerType.government) {
+                          typeIcon = Icons.account_balance_rounded;
+                        }
+
+                        return MobileCard(
+                          title: customer.name,
+                          subtitle:
+                              '${customer.customerCode.isEmpty ? "CUST-TBD" : customer.customerCode} • ${customer.type.displayName}',
+                          leadingIcon: typeIcon,
+                          leadingColor: AppColors.brandAmber,
+                          heroLabel: 'OUTSTANDING',
+                          heroMetric: NumberUtils.formatCurrency(
+                            customer.currentBalance,
+                          ),
+                          heroColor: customer.currentBalance > 0
+                              ? AppColors.warning
+                              : (isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary),
+                          statusBadge: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: isDeleted
-                                  ? AppColors.error
+                                  ? AppColors.error.withValues(alpha: 0.15)
                                   : (customer.isActive
+                                      ? AppColors.success.withValues(alpha: 0.15)
+                                      : (isDark
+                                          ? AppColors.darkThemeBorder.withValues(
+                                              alpha: 0.3,
+                                            )
+                                          : AppColors.lightBorder)),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isDeleted
+                                  ? 'Deleted'
+                                  : (customer.isActive
+                                      ? 'Active'
+                                      : 'Inactive'),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isDeleted
+                                    ? AppColors.error
+                                    : (customer.isActive
                                         ? AppColors.success
-                                        : AppColors.darkTextTertiary),
-                              shape: BoxShape.circle,
+                                        : (isDark
+                                            ? AppColors.darkTextTertiary
+                                            : AppColors.lightTextTertiary)),
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            customer.customerCode.isEmpty
-                                ? 'CUST-TBD'
-                                : customer.customerCode,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppColors.darkTextTertiary
-                                  : AppColors.lightTextTertiary,
+                          attributes: [
+                            MobileCardAttribute(
+                              label: 'Credit Limit',
+                              value: NumberUtils.formatCurrency(
+                                customer.creditLimit,
+                              ),
                             ),
-                          ),
-                          Text(
-                            NumberUtils.formatCurrency(customer.currentBalance),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppColors.darkTextPrimary
-                                  : AppColors.lightTextPrimary,
+                            MobileCardAttribute(
+                              label: 'Terms',
+                              value: '${customer.creditDays}d credit',
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            if (customer.gstin != null &&
+                                customer.gstin!.isNotEmpty)
+                              MobileCardAttribute(
+                                label: 'GSTIN',
+                                value: customer.gstin!,
+                              ),
+                          ],
+                          onTap: () {
+                            ref.read(selectedCustomerIdProvider.notifier).state =
+                                customer.id;
+                            if (onMobileTap != null) {
+                              onMobileTap!(customer);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.brandAmber),
+                ),
+                error: (err, st) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Error loading customers: $err',
+                      style: const TextStyle(color: AppColors.error),
+                    ),
                   ),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.brandAmber,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.person_add_rounded),
+        label: const Text(
+          'New Customer',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        onPressed: () {
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              fullscreenDialog: true,
+              builder: (_) => const CustomerFormDialog(),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -755,50 +892,7 @@ class _CustomerDetailScaffoldState
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return DetailPageTemplate(
-        title: customer.name,
-        subtitle:
-            'Code: ${customer.customerCode.isEmpty ? 'CUST-TBD' : customer.customerCode} • ${customer.type.displayName}',
-        statusWidget: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: isDeleted
-                ? AppColors.error.withValues(alpha: 0.15)
-                : AppColors.brandNavyLight,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            isDeleted ? 'Deleted' : (customer.isActive ? 'Active' : 'Inactive'),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: isDeleted ? AppColors.error : AppColors.success,
-            ),
-          ),
-        ),
-        actions: !isDeleted
-            ? [
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    color: AppColors.brandAmber,
-                  ),
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => CustomerFormDialog(customer: customer),
-                  ),
-                ),
-              ]
-            : null,
-        sections: [
-          _buildKpiSummaryCards(),
-          _buildOverviewPanel(context, customer, isNarrow: true),
-          SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.6,
-            child: _buildTabbedPanel(),
-          ),
-        ],
-      );
+      return _buildMobileDetailScaffold(context, customer, isDeleted);
     }
 
     // The inner detail content — overview + tabbed panel.
@@ -891,6 +985,231 @@ class _CustomerDetailScaffoldState
         _buildDetailHeader(context, customer, isDeleted),
         Expanded(child: detailContent),
       ],
+    );
+  }
+
+  Widget _buildMobileDetailScaffold(
+    BuildContext context,
+    Customer customer,
+    bool isDeleted,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: AppColors.darkBackground,
+      appBar: AppBar(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              customer.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.lightTextPrimary,
+              ),
+            ),
+            Text(
+              '${customer.customerCode.isEmpty ? "CUST-TBD" : customer.customerCode} • ${customer.type.displayName}',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark
+                    ? AppColors.darkTextTertiary
+                    : AppColors.lightTextTertiary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (!isDeleted) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  fullscreenDialog: true,
+                  builder: (_) => CustomerFormDialog(customer: customer),
+                ),
+              ),
+            ),
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert_rounded,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              onSelected: (val) async {
+                if (val == 'delete') {
+                  final confirmed = await showConfirmDialog(
+                    context: context,
+                    title: 'Soft-Delete Customer',
+                    message:
+                        'Are you sure you want to delete this customer? All transaction details will remain but the customer will be marked as inactive.',
+                    confirmLabel: 'Delete',
+                    isDangerous: true,
+                  );
+                  if (confirmed == true) {
+                    await ref
+                        .read(customersListProvider.notifier)
+                        .deleteCustomer(customer.id);
+                    if (context.mounted) Navigator.of(context).pop();
+                  }
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                      SizedBox(width: 8),
+                      Text(
+                        'Soft-Delete',
+                        style: TextStyle(color: AppColors.error),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            IconButton(
+              icon: const Icon(Icons.restore_outlined, color: AppColors.brandAmber),
+              onPressed: () async => ref
+                  .read(customersListProvider.notifier)
+                  .restoreCustomer(customer.id),
+            ),
+          ],
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.brandAmber,
+          labelColor: AppColors.brandAmber,
+          unselectedLabelColor: isDark
+              ? AppColors.darkTextSecondary
+              : AppColors.lightTextSecondary,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          tabs: const [
+            Tab(text: 'Sites'),
+            Tab(text: 'Contacts'),
+            Tab(text: 'Documents'),
+            Tab(text: 'Invoices'),
+            Tab(text: 'Payments'),
+            Tab(text: 'Notes'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          // Expandable Financial & Overview Banner
+          ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+            childrenPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            backgroundColor:
+                isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            collapsedBackgroundColor:
+                isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            title: Row(
+              children: [
+                Text(
+                  'Receivables: ',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+                Text(
+                  NumberUtils.formatCurrency(customer.currentBalance),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: customer.currentBalance > 0
+                        ? AppColors.warning
+                        : AppColors.success,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDeleted
+                        ? AppColors.error.withValues(alpha: 0.15)
+                        : (customer.isActive
+                            ? AppColors.success.withValues(alpha: 0.15)
+                            : (isDark
+                                ? AppColors.darkThemeBorder.withValues(
+                                    alpha: 0.3,
+                                  )
+                                : AppColors.lightBorder)),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    isDeleted
+                        ? 'Deleted'
+                        : (customer.isActive ? 'Active' : 'Inactive'),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: isDeleted
+                          ? AppColors.error
+                          : (customer.isActive
+                              ? AppColors.success
+                              : (isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            children: [
+              _buildKpiSummaryCards(),
+              const SizedBox(height: 8),
+              _buildOverviewPanel(context, customer, isNarrow: true),
+            ],
+          ),
+          Divider(
+            height: 1,
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSitesTab(),
+                _buildContactsTab(),
+                _buildDocumentsTab(),
+                _buildInvoicesTab(),
+                _buildPaymentsTab(),
+                _buildNotesTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

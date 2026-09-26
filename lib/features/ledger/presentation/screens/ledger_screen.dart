@@ -10,6 +10,7 @@ import 'package:step_up_fuels/features/ledger/domain/entities/ledger_account.dar
 import 'package:step_up_fuels/features/ledger/domain/entities/ledger_entry.dart';
 import 'package:step_up_fuels/features/ledger/presentation/providers/ledger_provider.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 
@@ -128,8 +129,13 @@ class _LedgerAccountsMasterListState
             hint: 'Search code or name...',
             prefixIcon: Icons.search_rounded,
             controller: _searchCtrl,
+            showClearButton: true,
             onChanged: (val) {
               ref.read(ledgerAccountSearchQueryProvider.notifier).state = val;
+            },
+            onClear: () {
+              _searchCtrl.clear();
+              ref.read(ledgerAccountSearchQueryProvider.notifier).state = '';
             },
           ),
         ),
@@ -164,6 +170,64 @@ class _LedgerAccountsMasterListState
                     'No accounts found',
                     style: TextStyle(color: AppColors.darkTextTertiary),
                   ),
+                );
+              }
+
+              if (context.isMobile) {
+                return ListView.builder(
+                  itemCount: list.length,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                  itemBuilder: (context, index) {
+                    final acc = list[index];
+                    return MobileCard(
+                      title: acc.name,
+                      subtitle: 'Code: ${acc.accountCode}',
+                      statusBadge: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getAccountTypeBgColor(acc.accountType)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          acc.accountType,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: _getAccountTypeBgColor(acc.accountType),
+                          ),
+                        ),
+                      ),
+                      heroMetric: acc.isActive ? 'ACTIVE' : 'INACTIVE',
+                      heroLabel: 'STATUS',
+                      heroColor: acc.isActive
+                          ? AppColors.success
+                          : AppColors.darkTextTertiary,
+                      attributes: [
+                        MobileCardAttribute(
+                          label: 'Account Code',
+                          value: acc.accountCode,
+                        ),
+                        if (acc.referenceType != null &&
+                            acc.referenceType!.isNotEmpty)
+                          MobileCardAttribute(
+                            label: 'Category',
+                            value: acc.referenceType!,
+                          ),
+                      ],
+                      onTap: () {
+                        ref
+                            .read(selectedLedgerAccountIdProvider.notifier)
+                            .state = acc.id;
+                        if (widget.onMobileTap != null) {
+                          widget.onMobileTap!(acc);
+                        }
+                      },
+                    );
+                  },
                 );
               }
               return ListView.separated(
@@ -668,127 +732,57 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                 ),
                               )
                               .toList(),
-                          mobileCardBuilder: (context, entry) => Card(
-                            color: AppColors.darkCard,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(color: AppColors.darkBorder),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        DateFormat(
-                                          'dd MMM yyyy',
-                                        ).format(entry.entryDate),
-                                        style: TextStyle(
-                                          color: AppColors.darkTextTertiary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      if (entry.referenceId != null)
-                                        Text(
-                                          'Ref: ${entry.referenceType}',
-                                          style: TextStyle(
-                                            color: AppColors.darkTextTertiary,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                    ],
+                          mobileCardBuilder: (context, entry) {
+                            final isDebit = entry.debitAmount > 0;
+                            return MobileCard(
+                              title: entry.description,
+                              subtitle: entry.referenceType != null &&
+                                      entry.referenceType!.isNotEmpty
+                                  ? 'Ref: ${entry.referenceType}'
+                                  : 'Journal Entry',
+                              statusBadge: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDebit
+                                      ? AppColors.success.withValues(alpha: 0.15)
+                                      : AppColors.error.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  isDebit ? 'DEBIT (+)' : 'CREDIT (-)',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDebit
+                                        ? AppColors.success
+                                        : AppColors.error,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    entry.description,
-                                    style: TextStyle(
-                                      color: AppColors.darkTextPrimary,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'DEBIT',
-                                            style: TextStyle(
-                                              color: AppColors.darkTextTertiary,
-                                              fontSize: 10,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            entry.debitAmount > 0
-                                                ? '₹${entry.debitAmount.toStringAsFixed(2)}'
-                                                : '₹0.00',
-                                            style: const TextStyle(
-                                              color: AppColors.success,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'CREDIT',
-                                            style: TextStyle(
-                                              color: AppColors.darkTextTertiary,
-                                              fontSize: 10,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            entry.creditAmount > 0
-                                                ? '₹${entry.creditAmount.toStringAsFixed(2)}'
-                                                : '₹0.00',
-                                            style: const TextStyle(
-                                              color: AppColors.error,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'BALANCE',
-                                            style: TextStyle(
-                                              color: AppColors.darkTextTertiary,
-                                              fontSize: 10,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            '₹${entry.runningBalance.toStringAsFixed(2)}',
-                                            style: TextStyle(
-                                              color: AppColors.darkTextPrimary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                              heroMetric: isDebit
+                                  ? '+₹${entry.debitAmount.toStringAsFixed(2)}'
+                                  : '-₹${entry.creditAmount.toStringAsFixed(2)}',
+                              heroLabel: 'TRANSACTION',
+                              heroColor: isDebit
+                                  ? AppColors.success
+                                  : AppColors.error,
+                              attributes: [
+                                MobileCardAttribute(
+                                  label: 'Entry Date',
+                                  value: DateFormat('dd MMM yyyy')
+                                      .format(entry.entryDate),
+                                ),
+                                MobileCardAttribute(
+                                  label: 'Running Balance',
+                                  value:
+                                      '₹${entry.runningBalance.toStringAsFixed(2)}',
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],

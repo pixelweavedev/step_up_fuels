@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 
 class AppDatePickerField extends StatelessWidget {
   const AppDatePickerField({
@@ -32,12 +34,19 @@ class AppDatePickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return FormField<DateTime>(
       initialValue: selectedDate,
       validator: validator,
       builder: (state) {
         final hasError = state.hasError;
         final errorMsg = state.errorText ?? errorText;
+
+        final borderColor = hasError
+            ? AppColors.error
+            : (isDark ? AppColors.darkBorder : AppColors.lightBorder);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,15 +55,17 @@ class AppDatePickerField extends StatelessWidget {
             if (label != null) ...[
               Text(
                 label!,
-                style: TextStyle(
-                  fontSize: 11,
+                style: GoogleFonts.inter(
+                  fontSize: AppMobileTokens.fontCaption,
                   color: hasError
                       ? AppColors.error
-                      : AppColors.darkTextSecondary,
+                      : (isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.lightTextSecondary),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppMobileTokens.spacingXS),
             ],
             InkWell(
               onTap: enabled
@@ -64,12 +75,18 @@ class AppDatePickerField extends StatelessWidget {
                         initialDate: selectedDate,
                         firstDate: firstDate ?? DateTime(2020),
                         lastDate: lastDate ?? DateTime(2035),
-                        builder: (context, child) => Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.dark(
-                              primary: AppColors.brandAmber,
-                              surface: AppColors.darkCard,
-                            ),
+                        builder: (ctx, child) => Theme(
+                          data: Theme.of(ctx).copyWith(
+                            colorScheme: isDark
+                                ? const ColorScheme.dark(
+                                    primary: AppColors.brandAmber,
+                                    surface: AppColors.darkThemeCard,
+                                    onSurface: AppColors.darkThemeTextPrimary,
+                                  )
+                                : const ColorScheme.light(
+                                    primary: AppColors.brandAmber,
+                                    onSurface: AppColors.lightTextPrimary,
+                                  ),
                           ),
                           child: child!,
                         ),
@@ -80,58 +97,78 @@ class AppDatePickerField extends StatelessWidget {
                       }
                     }
                   : null,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
               child: Container(
+                constraints: const BoxConstraints(
+                  minHeight: AppMobileTokens.inputMinHeight,
+                ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
+                  horizontal: AppMobileTokens.spacingMD,
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.darkSurface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: hasError ? AppColors.error : AppColors.darkBorder,
-                  ),
+                  color: isDark ? AppColors.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Row(
                   children: [
                     if (prefixIcon != null) ...[
                       Icon(
                         prefixIcon,
-                        size: 16,
-                        color: AppColors.darkTextSecondary,
+                        size: AppMobileTokens.iconSM,
+                        color: isDark
+                            ? AppColors.darkTextTertiary
+                            : AppColors.lightTextTertiary,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppMobileTokens.spacingMD),
                     ],
                     Expanded(
                       child: Text(
                         DateFormat('dd MMM yyyy').format(selectedDate),
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           color: enabled
-                              ? AppColors.darkTextPrimary
-                              : AppColors.darkTextTertiary,
-                          fontSize: 13,
+                              ? (isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary)
+                              : (isDark
+                                  ? AppColors.darkTextTertiary
+                                  : AppColors.lightTextTertiary),
+                          fontSize: AppMobileTokens.fontBody,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    if (suffixIcon != null) suffixIcon!,
+                    if (suffixIcon != null)
+                      suffixIcon!
+                    else
+                      const Icon(
+                        Icons.edit_calendar_rounded,
+                        size: AppMobileTokens.iconSM,
+                        color: AppColors.brandAmber,
+                      ),
                   ],
                 ),
               ),
             ),
             if (errorMsg != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: AppMobileTokens.spacingXS),
               Text(
                 errorMsg,
-                style: const TextStyle(color: AppColors.error, fontSize: 12),
+                style: GoogleFonts.inter(
+                  color: AppColors.error,
+                  fontSize: AppMobileTokens.fontMetadata,
+                ),
               ),
             ] else if (helperText != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: AppMobileTokens.spacingXS),
               Text(
                 helperText!,
-                style: TextStyle(
-                  color: AppColors.darkTextSecondary,
-                  fontSize: 12,
+                style: GoogleFonts.inter(
+                  color: isDark
+                      ? AppColors.darkTextTertiary
+                      : AppColors.lightTextTertiary,
+                  fontSize: AppMobileTokens.fontMetadata,
                 ),
               ),
             ],

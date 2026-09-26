@@ -23,8 +23,10 @@ import 'package:step_up_fuels/features/vehicles/presentation/providers/vehicles_
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.dart';
 import 'package:step_up_fuels/shared/widgets/cards/financial_breakdown.dart';
+import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:uuid/uuid.dart';
 
@@ -235,6 +237,28 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   }
 
   Widget _buildTabsHeader() {
+    final isMobile = context.isMobile;
+    if (isMobile) {
+      return Container(
+        color: AppColors.darkSurface,
+        child: SafeArea(
+          bottom: false,
+          child: TabBar(
+            controller: _tabCtrl,
+            labelColor: AppColors.brandAmber,
+            unselectedLabelColor: AppColors.darkTextSecondary,
+            indicatorColor: AppColors.brandAmber,
+            dividerColor: AppColors.darkBorder,
+            tabs: const [
+              Tab(text: 'Purchases'),
+              Tab(text: 'Suppliers'),
+              Tab(text: 'Expenses'),
+            ],
+          ),
+        ),
+      );
+    }
+
     final h = ResponsiveSpacing.pageHorizontal(context);
     final v = ResponsiveSpacing.pageVertical(context);
     return Container(
@@ -334,6 +358,26 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   // ── Tab 1: Fuel Purchases UI ────────────────────────────────────────────────
 
   Widget _buildPurchaseFilters() {
+    final isMobile = context.isMobile;
+    if (isMobile) {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        color: AppColors.darkSurface,
+        child: AppTextField(
+          controller: _searchCtrl,
+          hint: 'Search purchase no or invoice ref...',
+          prefixIcon: Icons.search_rounded,
+          showClearButton: true,
+          onChanged: (v) =>
+              ref.read(purchaseSearchQueryProvider.notifier).state = v,
+          onClear: () {
+            _searchCtrl.clear();
+            ref.read(purchaseSearchQueryProvider.notifier).state = '';
+          },
+        ),
+      );
+    }
+
     final h = ResponsiveSpacing.pageHorizontal(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(h, 16, h, 8),
@@ -413,6 +457,180 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     }
 
     final suppliers = ref.watch(suppliersListProvider).value ?? [];
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      final totalAmount =
+          purchases.fold<double>(0, (acc, p) => acc + p.totalAmount);
+      final paidCount =
+          purchases.where((p) => p.paymentStatus == 'PAID').length;
+
+      return Column(
+        children: [
+          // Mobile KPI banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.darkSurface,
+              border: Border(
+                bottom: BorderSide(
+                  color: AppColors.darkBorder.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ORDERS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${purchases.length} P.O.s',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TOTAL SPEND',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '₹${_fmt(totalAmount)}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brandAmber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SETTLED',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$paidCount / ${purchases.length}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+              itemCount: purchases.length,
+              itemBuilder: (context, i) {
+                final pur = purchases[i];
+                final supplier = suppliers.cast<Supplier?>().firstWhere(
+                  (s) => s?.id == pur.supplierId,
+                  orElse: () => null,
+                );
+                final supplierDisplay = supplier?.name ??
+                    (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
+
+                return MobileCard(
+                  title: pur.purchaseNumber,
+                  subtitle: '$supplierDisplay • Ref: ${pur.supplierInvoiceNo}',
+                  statusBadge: EntityStatusPresentation.purchasePaymentBadge(
+                    pur.paymentStatus,
+                  ),
+                  heroMetric: '₹${_fmt(pur.totalAmount)}',
+                  heroLabel: 'TOTAL COST',
+                  attributes: [
+                    MobileCardAttribute(
+                      label: 'Purchase Date',
+                      value: DateFormat('dd MMM yyyy').format(pur.purchaseDate),
+                    ),
+                    MobileCardAttribute(
+                      label: 'Taxable Base',
+                      value: '₹${_fmt(pur.subtotal)}',
+                    ),
+                    MobileCardAttribute(
+                      label: 'GST Total',
+                      value:
+                          '₹${_fmt(pur.cgstAmount + pur.sgstAmount + pur.igstAmount)}',
+                    ),
+                  ],
+                  onTap: () => _openDetail(pur.id),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }
 
     return ListView.separated(
       padding: ResponsiveSpacing.listPadding(context),
@@ -547,122 +765,150 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: suppliers.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, i) {
-          final spl = suppliers[i];
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.darkCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.darkBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      final activeCount = suppliers.where((s) => s.isActive).length;
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: AppColors.brandNavyLight,
-                      child: Text(
-                        spl.name.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          color: AppColors.brandAmber,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            spl.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkTextPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TOTAL VENDORS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
                           ),
-                          Text(
-                            spl.supplierCode,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.darkTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.person_outline,
-                      size: 14,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      spl.contactPerson,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkTextSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.phone_outlined,
-                      size: 14,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      spl.phone,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.darkTextSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.pin_drop_outlined,
-                      size: 14,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '${spl.billingCity ?? ""}, ${spl.billingState ?? ""}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.darkTextTertiary,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${suppliers.length}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ACTIVE STATUS',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$activeCount Active',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+              itemCount: suppliers.length,
+              itemBuilder: (context, i) {
+                final spl = suppliers[i];
+                return MobileCard(
+                  title: spl.name,
+                  subtitle: 'Code: ${spl.supplierCode}',
+                  statusBadge: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: spl.isActive
+                          ? AppColors.success.withValues(alpha: 0.15)
+                          : AppColors.darkTextTertiary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      spl.isActive ? 'ACTIVE' : 'INACTIVE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: spl.isActive
+                            ? AppColors.success
+                            : AppColors.darkTextTertiary,
+                      ),
+                    ),
+                  ),
+                  heroMetric: spl.gstin != null && spl.gstin!.isNotEmpty
+                      ? spl.gstin!
+                      : 'N/A',
+                  heroLabel: 'GSTIN',
+                  attributes: [
+                    MobileCardAttribute(
+                      label: 'Contact',
+                      value: spl.contactPerson.isNotEmpty
+                          ? spl.contactPerson
+                          : 'Not specified',
+                    ),
+                    MobileCardAttribute(
+                      label: 'Phone',
+                      value: spl.phone.isNotEmpty
+                          ? spl.phone
+                          : 'Not specified',
+                    ),
+                    if (spl.billingCity != null && spl.billingCity!.isNotEmpty)
+                      MobileCardAttribute(
+                        label: 'Location',
+                        value:
+                            '${spl.billingCity ?? ""}, ${spl.billingState ?? ""}'
+                                .trim(),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       );
     }
 
@@ -827,6 +1073,121 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     final totalExp = expenses.fold<double>(0, (s, e) => s + e.amount);
 
     final vehicles = ref.watch(vehiclesListProvider).value ?? [];
+
+    final isMobile = context.isMobile;
+    if (isMobile) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.brandAmber.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.brandAmber.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.analytics_outlined,
+                    color: AppColors.brandAmber,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Total Expenses (${expenses.length}):',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '₹${_fmt(totalExp)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.brandAmber,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+              itemCount: expenses.length,
+              itemBuilder: (context, i) {
+                final exp = expenses[i];
+                final vehicle = vehicles.cast<Vehicle?>().firstWhere(
+                  (v) => v?.id == exp.vehicleId,
+                  orElse: () => null,
+                );
+                return MobileCard(
+                  title: exp.category.replaceAll('_', ' '),
+                  subtitle: exp.expenseNumber,
+                  statusBadge: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandNavyLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.brandAmber.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      exp.paymentMode.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.brandAmber,
+                      ),
+                    ),
+                  ),
+                  heroMetric: '₹${_fmt(exp.amount)}',
+                  heroLabel: 'AMOUNT',
+                  attributes: [
+                    MobileCardAttribute(
+                      label: 'Date',
+                      value: DateFormat('dd MMM yyyy').format(exp.expenseDate),
+                    ),
+                    if (exp.vehicleId != null)
+                      MobileCardAttribute(
+                        label: 'Vehicle/Bowser',
+                        value: vehicle?.registrationNumber ?? 'Assigned',
+                      ),
+                    if (exp.notes != null && exp.notes!.isNotEmpty)
+                      MobileCardAttribute(
+                        label: 'Notes',
+                        value: exp.notes!,
+                      ),
+                  ],
+                  actions: [
+                    IconButton(
+                      onPressed: () => _deleteExpense(exp.id),
+                      icon: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: AppColors.error,
+                        size: 20,
+                      ),
+                      tooltip: 'Delete expense',
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       children: [
