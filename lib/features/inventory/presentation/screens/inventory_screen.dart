@@ -17,6 +17,7 @@ import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart'
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class InventoryScreen extends ConsumerWidget {
@@ -200,24 +201,7 @@ class InventoryScreen extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
-            // Sticky Mobile Search
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              child: AppTextField(
-                hint: 'Search tanks, sites, bowsers...',
-                prefixIcon: Icons.search_rounded,
-                showClearButton: true,
-                onChanged: (val) {
-                  ref.read(inventorySearchQueryProvider.notifier).state = val;
-                },
-                onClear: () {
-                  ref.read(inventorySearchQueryProvider.notifier).state = '';
-                },
-              ),
-            ),
-
-            // Summary Metrics & Filter Bar
+            // Sticky Mobile Header (Search + KPI Bar + Filter Chips Bar)
             locationsAsync.maybeWhen(
               data: (locations) {
                 final total = locations.length;
@@ -228,201 +212,76 @@ class InventoryScreen extends ConsumerWidget {
                     .where((l) => l.type == StorageLocationType.bowser)
                     .length;
 
-                return Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark
-                                ? AppColors.darkBorder.withValues(alpha: 0.5)
-                                : AppColors.lightBorder,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'LOCATIONS',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$total Sites',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.lightTextPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'TERMINALS',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$terminals Tanks',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.brandAmber,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'BOWSERS',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$bowsers Fleet',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search tanks, sites, bowsers...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(inventorySearchQueryProvider.notifier).state =
+                          val;
+                    },
+                    onClear: () {
+                      ref.read(inventorySearchQueryProvider.notifier).state =
+                          '';
+                    },
+                  ),
+                  kpis: [
+                    AppKpiItem(
+                      label: 'LOCATIONS',
+                      value: '$total Sites',
                     ),
-                    Container(
-                      color: isDark
-                          ? AppColors.darkSurface
-                          : AppColors.lightSurface,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: AppFilterChipsBar<StorageLocationType?>(
-                        selectedValue: typeFilter,
-                        onSelected: (val) {
-                          ref
-                              .read(inventoryTypeFilterProvider.notifier)
-                              .state = val;
-                        },
-                        options: [
-                          FilterChipOption(
-                            label: 'All',
-                            value: null,
-                            count: total,
-                          ),
-                          FilterChipOption(
-                            label: 'Terminals',
-                            value: StorageLocationType.mainStorage,
-                            count: terminals,
-                          ),
-                          FilterChipOption(
-                            label: 'Bowsers',
-                            value: StorageLocationType.bowser,
-                            count: bowsers,
-                          ),
-                        ],
-                      ),
+                    AppKpiItem(
+                      label: 'TERMINALS',
+                      value: '$terminals Tanks',
+                      valueColor: AppColors.brandAmber,
+                    ),
+                    AppKpiItem(
+                      label: 'BOWSERS',
+                      value: '$bowsers Fleet',
+                      valueColor: Colors.blueAccent,
                     ),
                   ],
+                  filterWidget: AppFilterChipsBar<StorageLocationType?>(
+                    selectedValue: typeFilter,
+                    onSelected: (val) {
+                      ref
+                          .read(inventoryTypeFilterProvider.notifier)
+                          .state = val;
+                    },
+                    options: [
+                      FilterChipOption(
+                        label: 'All',
+                        value: null,
+                        count: total,
+                      ),
+                      FilterChipOption(
+                        label: 'Terminals',
+                        value: StorageLocationType.mainStorage,
+                        count: terminals,
+                      ),
+                      FilterChipOption(
+                        label: 'Bowsers',
+                        value: StorageLocationType.bowser,
+                        count: bowsers,
+                      ),
+                    ],
+                  ),
                 );
               },
-              orElse: () => const SizedBox.shrink(),
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  hint: 'Search tanks, sites, bowsers...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (val) {
+                    ref.read(inventorySearchQueryProvider.notifier).state = val;
+                  },
+                  onClear: () {
+                    ref.read(inventorySearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
             ),
 
             // Locations List

@@ -14,6 +14,7 @@ import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class ProductsScreen extends ConsumerWidget {
@@ -323,229 +324,87 @@ class _ProductMasterList extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
-            // Sticky Mobile Search
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              child: AppTextField(
-                hint: 'Search code or name...',
-                prefixIcon: Icons.search_rounded,
-                showClearButton: true,
-                onChanged: (val) {
-                  ref.read(productSearchQueryProvider.notifier).state = val;
-                },
-                onClear: () {
-                  ref.read(productSearchQueryProvider.notifier).state = '';
-                },
-              ),
-            ),
-
-            // Summary Metrics & Filter Bar
+            // Sticky Mobile Header (Search + KPI Bar + Sub-header Filter)
             productsAsync.maybeWhen(
               data: (list) {
                 final total = list.length;
                 final active = list.where((p) => p.deletedAt == null).length;
                 final inactive = total - active;
 
-                return Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark
-                                ? AppColors.darkBorder.withValues(alpha: 0.5)
-                                : AppColors.lightBorder,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'CATALOGUE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$total Products',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.lightTextPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ACTIVE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$active Items',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.success,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'INACTIVE',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$inactive Items',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.lightTextSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search code or name...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(productSearchQueryProvider.notifier).state = val;
+                    },
+                    onClear: () {
+                      ref.read(productSearchQueryProvider.notifier).state = '';
+                    },
+                  ),
+                  kpis: [
+                    AppKpiItem(
+                      label: 'CATALOGUE',
+                      value: '$total Products',
                     ),
-                    Container(
-                      color: isDark
-                          ? AppColors.darkSurface
-                          : AppColors.lightSurface,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Show Inactive / Archived',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
-                            ),
-                          ),
-                          Switch(
-                            value:
-                                statusFilter == null || statusFilter == false,
-                            activeThumbColor: AppColors.brandAmber,
-                            onChanged: (val) {
-                              ref
-                                  .read(productStatusFilterProvider.notifier)
-                                  .state = val ? null : true;
-                            },
-                          ),
-                        ],
-                      ),
+                    AppKpiItem(
+                      label: 'ACTIVE',
+                      value: '$active Items',
+                      valueColor: AppColors.success,
+                    ),
+                    AppKpiItem(
+                      label: 'INACTIVE',
+                      value: '$inactive Items',
                     ),
                   ],
+                  bottomWidget: Container(
+                    color: isDark
+                        ? AppColors.darkSurface
+                        : AppColors.lightSurface,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Show Inactive / Archived',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.lightTextSecondary,
+                          ),
+                        ),
+                        Switch(
+                          value: statusFilter == null || statusFilter == false,
+                          activeThumbColor: AppColors.brandAmber,
+                          onChanged: (val) {
+                            ref
+                                .read(productStatusFilterProvider.notifier)
+                                .state = val ? null : true;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
-              orElse: () => const SizedBox.shrink(),
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  hint: 'Search code or name...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (val) {
+                    ref.read(productSearchQueryProvider.notifier).state = val;
+                  },
+                  onClear: () {
+                    ref.read(productSearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
             ),
 
             // Products List

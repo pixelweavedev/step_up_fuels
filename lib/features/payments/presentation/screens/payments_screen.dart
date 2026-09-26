@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
+import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
+import 'package:step_up_fuels/core/utils/number_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
@@ -18,7 +21,7 @@ import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
-import 'package:step_up_fuels/shared/widgets/templates/list_page_template.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class PaymentsScreen extends ConsumerStatefulWidget {
@@ -47,99 +50,178 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     if (context.isMobile) {
       final customerFilter = ref.watch(paymentCustomerFilterProvider);
       final customersAsync = ref.watch(customersListProvider);
+      final isDark = Theme.of(context).brightness == Brightness.dark;
 
-      return ListPageTemplate(
-        title: 'Payments',
-        searchWidget: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: AppTextField(
-            hint: 'Search payment no. or reference...',
-            prefixIcon: Icons.search_rounded,
-            controller: _searchCtrl,
-            showClearButton: true,
-            onChanged: (val) {
-              ref.read(paymentSearchQueryProvider.notifier).state = val;
-            },
-            onClear: () {
-              _searchCtrl.clear();
-              ref.read(paymentSearchQueryProvider.notifier).state = '';
-            },
-          ),
-        ),
-        filterWidget: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: AppColors.darkSurface,
-              border: Border.all(color: AppColors.darkBorder),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: customersAsync.when(
-              data: (list) => DropdownButtonHideUnderline(
-                child: DropdownButton<String?>(
-                  value: customerFilter,
-                  isExpanded: true,
-                  hint: Text(
-                    'All Customers',
-                    style: TextStyle(color: AppColors.darkTextSecondary),
-                  ),
-                  dropdownColor: AppColors.darkSurface,
-                  items: [
-                    DropdownMenuItem<String?>(
-                      child: Text(
-                        'All Customers',
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                      ),
-                    ),
-                    ...list.map(
-                      (c) => DropdownMenuItem(
-                        value: c.id,
-                        child: Text(
-                          c.name,
-                          style: TextStyle(color: AppColors.darkTextPrimary),
-                        ),
-                      ),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    ref.read(paymentCustomerFilterProvider.notifier).state =
-                        val;
-                  },
-                ),
-              ),
-              loading: () => const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              error: (_, __) => const Text(
-                'Error loading customers',
-                style: TextStyle(color: AppColors.error, fontSize: 12),
-              ),
-            ),
-          ),
-        ),
+      return Scaffold(
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.lightBackground,
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showRecordPaymentDialog(context),
           backgroundColor: AppColors.brandAmber,
-          foregroundColor: AppColors.darkBackground,
+          foregroundColor: AppColors.brandNavy,
+          elevation: 4,
           icon: const Icon(Icons.add_rounded),
-          label: const Text(
+          label: Text(
             'Record Receipt',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w700),
           ),
         ),
-        body: paymentsAsync.when(
-          data: (payments) => _buildPaymentsList(payments, selectedId, true),
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.brandAmber),
-          ),
-          error: (e, _) => Center(
-            child: Text(
-              e.toString(),
-              style: const TextStyle(color: AppColors.error),
-            ),
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Sticky Mobile Header (Search + KPI Bar + Filter)
+              paymentsAsync.maybeWhen(
+                data: (payments) {
+                  final totalPayments = payments.length;
+                  final totalAmount = payments.fold<double>(
+                    0,
+                    (sum, p) => sum + p.amount,
+                  );
+
+                  return AppMobileHeader(
+                    searchWidget: AppTextField(
+                      hint: 'Search payment no. or reference...',
+                      prefixIcon: Icons.search_rounded,
+                      controller: _searchCtrl,
+                      showClearButton: true,
+                      onChanged: (val) {
+                        ref.read(paymentSearchQueryProvider.notifier).state =
+                            val;
+                      },
+                      onClear: () {
+                        _searchCtrl.clear();
+                        ref.read(paymentSearchQueryProvider.notifier).state =
+                            '';
+                      },
+                    ),
+                    kpis: [
+                      AppKpiItem(
+                        label: 'RECEIPTS',
+                        value: '$totalPayments Recorded',
+                      ),
+                      AppKpiItem(
+                        label: 'TOTAL RECEIVED',
+                        value: NumberUtils.formatCurrency(totalAmount),
+                        labelColor: AppColors.success,
+                        valueColor: AppColors.success,
+                      ),
+                    ],
+                    bottomWidget: Container(
+                      color: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: customersAsync.when(
+                        data: (list) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkCard
+                                : AppColors.lightCard,
+                            border: Border.all(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.lightBorder,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppMobileTokens.radiusSM,
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String?>(
+                              value: customerFilter,
+                              isExpanded: true,
+                              hint: Text(
+                                'Filter by Customer: All',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              dropdownColor: isDark
+                                  ? AppColors.darkSurface
+                                  : AppColors.lightSurface,
+                              items: [
+                                DropdownMenuItem<String?>(
+                                  child: Text(
+                                    'All Customers',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                ...list.map(
+                                  (c) => DropdownMenuItem(
+                                    value: c.id,
+                                    child: Text(
+                                      c.name,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.darkTextPrimary
+                                            : AppColors.lightTextPrimary,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (val) {
+                                ref
+                                    .read(
+                                      paymentCustomerFilterProvider.notifier,
+                                    )
+                                    .state = val;
+                              },
+                            ),
+                          ),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  );
+                },
+                orElse: () => AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search payment no. or reference...',
+                    prefixIcon: Icons.search_rounded,
+                    controller: _searchCtrl,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(paymentSearchQueryProvider.notifier).state = val;
+                    },
+                    onClear: () {
+                      _searchCtrl.clear();
+                      ref.read(paymentSearchQueryProvider.notifier).state = '';
+                    },
+                  ),
+                ),
+              ),
+
+              // Payments List
+              Expanded(
+                child: paymentsAsync.when(
+                  data: (payments) =>
+                      _buildPaymentsList(payments, selectedId, true),
+                  loading: () => const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.brandAmber),
+                  ),
+                  error: (e, _) => Center(
+                    child: Text(
+                      e.toString(),
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );

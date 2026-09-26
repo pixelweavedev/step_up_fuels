@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
-import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
@@ -15,6 +14,7 @@ import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class DriversScreen extends ConsumerWidget {
@@ -170,24 +170,7 @@ class DriversScreen extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
-            // Sticky Search Bar
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              child: AppTextField(
-                hint: 'Search driver name, phone, license...',
-                prefixIcon: Icons.search_rounded,
-                showClearButton: true,
-                onChanged: (val) {
-                  ref.read(driverSearchQueryProvider.notifier).state = val;
-                },
-                onClear: () {
-                  ref.read(driverSearchQueryProvider.notifier).state = '';
-                },
-              ),
-            ),
-
-            // Summary Metrics & Alert Bar
+            // Sticky Mobile Header (Search + KPI Bar)
             driversAsync.maybeWhen(
               data: (list) {
                 final totalDrivers = list.length;
@@ -205,133 +188,58 @@ class DriversScreen extends ConsumerWidget {
                     .where((d) => d.licenseExpiry.isBefore(now))
                     .length;
 
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search driver name, phone, license...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(driverSearchQueryProvider.notifier).state = val;
+                    },
+                    onClear: () {
+                      ref.read(driverSearchQueryProvider.notifier).state = '';
+                    },
                   ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkSurface
-                        : AppColors.lightSurface,
-                    border: Border(
-                      bottom: BorderSide(
-                        color: isDark
-                            ? AppColors.darkBorder.withValues(alpha: 0.5)
-                            : AppColors.lightBorder,
-                      ),
+                  kpis: [
+                    AppKpiItem(
+                      label: 'ACTIVE DRIVERS',
+                      value: '$activeDrivers / $totalDrivers Available',
+                      valueColor: AppColors.success,
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkCard
-                                : AppColors.lightCard,
-                            borderRadius: BorderRadius.circular(
-                              AppMobileTokens.radiusSM,
-                            ),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.lightBorder,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'ACTIVE DRIVERS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: isDark
-                                      ? AppColors.darkTextTertiary
-                                      : AppColors.lightTextTertiary,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$activeDrivers / $totalDrivers Available',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.success,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkCard
-                                : AppColors.lightCard,
-                            borderRadius: BorderRadius.circular(
-                              AppMobileTokens.radiusSM,
-                            ),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppColors.darkBorder
-                                  : AppColors.lightBorder,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'LICENSE ALERTS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.8,
-                                  color: expiredCount > 0
-                                      ? AppColors.error
-                                      : (expiringSoonCount > 0
-                                          ? AppColors.warning
-                                          : AppColors.success),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                expiredCount > 0
-                                    ? '$expiredCount Expired!'
-                                    : (expiringSoonCount > 0
-                                        ? '$expiringSoonCount Expiring'
-                                        : 'All Valid'),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: expiredCount > 0
-                                      ? AppColors.error
-                                      : (expiringSoonCount > 0
-                                          ? AppColors.warning
-                                          : AppColors.success),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    AppKpiItem(
+                      label: 'LICENSE ALERTS',
+                      value: expiredCount > 0
+                          ? '$expiredCount Expired!'
+                          : (expiringSoonCount > 0
+                              ? '$expiringSoonCount Expiring'
+                              : 'All Valid'),
+                      labelColor: expiredCount > 0
+                          ? AppColors.error
+                          : (expiringSoonCount > 0
+                              ? AppColors.warning
+                              : AppColors.success),
+                      valueColor: expiredCount > 0
+                          ? AppColors.error
+                          : (expiringSoonCount > 0
+                              ? AppColors.warning
+                              : AppColors.success),
+                    ),
+                  ],
                 );
               },
-              orElse: () => const SizedBox.shrink(),
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  hint: 'Search driver name, phone, license...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (val) {
+                    ref.read(driverSearchQueryProvider.notifier).state = val;
+                  },
+                  onClear: () {
+                    ref.read(driverSearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
             ),
 
             // Driver List

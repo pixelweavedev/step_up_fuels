@@ -28,6 +28,7 @@ import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class PurchasesScreen extends ConsumerStatefulWidget {
@@ -128,6 +129,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     final suppliersAsync = ref.watch(suppliersListProvider);
     final expensesAsync = ref.watch(expensesListProvider);
     final selectedId = ref.watch(selectedPurchaseIdProvider);
+    final isMobile = context.isMobile;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -141,61 +143,83 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
               controller: _tabCtrl,
               children: [
                 // Tab 1: Fuel Purchases
-                Row(
-                  children: [
-                    Expanded(
-                      flex: _showDetail ? 5 : 1,
-                      child: Column(
-                        children: [
-                          _buildPurchaseFilters(),
-                          Expanded(
-                            child: purchasesAsync.when(
-                              data: (purchases) =>
-                                  _buildPurchaseList(purchases, selectedId),
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(
-                                  color: AppColors.brandAmber,
-                                ),
-                              ),
-                              error: (e, _) => Center(
-                                child: Text(
-                                  e.toString(),
-                                  style: const TextStyle(
-                                    color: AppColors.error,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Side panel — only on tablet/desktop; mobile uses modal sheet
-                    if (_showDetail &&
-                        selectedId != null &&
-                        !ResponsiveLayout.isMobileOrSmallTablet(context))
-                      SizeTransition(
-                        axis: Axis.horizontal,
-                        sizeFactor: _panelAnim,
-                        child: Container(
-                          width: ResponsiveDimensions.purchaseDetailPanelWidth(
-                            context,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.darkCard,
-                            border: Border(
-                              left: BorderSide(color: AppColors.darkBorder),
-                            ),
-                          ),
-                          child: _PurchaseDetailPanel(
-                            purchaseId: selectedId,
-                            onClose: _closeDetailPanel,
+                isMobile
+                    ? purchasesAsync.when(
+                        data: (purchases) =>
+                            _buildMobilePurchaseTab(purchases, selectedId),
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.brandAmber,
                           ),
                         ),
+                        error: (e, _) => Center(
+                          child: Text(
+                            e.toString(),
+                            style: const TextStyle(
+                              color: AppColors.error,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            flex: _showDetail ? 5 : 1,
+                            child: Column(
+                              children: [
+                                _buildPurchaseFilters(),
+                                Expanded(
+                                  child: purchasesAsync.when(
+                                    data: (purchases) => _buildPurchaseList(
+                                      purchases,
+                                      selectedId,
+                                    ),
+                                    loading: () => const Center(
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.brandAmber,
+                                      ),
+                                    ),
+                                    error: (e, _) => Center(
+                                      child: Text(
+                                        e.toString(),
+                                        style: const TextStyle(
+                                          color: AppColors.error,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Side panel — only on tablet/desktop; mobile uses modal sheet
+                          if (_showDetail &&
+                              selectedId != null &&
+                              !ResponsiveLayout.isMobileOrSmallTablet(context))
+                            SizeTransition(
+                              axis: Axis.horizontal,
+                              sizeFactor: _panelAnim,
+                              child: Container(
+                                width: ResponsiveDimensions
+                                    .purchaseDetailPanelWidth(
+                                  context,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkCard,
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: AppColors.darkBorder,
+                                    ),
+                                  ),
+                                ),
+                                child: _PurchaseDetailPanel(
+                                  purchaseId: selectedId,
+                                  onClose: _closeDetailPanel,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
-
                 // Tab 2: Suppliers
                 suppliersAsync.when(
                   data: (suppliers) => _buildSuppliersTab(suppliers),
@@ -237,18 +261,21 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   }
 
   Widget _buildTabsHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMobile = context.isMobile;
     if (isMobile) {
       return Container(
-        color: AppColors.darkSurface,
+        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         child: SafeArea(
           bottom: false,
           child: TabBar(
             controller: _tabCtrl,
             labelColor: AppColors.brandAmber,
-            unselectedLabelColor: AppColors.darkTextSecondary,
+            unselectedLabelColor: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.lightTextSecondary,
             indicatorColor: AppColors.brandAmber,
-            dividerColor: AppColors.darkBorder,
+            dividerColor: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             tabs: const [
               Tab(text: 'Purchases'),
               Tab(text: 'Suppliers'),
@@ -357,26 +384,123 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
 
   // ── Tab 1: Fuel Purchases UI ────────────────────────────────────────────────
 
-  Widget _buildPurchaseFilters() {
-    final isMobile = context.isMobile;
-    if (isMobile) {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        color: AppColors.darkSurface,
-        child: AppTextField(
-          controller: _searchCtrl,
-          hint: 'Search purchase no or invoice ref...',
-          prefixIcon: Icons.search_rounded,
-          showClearButton: true,
-          onChanged: (v) =>
-              ref.read(purchaseSearchQueryProvider.notifier).state = v,
-          onClear: () {
-            _searchCtrl.clear();
-            ref.read(purchaseSearchQueryProvider.notifier).state = '';
-          },
+  Widget _buildMobilePurchaseTab(
+    List<FuelPurchase> purchases,
+    String? selectedId,
+  ) {
+    final suppliers = ref.watch(suppliersListProvider).value ?? [];
+    final totalAmount =
+        purchases.fold<double>(0, (acc, p) => acc + p.totalAmount);
+    final paidCount =
+        purchases.where((p) => p.paymentStatus == 'PAID').length;
+
+    return Column(
+      children: [
+        AppMobileHeader(
+          searchWidget: AppTextField(
+            controller: _searchCtrl,
+            hint: 'Search purchase no or invoice ref...',
+            prefixIcon: Icons.search_rounded,
+            showClearButton: true,
+            onChanged: (String v) =>
+                ref.read(purchaseSearchQueryProvider.notifier).state = v,
+            onClear: () {
+              _searchCtrl.clear();
+              ref.read(purchaseSearchQueryProvider.notifier).state = '';
+            },
+          ),
+          kpis: [
+            AppKpiItem(
+              label: 'ORDERS',
+              value: '${purchases.length} P.O.s',
+            ),
+            AppKpiItem(
+              label: 'TOTAL SPEND',
+              value: '₹${_fmt(totalAmount)}',
+              valueColor: AppColors.brandAmber,
+            ),
+            AppKpiItem(
+              label: 'SETTLED',
+              value: '$paidCount / ${purchases.length}',
+              valueColor: AppColors.success,
+            ),
+          ],
         ),
-      );
-    }
+        Expanded(
+          child: purchases.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shopping_cart_outlined,
+                        size: 48,
+                        color: AppColors.darkTextTertiary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No purchase records found',
+                        style: TextStyle(color: AppColors.darkTextSecondary),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => _openCreatePurchaseDialog(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.brandAmber,
+                        ),
+                        child: Text(
+                          'Record First Purchase',
+                          style: TextStyle(color: AppColors.darkBackground),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                  itemCount: purchases.length,
+                  itemBuilder: (context, i) {
+                    final pur = purchases[i];
+                    final supplier = suppliers.cast<Supplier?>().firstWhere(
+                      (s) => s?.id == pur.supplierId,
+                      orElse: () => null,
+                    );
+                    final supplierDisplay = supplier?.name ??
+                        (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
+
+                    return MobileCard(
+                      title: pur.purchaseNumber,
+                      subtitle: '$supplierDisplay • Ref: ${pur.supplierInvoiceNo}',
+                      statusBadge: EntityStatusPresentation.purchasePaymentBadge(
+                        pur.paymentStatus,
+                      ),
+                      heroMetric: '₹${_fmt(pur.totalAmount)}',
+                      heroLabel: 'TOTAL COST',
+                      attributes: [
+                        MobileCardAttribute(
+                          label: 'Purchase Date',
+                          value: DateFormat('dd MMM yyyy').format(pur.purchaseDate),
+                        ),
+                        MobileCardAttribute(
+                          label: 'Taxable Base',
+                          value: '₹${_fmt(pur.subtotal)}',
+                        ),
+                        MobileCardAttribute(
+                          label: 'GST Total',
+                          value:
+                              '₹${_fmt(pur.cgstAmount + pur.sgstAmount + pur.igstAmount)}',
+                        ),
+                      ],
+                      onTap: () => _openDetail(pur.id),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPurchaseFilters() {
 
     final h = ResponsiveSpacing.pageHorizontal(context);
     return Padding(
@@ -457,180 +581,6 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     }
 
     final suppliers = ref.watch(suppliersListProvider).value ?? [];
-    final isMobile = context.isMobile;
-
-    if (isMobile) {
-      final totalAmount =
-          purchases.fold<double>(0, (acc, p) => acc + p.totalAmount);
-      final paidCount =
-          purchases.where((p) => p.paymentStatus == 'PAID').length;
-
-      return Column(
-        children: [
-          // Mobile KPI banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.darkSurface,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.darkBorder.withValues(alpha: 0.5),
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ORDERS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${purchases.length} P.O.s',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkTextPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'TOTAL SPEND',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '₹${_fmt(totalAmount)}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.brandAmber,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SETTLED',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$paidCount / ${purchases.length}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-              itemCount: purchases.length,
-              itemBuilder: (context, i) {
-                final pur = purchases[i];
-                final supplier = suppliers.cast<Supplier?>().firstWhere(
-                  (s) => s?.id == pur.supplierId,
-                  orElse: () => null,
-                );
-                final supplierDisplay = supplier?.name ??
-                    (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
-
-                return MobileCard(
-                  title: pur.purchaseNumber,
-                  subtitle: '$supplierDisplay • Ref: ${pur.supplierInvoiceNo}',
-                  statusBadge: EntityStatusPresentation.purchasePaymentBadge(
-                    pur.paymentStatus,
-                  ),
-                  heroMetric: '₹${_fmt(pur.totalAmount)}',
-                  heroLabel: 'TOTAL COST',
-                  attributes: [
-                    MobileCardAttribute(
-                      label: 'Purchase Date',
-                      value: DateFormat('dd MMM yyyy').format(pur.purchaseDate),
-                    ),
-                    MobileCardAttribute(
-                      label: 'Taxable Base',
-                      value: '₹${_fmt(pur.subtotal)}',
-                    ),
-                    MobileCardAttribute(
-                      label: 'GST Total',
-                      value:
-                          '₹${_fmt(pur.cgstAmount + pur.sgstAmount + pur.igstAmount)}',
-                    ),
-                  ],
-                  onTap: () => _openDetail(pur.id),
-                );
-              },
-            ),
-          ),
-        ],
-      );
-    }
 
     return ListView.separated(
       padding: ResponsiveSpacing.listPadding(context),
@@ -768,85 +718,18 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
       final activeCount = suppliers.where((s) => s.isActive).length;
       return Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'TOTAL VENDORS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${suppliers.length}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkTextPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.darkBorder),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ACTIVE STATUS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: AppColors.darkTextTertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$activeCount Active',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          AppKpiSummaryBar(
+            kpis: [
+              AppKpiItem(
+                label: 'TOTAL VENDORS',
+                value: '${suppliers.length}',
+              ),
+              AppKpiItem(
+                label: 'ACTIVE STATUS',
+                value: '$activeCount Active',
+                valueColor: AppColors.success,
+              ),
+            ],
           ),
           Expanded(
             child: ListView.builder(
@@ -1078,45 +961,18 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     if (isMobile) {
       return Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.brandAmber.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.brandAmber.withValues(alpha: 0.2),
-                ),
+          AppKpiSummaryBar(
+            kpis: [
+              AppKpiItem(
+                label: 'TOTAL ENTRIES',
+                value: '${expenses.length}',
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.analytics_outlined,
-                    color: AppColors.brandAmber,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Total Expenses (${expenses.length}):',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkTextSecondary,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '₹${_fmt(totalExp)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.brandAmber,
-                    ),
-                  ),
-                ],
+              AppKpiItem(
+                label: 'TOTAL EXPENSES',
+                value: '₹${_fmt(totalExp)}',
+                valueColor: AppColors.brandAmber,
               ),
-            ),
+            ],
           ),
           Expanded(
             child: ListView.builder(

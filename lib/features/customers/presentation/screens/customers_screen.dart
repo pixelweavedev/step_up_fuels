@@ -5,7 +5,6 @@ import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
-import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/theme/spacing.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/core/utils/number_utils.dart';
@@ -30,6 +29,7 @@ import 'package:step_up_fuels/shared/widgets/dialogs/confirm_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 /// Customers Screen implementing a responsive adaptive Master-Detail layout.
@@ -421,29 +421,7 @@ class _CustomerMasterList extends ConsumerWidget {
         bottom: false,
         child: Column(
           children: [
-            // Sticky Mobile Search & Header
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppTextField(
-                    hint: 'Search name, code, phone or GSTIN...',
-                    prefixIcon: Icons.search_rounded,
-                    showClearButton: true,
-                    onChanged: (val) {
-                      ref.read(customerSearchQueryProvider.notifier).state = val;
-                    },
-                    onClear: () {
-                      ref.read(customerSearchQueryProvider.notifier).state = '';
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Summary Metrics & Filter Bar
+            // Sticky Mobile Header (Search + KPI Bar + Filter Chips Bar)
             customersAsync.maybeWhen(
               data: (list) {
                 final totalCount = list.length;
@@ -461,166 +439,82 @@ class _CustomerMasterList extends ConsumerWidget {
                   (acc, c) => acc + c.currentBalance,
                 );
 
-                return Column(
-                  children: [
-                    // Mini KPI summary bar
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark
-                                ? AppColors.darkBorder.withValues(alpha: 0.5)
-                                : AppColors.lightBorder,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(
-                                  AppMobileTokens.radiusSM,
-                                ),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'CUSTOMERS',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$totalCount Listed',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.lightTextPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(
-                                  AppMobileTokens.radiusSM,
-                                ),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'TOTAL OUTSTANDING',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                      color: totalBalance > 0
-                                          ? AppColors.warning
-                                          : AppColors.success,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    NumberUtils.formatCurrency(totalBalance),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      fontFeatures: const [
-                                        FontFeature.tabularFigures(),
-                                      ],
-                                      color: totalBalance > 0
-                                          ? AppColors.warning
-                                          : (isDark
-                                              ? AppColors.darkTextPrimary
-                                              : AppColors.lightTextPrimary),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search name, code, phone or GSTIN...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(customerSearchQueryProvider.notifier).state =
+                          val;
+                    },
+                    onClear: () {
+                      ref.read(customerSearchQueryProvider.notifier).state =
+                          '';
+                    },
+                  ),
+                  kpis: [
+                    AppKpiItem(
+                      label: 'CUSTOMERS',
+                      value: '$totalCount Listed',
                     ),
-
-                    // Filter chips
-                    AppFilterChipsBar<String>(
-                      options: [
-                        FilterChipOption<String>(value: 'ALL', label: 'All', count: totalCount),
-                        FilterChipOption<String>(
-                          value: 'COMPANY',
-                          label: 'Company',
-                          count: companyCount,
-                        ),
-                        FilterChipOption<String>(
-                          value: 'INDIVIDUAL',
-                          label: 'Individual',
-                          count: individualCount,
-                        ),
-                        FilterChipOption<String>(
-                          value: 'GOVERNMENT',
-                          label: 'Govt',
-                          count: govCount,
-                        ),
-                      ],
-                      selectedValue: typeFilter ?? 'ALL',
-                      onSelected: (id) {
-                        ref.read(customerTypeFilterProvider.notifier).state =
-                            id == 'ALL' ? null : id;
-                      },
+                    AppKpiItem(
+                      label: 'TOTAL OUTSTANDING',
+                      value: NumberUtils.formatCurrency(totalBalance),
+                      labelColor: totalBalance > 0
+                          ? AppColors.warning
+                          : AppColors.success,
+                      valueColor: totalBalance > 0
+                          ? AppColors.warning
+                          : (isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.lightTextPrimary),
                     ),
                   ],
+                  filterWidget: AppFilterChipsBar<String>(
+                    options: [
+                      FilterChipOption<String>(
+                        value: 'ALL',
+                        label: 'All',
+                        count: totalCount,
+                      ),
+                      FilterChipOption<String>(
+                        value: 'COMPANY',
+                        label: 'Company',
+                        count: companyCount,
+                      ),
+                      FilterChipOption<String>(
+                        value: 'INDIVIDUAL',
+                        label: 'Individual',
+                        count: individualCount,
+                      ),
+                      FilterChipOption<String>(
+                        value: 'GOVERNMENT',
+                        label: 'Govt',
+                        count: govCount,
+                      ),
+                    ],
+                    selectedValue: typeFilter ?? 'ALL',
+                    onSelected: (id) {
+                      ref.read(customerTypeFilterProvider.notifier).state =
+                          id == 'ALL' ? null : id;
+                    },
+                  ),
                 );
               },
-              orElse: () => const SizedBox.shrink(),
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  hint: 'Search name, code, phone or GSTIN...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (val) {
+                    ref.read(customerSearchQueryProvider.notifier).state = val;
+                  },
+                  onClear: () {
+                    ref.read(customerSearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
             ),
 
             // Customer List

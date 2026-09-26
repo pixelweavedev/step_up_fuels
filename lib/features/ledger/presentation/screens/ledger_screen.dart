@@ -13,6 +13,8 @@ import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 
 class LedgerScreen extends ConsumerWidget {
   const LedgerScreen({super.key});
@@ -93,6 +95,138 @@ class _LedgerAccountsMasterListState
     final accountsAsync = ref.watch(ledgerAccountsListProvider);
     final selectedId = ref.watch(selectedLedgerAccountIdProvider);
     final selectedTypeFilter = ref.watch(ledgerAccountTypeFilterProvider);
+    final isMobile = context.isMobile;
+
+    if (isMobile) {
+      final accounts = accountsAsync.value ?? [];
+
+      return Column(
+        children: [
+          AppMobileHeader(
+            searchWidget: AppTextField(
+              hint: 'Search code or name...',
+              prefixIcon: Icons.search_rounded,
+              controller: _searchCtrl,
+              showClearButton: true,
+              onChanged: (String val) {
+                ref.read(ledgerAccountSearchQueryProvider.notifier).state = val;
+              },
+              onClear: () {
+                _searchCtrl.clear();
+                ref.read(ledgerAccountSearchQueryProvider.notifier).state = '';
+              },
+            ),
+            kpis: [
+              AppKpiItem(
+                label: 'TOTAL ACCOUNTS',
+                value: '${accounts.length}',
+              ),
+              AppKpiItem(
+                label: 'ACTIVE STATUS',
+                value:
+                    '${accounts.where((a) => a.isActive).length} Active',
+                valueColor: AppColors.success,
+              ),
+            ],
+            filterWidget: AppFilterChipsBar<String?>(
+              selectedValue: selectedTypeFilter,
+              onSelected: (String? val) {
+                ref.read(ledgerAccountTypeFilterProvider.notifier).state = val;
+              },
+              options: const [
+                FilterChipOption(label: 'All', value: null),
+                FilterChipOption(label: 'Customer', value: 'CUSTOMER'),
+                FilterChipOption(label: 'Supplier', value: 'SUPPLIER'),
+                FilterChipOption(label: 'Cash/Bank', value: 'CASH'),
+                FilterChipOption(label: 'Sales', value: 'SALES'),
+                FilterChipOption(label: 'Expenses', value: 'EXPENSE'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: accountsAsync.when(
+              data: (list) {
+                if (list.isEmpty) {
+                  return const EmptyStateWidget(
+                    title: 'No Accounts Found',
+                    subtitle: 'No ledger accounts match the criteria.',
+                    icon: Icons.account_balance_wallet_outlined,
+                  );
+                }
+                return ListView.builder(
+                  itemCount: list.length,
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                  itemBuilder: (context, index) {
+                    final acc = list[index];
+                    return MobileCard(
+                      title: acc.name,
+                      subtitle: 'Code: ${acc.accountCode}',
+                      statusBadge: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getAccountTypeBgColor(acc.accountType)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          acc.accountType,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: _getAccountTypeBgColor(acc.accountType),
+                          ),
+                        ),
+                      ),
+                      heroMetric: acc.isActive ? 'ACTIVE' : 'INACTIVE',
+                      heroLabel: 'STATUS',
+                      heroColor: acc.isActive
+                          ? AppColors.success
+                          : AppColors.darkTextTertiary,
+                      attributes: [
+                        MobileCardAttribute(
+                          label: 'Account Code',
+                          value: acc.accountCode,
+                        ),
+                        MobileCardAttribute(
+                          label: 'Account Type',
+                          value: acc.accountType,
+                        ),
+                        if (acc.referenceType != null &&
+                            acc.referenceType!.isNotEmpty)
+                          MobileCardAttribute(
+                            label: 'Category',
+                            value: acc.referenceType!,
+                          ),
+                      ],
+                      onTap: () {
+                        ref
+                            .read(selectedLedgerAccountIdProvider.notifier)
+                            .state = acc.id;
+                        if (widget.onMobileTap != null) {
+                          widget.onMobileTap!(acc);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.brandAmber),
+              ),
+              error: (e, _) => Center(
+                child: Text(
+                  e.toString(),
+                  style: const TextStyle(color: AppColors.error),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
       children: [
@@ -173,63 +307,6 @@ class _LedgerAccountsMasterListState
                 );
               }
 
-              if (context.isMobile) {
-                return ListView.builder(
-                  itemCount: list.length,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-                  itemBuilder: (context, index) {
-                    final acc = list[index];
-                    return MobileCard(
-                      title: acc.name,
-                      subtitle: 'Code: ${acc.accountCode}',
-                      statusBadge: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getAccountTypeBgColor(acc.accountType)
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          acc.accountType,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: _getAccountTypeBgColor(acc.accountType),
-                          ),
-                        ),
-                      ),
-                      heroMetric: acc.isActive ? 'ACTIVE' : 'INACTIVE',
-                      heroLabel: 'STATUS',
-                      heroColor: acc.isActive
-                          ? AppColors.success
-                          : AppColors.darkTextTertiary,
-                      attributes: [
-                        MobileCardAttribute(
-                          label: 'Account Code',
-                          value: acc.accountCode,
-                        ),
-                        if (acc.referenceType != null &&
-                            acc.referenceType!.isNotEmpty)
-                          MobileCardAttribute(
-                            label: 'Category',
-                            value: acc.referenceType!,
-                          ),
-                      ],
-                      onTap: () {
-                        ref
-                            .read(selectedLedgerAccountIdProvider.notifier)
-                            .state = acc.id;
-                        if (widget.onMobileTap != null) {
-                          widget.onMobileTap!(acc);
-                        }
-                      },
-                    );
-                  },
-                );
-              }
               return ListView.separated(
                 itemCount: list.length,
                 padding: const EdgeInsets.symmetric(vertical: 12),

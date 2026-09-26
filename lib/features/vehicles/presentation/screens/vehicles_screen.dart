@@ -5,7 +5,6 @@ import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
-import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/drivers/domain/entities/driver_assignment.dart';
 import 'package:step_up_fuels/features/drivers/presentation/providers/drivers_provider.dart';
@@ -22,6 +21,7 @@ import 'package:step_up_fuels/shared/widgets/empty_states/app_error_widget.dart'
 import 'package:step_up_fuels/shared/widgets/empty_states/empty_state_widget.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
 
 class VehiclesScreen extends ConsumerWidget {
@@ -371,29 +371,13 @@ class _VehicleMasterList extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Sticky Mobile Search
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              child: AppTextField(
-                hint: 'Search reg number or model...',
-                prefixIcon: Icons.search_rounded,
-                showClearButton: true,
-                onChanged: (val) {
-                  ref.read(vehicleSearchQueryProvider.notifier).state = val;
-                },
-                onClear: () {
-                  ref.read(vehicleSearchQueryProvider.notifier).state = '';
-                },
-              ),
-            ),
-
-            // Summary Metrics & Filter Bar
+            // Sticky Mobile Header (Search + KPI Bar + Filter Chips Bar)
             vehiclesAsync.maybeWhen(
               data: (list) {
                 final totalCount = list.length;
@@ -408,163 +392,78 @@ class _VehicleMasterList extends ConsumerWidget {
                   (acc, v) => acc + v.capacity,
                 );
 
-                return Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: isDark
-                                ? AppColors.darkBorder.withValues(alpha: 0.5)
-                                : AppColors.lightBorder,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(
-                                  AppMobileTokens.radiusSM,
-                                ),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ACTIVE FLEET',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '$activeCount / $totalCount Active',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.success,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppColors.darkCard
-                                    : AppColors.lightCard,
-                                borderRadius: BorderRadius.circular(
-                                  AppMobileTokens.radiusSM,
-                                ),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'TOTAL CAPACITY',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.8,
-                                      color: isDark
-                                          ? AppColors.darkTextTertiary
-                                          : AppColors.lightTextTertiary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${totalCap.toStringAsFixed(0)} Litres',
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      fontFeatures: [
-                                        FontFeature.tabularFigures(),
-                                      ],
-                                      color: AppColors.brandAmber,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    hint: 'Search reg number or model...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (val) {
+                      ref.read(vehicleSearchQueryProvider.notifier).state = val;
+                    },
+                    onClear: () {
+                      ref.read(vehicleSearchQueryProvider.notifier).state = '';
+                    },
+                  ),
+                  kpis: [
+                    AppKpiItem(
+                      label: 'ACTIVE FLEET',
+                      value: '$activeCount / $totalCount Active',
+                      valueColor: AppColors.success,
                     ),
-                    AppFilterChipsBar<String>(
-                      options: [
-                        FilterChipOption<String>(
-                          value: 'ALL',
-                          label: 'All Fleet',
-                          count: totalCount,
-                        ),
-                        FilterChipOption<String>(
-                          value: 'ACTIVE',
-                          label: 'Active',
-                          count: activeCount,
-                        ),
-                        FilterChipOption<String>(
-                          value: 'MAINTENANCE',
-                          label: 'Maintenance',
-                          count: maintCount,
-                        ),
-                      ],
-                      selectedValue: statusFilter == null
-                          ? 'ALL'
-                          : (statusFilter ? 'ACTIVE' : 'ALL'),
-                      onSelected: (id) {
-                        if (id == 'ALL') {
-                          ref
-                              .read(vehicleStatusFilterProvider.notifier)
-                              .state = null;
-                        } else if (id == 'ACTIVE') {
-                          ref
-                              .read(vehicleStatusFilterProvider.notifier)
-                              .state = true;
-                        }
-                      },
+                    AppKpiItem(
+                      label: 'TOTAL CAPACITY',
+                      value: '${totalCap.toStringAsFixed(0)} Litres',
+                      valueColor: AppColors.brandAmber,
                     ),
                   ],
+                  filterWidget: AppFilterChipsBar<String>(
+                    options: [
+                      FilterChipOption<String>(
+                        value: 'ALL',
+                        label: 'All Fleet',
+                        count: totalCount,
+                      ),
+                      FilterChipOption<String>(
+                        value: 'ACTIVE',
+                        label: 'Active',
+                        count: activeCount,
+                      ),
+                      FilterChipOption<String>(
+                        value: 'MAINTENANCE',
+                        label: 'Maintenance',
+                        count: maintCount,
+                      ),
+                    ],
+                    selectedValue: statusFilter == null
+                        ? 'ALL'
+                        : (statusFilter ? 'ACTIVE' : 'ALL'),
+                    onSelected: (id) {
+                      if (id == 'ALL') {
+                        ref
+                            .read(vehicleStatusFilterProvider.notifier)
+                            .state = null;
+                      } else if (id == 'ACTIVE') {
+                        ref
+                            .read(vehicleStatusFilterProvider.notifier)
+                            .state = true;
+                      }
+                    },
+                  ),
                 );
               },
-              orElse: () => const SizedBox.shrink(),
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  hint: 'Search reg number or model...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (val) {
+                    ref.read(vehicleSearchQueryProvider.notifier).state = val;
+                  },
+                  onClear: () {
+                    ref.read(vehicleSearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
             ),
 
             // Vehicle List

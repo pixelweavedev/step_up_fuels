@@ -7,7 +7,6 @@ import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
-import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
@@ -33,6 +32,7 @@ import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:step_up_fuels/shared/widgets/layout/app_filter_chips_bar.dart';
+import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:step_up_fuels/shared/widgets/templates/detail_page_template.dart';
 import 'package:uuid/uuid.dart';
 
@@ -366,7 +366,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateInvoiceDialog(context),
         backgroundColor: AppColors.brandAmber,
@@ -378,102 +379,125 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           style: GoogleFonts.inter(fontWeight: FontWeight.w700),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(invoicesListProvider.future),
-        color: AppColors.brandAmber,
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppMobileTokens.pageMargin,
-                  AppMobileTokens.spacingMD,
-                  AppMobileTokens.pageMargin,
-                  AppMobileTokens.spacingXS,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppTextField(
-                      controller: _searchCtrl,
-                      hint: 'Search invoice # or customer...',
-                      prefixIcon: Icons.search_rounded,
-                      showClearButton: true,
-                      onChanged: (v) =>
-                          ref.read(invoiceSearchQueryProvider.notifier).state = v,
-                    ),
-                    const SizedBox(height: AppMobileTokens.spacingMD),
-                    invoicesAsync.when(
-                      data: (invoices) =>
-                          _buildMobileInvoiceKpiSummary(invoices, isDark),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ),
-                    const SizedBox(height: AppMobileTokens.spacingMD),
-                  ],
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: invoicesAsync.when(
-                data: (invoices) =>
-                    _buildMobileStatusChips(invoices, statusFilter),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-            ),
-            invoicesAsync.when(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Sticky Mobile Header (Search + KPI Bar + Filter Chips Bar)
+            invoicesAsync.maybeWhen(
               data: (invoices) {
-                if (invoices.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: EmptyStateWidget(
-                        icon: Icons.receipt_long_outlined,
-                        title: 'No Invoices Found',
-                        subtitle:
-                            'Tap "New Invoice" to generate your first invoice.',
-                        action: ElevatedButton.icon(
-                          onPressed: () => _openCreateInvoiceDialog(context),
-                          icon: const Icon(Icons.add_rounded),
-                          label: const Text('Create Invoice'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.brandAmber,
-                            foregroundColor: AppColors.brandNavy,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
+                final totalInvoiced =
+                    invoices.fold<double>(0, (s, i) => s + i.totalAmount);
+                final totalOutstanding = invoices
+                    .where((i) =>
+                        i.status == InvoiceStatus.posted ||
+                        i.status == InvoiceStatus.partiallyPaid ||
+                        i.status == InvoiceStatus.overdue)
+                    .fold<double>(0, (s, i) => s + i.outstanding);
 
-                return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppMobileTokens.pageMargin,
-                    AppMobileTokens.spacingMD,
-                    AppMobileTokens.pageMargin,
-                    80,
+                return AppMobileHeader(
+                  searchWidget: AppTextField(
+                    controller: _searchCtrl,
+                    hint: 'Search invoice # or customer...',
+                    prefixIcon: Icons.search_rounded,
+                    showClearButton: true,
+                    onChanged: (v) =>
+                        ref.read(invoiceSearchQueryProvider.notifier).state = v,
+                    onClear: () {
+                      _searchCtrl.clear();
+                      ref.read(invoiceSearchQueryProvider.notifier).state = '';
+                    },
                   ),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
+                  kpis: [
+                    AppKpiItem(
+                      label: 'TOTAL INVOICED',
+                      value:
+                          '₹${NumberFormat('#,##,###').format(totalInvoiced)}',
+                    ),
+                    AppKpiItem(
+                      label: 'OUTSTANDING',
+                      value:
+                          '₹${NumberFormat('#,##,###').format(totalOutstanding)}',
+                      labelColor: totalOutstanding > 0
+                          ? AppColors.warning
+                          : AppColors.success,
+                      valueColor: totalOutstanding > 0
+                          ? AppColors.warning
+                          : AppColors.success,
+                    ),
+                  ],
+                  filterWidget: _buildMobileStatusChips(invoices, statusFilter),
+                );
+              },
+              orElse: () => AppMobileHeader(
+                searchWidget: AppTextField(
+                  controller: _searchCtrl,
+                  hint: 'Search invoice # or customer...',
+                  prefixIcon: Icons.search_rounded,
+                  showClearButton: true,
+                  onChanged: (v) =>
+                      ref.read(invoiceSearchQueryProvider.notifier).state = v,
+                  onClear: () {
+                    _searchCtrl.clear();
+                    ref.read(invoiceSearchQueryProvider.notifier).state = '';
+                  },
+                ),
+              ),
+            ),
+
+            // Invoices List
+            Expanded(
+              child: invoicesAsync.when(
+                data: (invoices) {
+                  if (invoices.isEmpty) {
+                    return RefreshIndicator(
+                      color: AppColors.brandAmber,
+                      onRefresh: () => ref.refresh(invoicesListProvider.future),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          const SizedBox(height: 60),
+                          Center(
+                            child: EmptyStateWidget(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'No Invoices Found',
+                              subtitle:
+                                  'Tap "New Invoice" to generate your first invoice.',
+                              action: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openCreateInvoiceDialog(context),
+                                icon: const Icon(Icons.add_rounded),
+                                label: const Text('Create Invoice'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.brandAmber,
+                                  foregroundColor: AppColors.brandNavy,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: AppColors.brandAmber,
+                    onRefresh: () => ref.refresh(invoicesListProvider.future),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                      itemCount: invoices.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
                         final inv = invoices[index];
                         return _buildMobileInvoiceCard(context, inv, isDark);
                       },
-                      childCount: invoices.length,
                     ),
-                  ),
-                );
-              },
-              loading: () => const SliverFillRemaining(
-                child: Center(
+                  );
+                },
+                loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.brandAmber),
                 ),
-              ),
-              error: (e, _) => SliverFillRemaining(
-                child: Center(
+                error: (e, _) => Center(
                   child: AppErrorWidget(
                     message: 'Failed to load invoices.',
                     onRetry: () => ref.refresh(invoicesListProvider),
@@ -484,99 +508,6 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildMobileInvoiceKpiSummary(List<Invoice> invoices, bool isDark) {
-    final totalInvoiced =
-        invoices.fold<double>(0, (s, i) => s + i.totalAmount);
-    final totalOutstanding = invoices
-        .where((i) =>
-            i.status == InvoiceStatus.posted ||
-            i.status == InvoiceStatus.partiallyPaid ||
-            i.status == InvoiceStatus.overdue)
-        .fold<double>(0, (s, i) => s + i.outstanding);
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : Colors.white,
-              borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Invoiced',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.lightTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '₹${NumberFormat('#,##,###').format(totalInvoiced)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: isDark
-                        ? AppColors.darkTextPrimary
-                        : AppColors.lightTextPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: AppMobileTokens.spacingSM),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : Colors.white,
-              borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Outstanding Due',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.lightTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '₹${NumberFormat('#,##,###').format(totalOutstanding)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: totalOutstanding > 0
-                        ? const Color(0xFFEF4444)
-                        : AppColors.success,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
