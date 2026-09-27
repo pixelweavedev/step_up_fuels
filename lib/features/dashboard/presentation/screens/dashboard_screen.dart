@@ -40,12 +40,12 @@ class DashboardScreen extends ConsumerWidget {
         }
 
         return Scaffold(
-          backgroundColor: AppColors.darkBackground,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: RefreshIndicator(
             onRefresh: () =>
                 ref.read(dashboardStatsProvider.notifier).refresh(),
             color: AppColors.brandAmber,
-            backgroundColor: AppColors.darkSurface,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -257,7 +257,9 @@ class DashboardScreen extends ConsumerWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.brandNavyMid : const Color(0xFF94A3B8),
+                          color: isDark
+                              ? AppColors.brandNavyMid
+                              : const Color(0xFF94A3B8),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -396,7 +398,9 @@ class DashboardScreen extends ConsumerWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: invoices.length,
                   separatorBuilder: (context, index) => Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 1,
                   ),
                   itemBuilder: (context, index) {
@@ -421,7 +425,9 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  DateFormat('dd MMM yyyy').format(inv.invoiceDate),
+                                  DateFormat(
+                                    'dd MMM yyyy',
+                                  ).format(inv.invoiceDate),
                                   style: TextStyle(
                                     color: isDark
                                         ? AppColors.darkTextTertiary
@@ -440,7 +446,9 @@ class DashboardScreen extends ConsumerWidget {
                                 '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
                                   color: isDark
                                       ? AppColors.darkTextPrimary
                                       : AppColors.lightTextPrimary,
@@ -511,19 +519,26 @@ class DashboardScreen extends ConsumerWidget {
                     );
                   }
 
-                  final totalExpense = map.values.fold<double>(0, (s, v) => s + v);
+                  final totalExpense = map.values.fold<double>(
+                    0,
+                    (s, v) => s + v,
+                  );
                   final sortedEntries = map.entries.toList()
                     ..sort((a, b) => b.value.compareTo(a.value));
 
                   return Column(
                     children: sortedEntries.take(5).map((entry) {
-                      final pct = totalExpense > 0 ? (entry.value / totalExpense) : 0.0;
+                      final pct = totalExpense > 0
+                          ? (entry.value / totalExpense)
+                          : 0.0;
                       final name = entry.key
                           .replaceAll('_', ' ')
                           .split(' ')
-                          .map((w) => w.isNotEmpty
-                              ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}'
-                              : '')
+                          .map(
+                            (w) => w.isNotEmpty
+                                ? '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}'
+                                : '',
+                          )
                           .join(' ');
 
                       return Padding(
@@ -554,7 +569,9 @@ class DashboardScreen extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
                                     color: isDark
                                         ? AppColors.darkTextSecondary
                                         : AppColors.lightTextSecondary,
@@ -596,10 +613,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: Center(
                     child: Text(
                       'Failed to load expenses',
-                      style: TextStyle(
-                        color: AppColors.error,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: AppColors.error, fontSize: 12),
                     ),
                   ),
                 ),
@@ -643,7 +657,8 @@ class DashboardScreen extends ConsumerWidget {
                   isCompact: true,
                   icon: Icons.local_gas_station_outlined,
                   title: 'No Active Bowser Storage',
-                  subtitle: 'Mobile bowser storage units will show live dispatch inventory here.',
+                  subtitle:
+                      'Mobile bowser storage units will show live dispatch inventory here.',
                 )
               else
                 ...bowsers.entries.map((entry) {
@@ -674,10 +689,12 @@ class DashboardScreen extends ConsumerWidget {
                                 color: pct < 0.15
                                     ? AppColors.error
                                     : (isDark
-                                        ? AppColors.darkTextPrimary
-                                        : AppColors.lightTextPrimary),
+                                          ? AppColors.darkTextPrimary
+                                          : AppColors.lightTextPrimary),
                                 fontWeight: FontWeight.w600,
-                                fontFeatures: const [FontFeature.tabularFigures()],
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                                 fontSize: 12,
                               ),
                             ),
@@ -693,7 +710,9 @@ class DashboardScreen extends ConsumerWidget {
                                 ? AppColors.darkThemeSurface
                                 : const Color(0xFFE2E8F0),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              pct < 0.15 ? AppColors.error : AppColors.brandAmber,
+                              pct < 0.15
+                                  ? AppColors.error
+                                  : AppColors.brandAmber,
                             ),
                           ),
                         ),
@@ -748,7 +767,9 @@ class DashboardScreen extends ConsumerWidget {
               color: AppColors.brandAmber,
             ),
             style: IconButton.styleFrom(
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              backgroundColor: isDark
+                  ? AppColors.darkSurface
+                  : AppColors.lightSurface,
               side: BorderSide(
                 color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
               ),
@@ -848,7 +869,9 @@ class DashboardScreen extends ConsumerWidget {
                               color: isDark
                                   ? AppColors.darkTextTertiary
                                   : AppColors.lightTextTertiary,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                         ],
@@ -901,13 +924,21 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                   _buildMobileKpis(stats, isDark),
                   const SizedBox(height: AppMobileTokens.spacingLG),
-                  _buildMobileBowserSection(context, stats.bowserStockLevels, isDark),
+                  _buildMobileBowserSection(
+                    context,
+                    stats.bowserStockLevels,
+                    isDark,
+                  ),
                   const SizedBox(height: AppMobileTokens.spacingLG),
                   _buildSalesTrendChart(),
                   const SizedBox(height: AppMobileTokens.spacingMD),
                   _buildExpenseBreakdownChart(expenseAsync),
                   const SizedBox(height: AppMobileTokens.spacingLG),
-                  _buildMobileRecentInvoices(context, stats.recentInvoices, isDark),
+                  _buildMobileRecentInvoices(
+                    context,
+                    stats.recentInvoices,
+                    isDark,
+                  ),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -953,38 +984,38 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppMobileTokens.radiusPill),
-                border: Border.all(
-                  color: AppColors.success.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Online',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Container(
+            //   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            //   decoration: BoxDecoration(
+            //     color: AppColors.success.withValues(alpha: 0.15),
+            //     borderRadius: BorderRadius.circular(AppMobileTokens.radiusPill),
+            //     border: Border.all(
+            //       color: AppColors.success.withValues(alpha: 0.3),
+            //     ),
+            //   ),
+            //   child: Row(
+            //     mainAxisSize: MainAxisSize.min,
+            //     children: [
+            //       Container(
+            //         width: 6,
+            //         height: 6,
+            //         decoration: const BoxDecoration(
+            //           color: AppColors.success,
+            //           shape: BoxShape.circle,
+            //         ),
+            //       ),
+            //       const SizedBox(width: 6),
+            //       Text(
+            //         'Online',
+            //         style: GoogleFonts.inter(
+            //           fontSize: 11,
+            //           fontWeight: FontWeight.w600,
+            //           color: AppColors.success,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
           ],
         );
       },
@@ -1034,13 +1065,19 @@ class DashboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.darkCard : Colors.white,
-                    borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+                    borderRadius: BorderRadius.circular(
+                      AppMobileTokens.radiusMD,
+                    ),
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.2 : 0.04,
+                        ),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -1091,7 +1128,8 @@ class DashboardScreen extends ConsumerWidget {
             Expanded(
               child: _buildCompactMetricCard(
                 title: 'Revenue (MTD)',
-                value: '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
+                value:
+                    '₹${NumberFormat('#,##,###').format(stats.currentMonthRevenue)}',
                 subtitle: 'Sales to date',
                 icon: Icons.trending_up_rounded,
                 accentColor: const Color(0xFF10B981),
@@ -1102,7 +1140,8 @@ class DashboardScreen extends ConsumerWidget {
             Expanded(
               child: _buildCompactMetricCard(
                 title: 'Receivables',
-                value: '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
+                value:
+                    '₹${NumberFormat('#,##,###').format(stats.totalOutstandingReceivables)}',
                 subtitle: 'Customer unpaid',
                 icon: Icons.account_balance_wallet_outlined,
                 accentColor: const Color(0xFFF59E0B),
@@ -1117,7 +1156,8 @@ class DashboardScreen extends ConsumerWidget {
             Expanded(
               child: _buildCompactMetricCard(
                 title: 'Main Stock',
-                value: '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
+                value:
+                    '${NumberFormat('#,##,###').format(stats.mainStorageStock)} L',
                 subtitle: 'Terminal storage',
                 icon: Icons.local_gas_station_rounded,
                 accentColor: AppColors.brandAmber,
@@ -1129,7 +1169,8 @@ class DashboardScreen extends ConsumerWidget {
               child: _buildCompactMetricCard(
                 title: 'Today Deliveries',
                 value: '${stats.todayDeliveriesCount}',
-                subtitle: '${stats.todaySalesLitres.toStringAsFixed(0)} L dispatched',
+                subtitle:
+                    '${stats.todaySalesLitres.toStringAsFixed(0)} L dispatched',
                 icon: Icons.local_shipping_rounded,
                 accentColor: const Color(0xFF3B82F6),
                 isDark: isDark,
@@ -1275,11 +1316,11 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppMobileTokens.spacingMD),
                 decoration: BoxDecoration(
                   color: isDark ? AppColors.darkCard : Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(AppMobileTokens.radiusMD),
+                  borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
                   border: Border.all(
-                    color:
-                        isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                   ),
                 ),
                 child: Column(
@@ -1321,8 +1362,8 @@ class DashboardScreen extends ConsumerWidget {
                             color: pct < 0.2
                                 ? AppColors.error
                                 : (isDark
-                                    ? AppColors.darkTextPrimary
-                                    : AppColors.lightTextPrimary),
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.lightTextPrimary),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1335,7 +1376,9 @@ class DashboardScreen extends ConsumerWidget {
                                 ? AppColors.darkSurface
                                 : const Color(0xFFE2E8F0),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              pct < 0.2 ? AppColors.error : AppColors.brandAmber,
+                              pct < 0.2
+                                  ? AppColors.error
+                                  : AppColors.brandAmber,
                             ),
                           ),
                         ),
@@ -1395,8 +1438,7 @@ class DashboardScreen extends ConsumerWidget {
         const SizedBox(height: AppMobileTokens.spacingSM),
         ...invoices.take(5).map((inv) {
           final title = inv.invoiceNumber;
-          final subtitle =
-              DateFormat('dd MMM yyyy').format(inv.invoiceDate);
+          final subtitle = DateFormat('dd MMM yyyy').format(inv.invoiceDate);
           final amountStr =
               '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}';
 

@@ -27,7 +27,7 @@ class ProductsScreen extends ConsumerWidget {
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -303,8 +303,9 @@ class _ProductMasterList extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.brandAmber,
         foregroundColor: Colors.black,
@@ -344,19 +345,13 @@ class _ProductMasterList extends ConsumerWidget {
                     },
                   ),
                   kpis: [
-                    AppKpiItem(
-                      label: 'CATALOGUE',
-                      value: '$total Products',
-                    ),
+                    AppKpiItem(label: 'CATALOGUE', value: '$total Products'),
                     AppKpiItem(
                       label: 'ACTIVE',
                       value: '$active Items',
                       valueColor: AppColors.success,
                     ),
-                    AppKpiItem(
-                      label: 'INACTIVE',
-                      value: '$inactive Items',
-                    ),
+                    AppKpiItem(label: 'INACTIVE', value: '$inactive Items'),
                   ],
                   bottomWidget: Container(
                     color: isDark
@@ -384,7 +379,9 @@ class _ProductMasterList extends ConsumerWidget {
                           onChanged: (val) {
                             ref
                                 .read(productStatusFilterProvider.notifier)
-                                .state = val ? null : true;
+                                .state = val
+                                ? null
+                                : true;
                           },
                         ),
                       ],
@@ -583,12 +580,7 @@ class _ProductDetailCard extends ConsumerWidget {
     final isMobile = context.isMobile;
 
     if (isMobile) {
-      return _buildMobileProductDetail(
-        context,
-        ref,
-        product,
-        isDeleted,
-      );
+      return _buildMobileProductDetail(context, ref, product, isDeleted);
     }
 
     return Padding(
@@ -783,13 +775,16 @@ class _ProductDetailCard extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       appBar: AppBar(
-        backgroundColor:
-            isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        foregroundColor:
-            isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+        backgroundColor: isDark
+            ? AppColors.darkSurface
+            : AppColors.lightSurface,
+        foregroundColor: isDark
+            ? AppColors.darkTextPrimary
+            : AppColors.lightTextPrimary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -819,7 +814,10 @@ class _ProductDetailCard extends ConsumerWidget {
         actions: [
           if (!isDeleted)
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.brandAmber,
+              ),
               tooltip: 'Edit Product',
               onPressed: () {
                 showDialog<void>(
@@ -833,15 +831,19 @@ class _ProductDetailCard extends ConsumerWidget {
       bottomNavigationBar: !isDeleted
           ? SafeArea(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color:
-                      isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : AppColors.lightSurface,
                   border: Border(
                     top: BorderSide(
-                      color:
-                          isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
                     ),
                   ),
                 ),
@@ -986,7 +988,9 @@ class _ProductDetailCard extends ConsumerWidget {
                 children: [
                   _buildMobileDetailRow('HSN Code', product.hsnCode, isDark),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -996,7 +1000,9 @@ class _ProductDetailCard extends ConsumerWidget {
                     isHighlight: true,
                   ),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -1005,7 +1011,9 @@ class _ProductDetailCard extends ConsumerWidget {
                     isDark,
                   ),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -1014,7 +1022,9 @@ class _ProductDetailCard extends ConsumerWidget {
                     isDark,
                   ),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -1057,7 +1067,9 @@ class _ProductDetailCard extends ConsumerWidget {
                     isDark,
                   ),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -1066,7 +1078,9 @@ class _ProductDetailCard extends ConsumerWidget {
                     isDark,
                   ),
                   Divider(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                     height: 20,
                   ),
                   _buildMobileDetailRow(
@@ -1109,8 +1123,8 @@ class _ProductDetailCard extends ConsumerWidget {
             color: isHighlight
                 ? AppColors.brandAmber
                 : (isDark
-                    ? AppColors.darkTextPrimary
-                    : AppColors.lightTextPrimary),
+                      ? AppColors.darkTextPrimary
+                      : AppColors.lightTextPrimary),
           ),
         ),
       ],
@@ -1164,150 +1178,161 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isEdit ? 'Edit Product' : 'Add Product',
-                  style: TextStyle(
-                    color: AppColors.darkTextPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEdit ? 'Edit Product' : 'Add Product',
+                    style: TextStyle(
+                      color: AppColors.darkTextPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: _codeController,
-                  label: 'Product Code *',
-                  hint: 'e.g. HSD-001',
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: _nameController,
-                  label: 'Product Name *',
-                  hint: 'e.g. High Speed Diesel',
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: _descriptionController,
-                  label: 'Description',
-                  hint: 'Optional product overview',
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: _hsnController,
-                  label: 'HSN Code *',
-                  hint: 'e.g. 2710',
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _unit,
-                  dropdownColor: AppColors.darkSurface,
-                  decoration: const InputDecoration(
-                    labelText: 'Unit of Measure',
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _codeController,
+                    label: 'Product Code *',
+                    hint: 'e.g. HSD-001',
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Required' : null,
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'LTRS',
-                      child: Text('Litres (LTRS)'),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _nameController,
+                    label: 'Product Name *',
+                    hint: 'e.g. High Speed Diesel',
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _descriptionController,
+                    label: 'Description',
+                    hint: 'Optional product overview',
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _hsnController,
+                    label: 'HSN Code *',
+                    hint: 'e.g. 2710',
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    initialValue: _unit,
+                    dropdownColor: AppColors.darkSurface,
+                    decoration: const InputDecoration(
+                      labelText: 'Unit of Measure',
                     ),
-                    DropdownMenuItem(
-                      value: 'KL',
-                      child: Text('Kilolitres (KL)'),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _unit = val);
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<double>(
-                  initialValue: _gstRate,
-                  dropdownColor: AppColors.darkSurface,
-                  decoration: const InputDecoration(labelText: 'GST Tax Rate'),
-                  items: const [
-                    DropdownMenuItem(value: 0.0, child: Text('Exempt (0%)')),
-                    DropdownMenuItem(value: 0.05, child: Text('Standard (5%)')),
-                    DropdownMenuItem(
-                      value: 0.12,
-                      child: Text('Standard (12%)'),
-                    ),
-                    DropdownMenuItem(
-                      value: 0.18,
-                      child: Text('Standard (18%)'),
-                    ),
-                    DropdownMenuItem(value: 0.28, child: Text('Luxury (28%)')),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setState(() => _gstRate = val);
-                  },
-                ),
-                const SizedBox(height: 16),
-                AppTextField(
-                  controller: _priceController,
-                  label: 'Selling Price (optional)',
-                  hint: 'e.g. 89.50',
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: AppColors.darkTextSecondary),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'LTRS',
+                        child: Text('Litres (LTRS)'),
                       ),
+                      DropdownMenuItem(
+                        value: 'KL',
+                        child: Text('Kilolitres (KL)'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _unit = val);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<double>(
+                    initialValue: _gstRate,
+                    dropdownColor: AppColors.darkSurface,
+                    decoration: const InputDecoration(
+                      labelText: 'GST Tax Rate',
                     ),
-                    const SizedBox(width: 12),
-                    PrimaryButton(
-                      label: 'Save',
-                      onPressed: () async {
-                        if (!_formKey.currentState!.validate()) return;
-                        final price = double.tryParse(_priceController.text);
-                        final product = Product(
-                          id: widget.product?.id ?? const Uuid().v4(),
-                          productCode: _codeController.text.trim(),
-                          name: _nameController.text.trim(),
-                          description:
-                              _descriptionController.text.trim().isEmpty
-                              ? null
-                              : _descriptionController.text.trim(),
-                          hsnCode: _hsnController.text.trim(),
-                          unitOfMeasure: _unit,
-                          gstRate: _gstRate,
-                          cgstRate: _gstRate / 2,
-                          sgstRate: _gstRate / 2,
-                          igstRate: _gstRate,
-                          currentSellingPrice: price,
-                          isActive: widget.product?.isActive ?? true,
-                          createdBy: widget.product?.createdBy ?? 'system',
-                          createdAt:
-                              widget.product?.createdAt ?? DateTime.now(),
-                          updatedBy: 'system',
-                          updatedAt: DateTime.now(),
-                          version: widget.product?.version ?? 1,
-                        );
+                    items: const [
+                      DropdownMenuItem(value: 0.0, child: Text('Exempt (0%)')),
+                      DropdownMenuItem(
+                        value: 0.05,
+                        child: Text('Standard (5%)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 0.12,
+                        child: Text('Standard (12%)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 0.18,
+                        child: Text('Standard (18%)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 0.28,
+                        child: Text('Luxury (28%)'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _gstRate = val);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    controller: _priceController,
+                    label: 'Selling Price (optional)',
+                    hint: 'e.g. 89.50',
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: AppColors.darkTextSecondary),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      PrimaryButton(
+                        label: 'Save',
+                        onPressed: () async {
+                          if (!_formKey.currentState!.validate()) return;
+                          final price = double.tryParse(_priceController.text);
+                          final product = Product(
+                            id: widget.product?.id ?? const Uuid().v4(),
+                            productCode: _codeController.text.trim(),
+                            name: _nameController.text.trim(),
+                            description:
+                                _descriptionController.text.trim().isEmpty
+                                ? null
+                                : _descriptionController.text.trim(),
+                            hsnCode: _hsnController.text.trim(),
+                            unitOfMeasure: _unit,
+                            gstRate: _gstRate,
+                            cgstRate: _gstRate / 2,
+                            sgstRate: _gstRate / 2,
+                            igstRate: _gstRate,
+                            currentSellingPrice: price,
+                            isActive: widget.product?.isActive ?? true,
+                            createdBy: widget.product?.createdBy ?? 'system',
+                            createdAt:
+                                widget.product?.createdAt ?? DateTime.now(),
+                            updatedBy: 'system',
+                            updatedAt: DateTime.now(),
+                            version: widget.product?.version ?? 1,
+                          );
 
-                        await ref
-                            .read(productsListProvider.notifier)
-                            .saveProduct(product);
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                          await ref
+                              .read(productsListProvider.notifier)
+                              .saveProduct(product);
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

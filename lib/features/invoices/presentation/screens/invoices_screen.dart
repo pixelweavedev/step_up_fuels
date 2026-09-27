@@ -90,7 +90,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -105,7 +105,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateInvoiceDialog(context),
         backgroundColor: AppColors.brandAmber,
-        foregroundColor: AppColors.darkBackground,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text(
           'New Invoice',

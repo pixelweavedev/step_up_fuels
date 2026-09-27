@@ -154,7 +154,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
           vehicleId: Value(record.vehicleId),
           billDocumentId: Value(record.billDocumentId),
           notes: Value(
-            'Vehicle Service (${record.serviceType.displayName}): ${record.details}',
+            'Vehicle Service [${record.id}] (${record.serviceType.displayName}): ${record.details}',
           ),
           createdBy: Value(record.createdBy),
           createdAt: Value(record.createdAt),

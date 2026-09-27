@@ -65,7 +65,12 @@ class AppColors {
   static const Color lightTextDisabled = Color(0xFF94A3B8);
 
   // ── Context-aware Color Helpers ──────────────────────────────────────────
+  static Color background(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
   static Color surface(BuildContext context) =>
+      Theme.of(context).colorScheme.surface;
+  static Color card(BuildContext context) =>
+      Theme.of(context).cardTheme.color ??
       Theme.of(context).colorScheme.surface;
   static Color border(BuildContext context) =>
       Theme.of(context).colorScheme.outline;
@@ -73,6 +78,10 @@ class AppColors {
       Theme.of(context).colorScheme.onSurface;
   static Color textSecondary(BuildContext context) =>
       Theme.of(context).colorScheme.onSurfaceVariant;
+  static Color textTertiary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkThemeTextTertiary
+          : lightTextTertiary;
 
   // ── Sidebar Text ──────────────────────────────────────────────────────────
   static Color get sidebarTextInactive =>

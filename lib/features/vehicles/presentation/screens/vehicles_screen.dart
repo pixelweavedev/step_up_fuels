@@ -34,7 +34,7 @@ class VehiclesScreen extends ConsumerWidget {
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -100,7 +100,7 @@ class _VehicleMasterList extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.darkTextPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   IconButton(
@@ -140,7 +140,7 @@ class _VehicleMasterList extends ConsumerWidget {
                 'Show Inactive/Deleted:',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.darkTextSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               Switch(
@@ -155,7 +155,7 @@ class _VehicleMasterList extends ConsumerWidget {
             ],
           ),
         ),
-        Divider(color: AppColors.darkBorder),
+        Divider(color: Theme.of(context).colorScheme.outline),
 
         // Vehicles cards list
         Expanded(
@@ -210,15 +210,22 @@ class _VehicleMasterList extends ConsumerWidget {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.darkSurface
-                              : AppColors.darkCard,
+                              ? AppColors.brandAmber.withValues(
+                                  alpha:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? 0.12
+                                      : 0.08,
+                                )
+                              : (Theme.of(context).cardTheme.color ??
+                                    Theme.of(context).colorScheme.surface),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.brandAmber
                                 : (isDeleted
                                       ? AppColors.error.withValues(alpha: 0.3)
-                                      : AppColors.darkBorder),
+                                      : Theme.of(context).colorScheme.outline),
                             width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
@@ -233,7 +240,9 @@ class _VehicleMasterList extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.darkTextPrimary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                                 ),
                                 Container(
@@ -271,7 +280,9 @@ class _VehicleMasterList extends ConsumerWidget {
                               vehicle.model,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.darkTextSecondary,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -282,7 +293,9 @@ class _VehicleMasterList extends ConsumerWidget {
                                   'Capacity: ${vehicle.capacity} LTRS',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.darkTextTertiary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                                 Consumer(
@@ -309,7 +322,9 @@ class _VehicleMasterList extends ConsumerWidget {
                                             'Unassigned',
                                             style: TextStyle(
                                               fontSize: 11,
-                                              color: AppColors.darkTextTertiary,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant,
                                               fontStyle: FontStyle.italic,
                                             ),
                                           );
@@ -371,8 +386,9 @@ class _VehicleMasterList extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -439,13 +455,11 @@ class _VehicleMasterList extends ConsumerWidget {
                         : (statusFilter ? 'ACTIVE' : 'ALL'),
                     onSelected: (id) {
                       if (id == 'ALL') {
-                        ref
-                            .read(vehicleStatusFilterProvider.notifier)
-                            .state = null;
+                        ref.read(vehicleStatusFilterProvider.notifier).state =
+                            null;
                       } else if (id == 'ACTIVE') {
-                        ref
-                            .read(vehicleStatusFilterProvider.notifier)
-                            .state = true;
+                        ref.read(vehicleStatusFilterProvider.notifier).state =
+                            true;
                       }
                     },
                   ),
@@ -546,16 +560,16 @@ class _VehicleMasterList extends ConsumerWidget {
                                   ? vehicle.model
                                   : 'Standard Bowser',
                             ),
-                            if (vehicle.notes != null && vehicle.notes!.isNotEmpty)
+                            if (vehicle.notes != null &&
+                                vehicle.notes!.isNotEmpty)
                               MobileCardAttribute(
                                 label: 'Notes',
                                 value: vehicle.notes!,
                               ),
                           ],
                           onTap: () {
-                            ref
-                                .read(selectedVehicleIdProvider.notifier)
-                                .state = vehicle.id;
+                            ref.read(selectedVehicleIdProvider.notifier).state =
+                                vehicle.id;
                             if (onMobileTap != null) {
                               onMobileTap!(vehicle);
                             }
@@ -1019,9 +1033,11 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
     final isDeleted = vehicle.deletedAt != null;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        backgroundColor: isDark
+            ? AppColors.darkSurface
+            : AppColors.lightSurface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -1056,7 +1072,10 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
         actions: [
           if (!isDeleted)
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.brandAmber,
+              ),
               onPressed: () => Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   fullscreenDialog: true,
@@ -1170,7 +1189,8 @@ class _VehicleDetailCardState extends ConsumerState<_VehicleDetailCard>
                           ],
                         );
                       },
-                      loading: () => const LinearProgressIndicator(minHeight: 4),
+                      loading: () =>
+                          const LinearProgressIndicator(minHeight: 4),
                       error: (_, __) => const SizedBox.shrink(),
                     );
                   },

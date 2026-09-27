@@ -32,7 +32,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
     final navContainerDecoration = BoxDecoration(
       color: isDark ? AppColors.darkThemeSidebar : Colors.white,
-      border: Border(right: BorderSide(color: AppColors.darkBorder)),
+      border: Border(right: BorderSide(color: theme.colorScheme.outline)),
     );
 
     return AdaptiveScaffold(
@@ -68,8 +68,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   Widget _buildDrawer(BuildContext context, bool isDark) {
     final location = GoRouterState.of(context).uri.toString();
 
+    final theme = Theme.of(context);
     return Drawer(
-      backgroundColor: isDark ? AppColors.darkThemeSidebar : Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       child: SafeArea(
         child: Column(
           children: [
@@ -82,19 +83,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.brandAmber,
-                          AppColors.brandAmberDark,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.brandAmber,
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.local_gas_station_rounded,
-                      color: AppColors.brandNavy,
+                      color: Colors.white,
                       size: 20,
                     ),
                   ),
@@ -107,14 +101,14 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.darkTextPrimary,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       Text(
                         'ERP System',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.darkTextTertiary,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -122,7 +116,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                 ],
               ),
             ),
-            Divider(color: AppColors.darkBorder, height: 1),
+            Divider(color: theme.colorScheme.outline, height: 1),
             // All nav items
             Expanded(
               child: ListView(
@@ -208,11 +202,12 @@ class _TopBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       height: UiConstants.topBarHeight,
-      color: AppColors.darkSurface,
+      color: theme.colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
@@ -221,42 +216,54 @@ class _TopBar extends ConsumerWidget {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.darkTextPrimary,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const Spacer(),
-          _TopBarAction(
-            icon: Icons.search_rounded,
-            tooltip: 'Search',
-            onTap: () {},
-          ),
-          const SizedBox(width: 4),
-          _TopBarAction(
-            icon: Icons.notifications_outlined,
-            tooltip: 'Notifications',
-            onTap: () {},
-          ),
-          const SizedBox(width: 4),
           _TopBarAction(
             icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
             tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
             onTap: () => ref.toggleTheme(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           _TopBarAction(
-            icon: Icons.help_outline_rounded,
-            tooltip: 'Help',
-            onTap: () {},
+            icon: Icons.info_outline_rounded,
+            tooltip: 'System Information',
+            onTap: () {
+              showAboutDialog(
+                context: context,
+                applicationName: 'Step Up Fuels ERP',
+                applicationVersion: 'v1.0.0',
+                applicationIcon: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandAmber,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.local_gas_station_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                children: const [
+                  Text(
+                    'High-volume Indian Fuel Distribution & Fleet Management ERP System.\n\nGST & HSN compliant billing, calibration dips, party ledgers, and inventory control.',
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(width: 12),
           Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.brandAmber.withValues(alpha: 0.2),
+              color: AppColors.brandAmber.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppColors.brandAmber.withValues(alpha: 0.4),
+                color: AppColors.brandAmber.withValues(alpha: 0.35),
               ),
             ),
             child: const Icon(

@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
-import 'package:step_up_fuels/core/theme/app_colors.dart';
 
 class ResponsiveDialog extends StatelessWidget {
   const ResponsiveDialog({
@@ -25,21 +24,22 @@ class ResponsiveDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isMobile = context.isMobileOrSmallTablet;
 
     // Mobile Layout: Full screen sheet
     if (isMobile) {
       return Scaffold(
-        backgroundColor: AppColors.darkBackground,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: AppColors.darkSurface,
-          foregroundColor: AppColors.darkTextPrimary,
+          backgroundColor: theme.colorScheme.surface,
+          foregroundColor: theme.colorScheme.onSurface,
           title: Text(
             title,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.darkTextPrimary,
+              color: theme.colorScheme.onSurface,
             ),
           ),
           leading: IconButton(
@@ -60,9 +60,13 @@ class ResponsiveDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.darkSurface,
+                    color: theme.colorScheme.surface,
                     border: Border(
-                      top: BorderSide(color: AppColors.darkBorder),
+                      top: BorderSide(
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
                     ),
                   ),
                   child: Column(
@@ -85,8 +89,13 @@ class ResponsiveDialog extends StatelessWidget {
 
     // Tablet/Desktop Layout: Centered Dialog box
     return Dialog(
-      backgroundColor: AppColors.darkCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
       child: SizedBox(
         width: math.min(MediaQuery.sizeOf(context).width * 0.95, maxWidth),
         height: math.min(MediaQuery.sizeOf(context).height * 0.9, maxHeight),
@@ -97,12 +106,20 @@ class ResponsiveDialog extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               decoration: BoxDecoration(
                 gradient: headerGradient,
-                color: headerGradient == null ? AppColors.darkSurface : null,
+                color: headerGradient == null
+                    ? theme.colorScheme.surface
+                    : null,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
                 border: headerGradient == null
-                    ? Border(bottom: BorderSide(color: AppColors.darkBorder))
+                    ? Border(
+                        bottom: BorderSide(
+                          color: theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      )
                     : null,
               ),
               child: Row(
@@ -118,7 +135,7 @@ class ResponsiveDialog extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: headerGradient != null
                           ? Colors.white
-                          : AppColors.darkTextPrimary,
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -128,7 +145,7 @@ class ResponsiveDialog extends StatelessWidget {
                       Icons.close,
                       color: headerGradient != null
                           ? Colors.white70
-                          : AppColors.darkTextSecondary,
+                          : theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -149,7 +166,13 @@ class ResponsiveDialog extends StatelessWidget {
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: AppColors.darkBorder)),
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,

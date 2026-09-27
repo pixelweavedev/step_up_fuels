@@ -53,8 +53,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
       final isDark = Theme.of(context).brightness == Brightness.dark;
 
       return Scaffold(
-        backgroundColor:
-            isDark ? AppColors.darkBackground : AppColors.lightBackground,
+        backgroundColor: isDark
+            ? AppColors.darkBackground
+            : AppColors.lightBackground,
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showRecordPaymentDialog(context),
           backgroundColor: AppColors.brandAmber,
@@ -173,10 +174,12 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                               ],
                               onChanged: (val) {
                                 ref
-                                    .read(
-                                      paymentCustomerFilterProvider.notifier,
-                                    )
-                                    .state = val;
+                                        .read(
+                                          paymentCustomerFilterProvider
+                                              .notifier,
+                                        )
+                                        .state =
+                                    val;
                               },
                             ),
                           ),
@@ -210,8 +213,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                   data: (payments) =>
                       _buildPaymentsList(payments, selectedId, true),
                   loading: () => const Center(
-                    child:
-                        CircularProgressIndicator(color: AppColors.brandAmber),
+                    child: CircularProgressIndicator(
+                      color: AppColors.brandAmber,
+                    ),
                   ),
                   error: (e, _) => Center(
                     child: Text(
@@ -250,7 +254,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -422,8 +426,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
     final customers = ref.watch(customersListProvider).value ?? [];
 
     if (context.isMobile) {
-      final totalReceived =
-          payments.fold<double>(0, (sum, p) => sum + p.amount);
+      final totalReceived = payments.fold<double>(
+        0,
+        (sum, p) => sum + p.amount,
+      );
       return Column(
         children: [
           Padding(
@@ -432,8 +438,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
               children: [
                 Expanded(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.darkCard,
                       borderRadius: BorderRadius.circular(8),
@@ -467,8 +475,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.darkCard,
                       borderRadius: BorderRadius.circular(8),
@@ -519,8 +529,10 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                   title: payment.paymentNumber,
                   subtitle: customerName,
                   statusBadge: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: isReversed
                           ? AppColors.error.withValues(alpha: 0.15)
@@ -544,8 +556,9 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                   attributes: [
                     MobileCardAttribute(
                       label: 'Payment Date',
-                      value: DateFormat('dd MMM yyyy')
-                          .format(payment.paymentDate),
+                      value: DateFormat(
+                        'dd MMM yyyy',
+                      ).format(payment.paymentDate),
                     ),
                     MobileCardAttribute(
                       label: 'Payment Mode',
@@ -787,8 +800,8 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
         final invoiceDisplay = allocatedInvoice != null
             ? allocatedInvoice.invoiceNumber
             : (payment.invoiceId != null
-                ? 'Invoice'
-                : 'Auto-Allocated / Advance Account');
+                  ? 'Invoice'
+                  : 'Auto-Allocated / Advance Account');
 
         final customer = customers.firstWhere(
           (c) => c.id == payment.customerId,
@@ -839,10 +852,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
           ),
           _buildDetailRow('Depositing Bank', payment.bankName ?? 'N/A'),
           _buildDetailRow('Notes', payment.notes ?? 'No notes recorded'),
-          _buildDetailRow(
-            'Allocated Invoice',
-            invoiceDisplay,
-          ),
+          _buildDetailRow('Allocated Invoice', invoiceDisplay),
           _buildDetailRow(
             'Status',
             payment.status.displayName,
@@ -1014,10 +1024,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                         ),
                         const SizedBox(height: 12),
                         _buildDetailRow('Customer Name', customer.name),
-                        _buildDetailRow(
-                          'Customer Code',
-                          customer.customerCode,
-                        ),
+                        _buildDetailRow('Customer Code', customer.customerCode),
                       ],
                     ),
                   ),
@@ -1045,9 +1052,7 @@ class _PaymentsScreenState extends ConsumerState<PaymentsScreen> {
                         const SizedBox(height: 12),
                         _buildDetailRow(
                           'Payment Date',
-                          DateFormat(
-                            'dd MMM yyyy',
-                          ).format(payment.paymentDate),
+                          DateFormat('dd MMM yyyy').format(payment.paymentDate),
                         ),
                         _buildDetailRow('Payment Mode', payment.paymentMode),
                         _buildDetailRow(
@@ -1299,399 +1304,37 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Record Customer Receipt',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: AppColors.darkTextSecondary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Customer Selector
-                Text(
-                  'Customer',
-                  style: TextStyle(
-                    color: AppColors.darkTextSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedCustomerId,
-                  dropdownColor: AppColors.darkSurface,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.darkBorder),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.brandAmber),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.error),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.error),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: customers
-                      .map(
-                        (c) => DropdownMenuItem(
-                          value: c.id,
-                          child: Text(
-                            c.name,
-                            style: TextStyle(color: AppColors.darkTextPrimary),
-                          ),
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Record Customer Receipt',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkTextPrimary,
                         ),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCustomerId = val;
-                      _selectedInvoiceId = null;
-                    });
-                  },
-                  validator: (val) =>
-                      val == null ? 'Please select a customer' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Amount and Date Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Amount Received (₹)',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _amountCtrl,
-                            onChanged: (val) => setState(() {}),
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            style: TextStyle(color: AppColors.darkTextPrimary),
-                            decoration: InputDecoration(
-                              hintText: '0.00',
-                              hintStyle: TextStyle(
-                                color: AppColors.darkTextTertiary,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: AppColors.darkBorder,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                  color: AppColors.brandAmber,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                  color: AppColors.error,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                  color: AppColors.error,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            validator: (val) {
-                              if (val == null || val.isEmpty) return 'Required';
-                              if (double.tryParse(val) == null ||
-                                  double.parse(val) <= 0) {
-                                return 'Invalid amount';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Payment Date',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          InkWell(
-                            onTap: () => _selectDate(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.darkBorder),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    DateFormat(
-                                      'dd/MM/yyyy',
-                                    ).format(_paymentDate),
-                                    style: TextStyle(
-                                      color: AppColors.darkTextPrimary,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.calendar_month_rounded,
-                                    color: AppColors.brandAmber,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: AppColors.darkTextSecondary,
+                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Payment Mode Selector
-                Text(
-                  'Payment Mode',
-                  style: TextStyle(
-                    color: AppColors.darkTextSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    ],
                   ),
-                ),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  initialValue: _paymentMode,
-                  dropdownColor: AppColors.darkSurface,
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.darkBorder),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.brandAmber),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: 'CASH',
-                      child: Text(
-                        'CASH',
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: 'UPI',
-                      child: Text(
-                        'UPI',
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: 'BANK_TRANSFER',
-                      child: Text(
-                        'BANK TRANSFER / IMPS / NEFT',
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: 'CHEQUE',
-                      child: Text(
-                        'CHEQUE',
-                        style: TextStyle(color: AppColors.darkTextPrimary),
-                      ),
-                    ),
-                  ],
-                  onChanged: (val) {
-                    setState(() {
-                      _paymentMode = val!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Txn Reference & Bank Name Row
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Reference / UTR No.',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _refCtrl,
-                            style: TextStyle(color: AppColors.darkTextPrimary),
-                            decoration: InputDecoration(
-                              hintText: 'Txn ID / Cheque no.',
-                              hintStyle: TextStyle(
-                                color: AppColors.darkTextTertiary,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: AppColors.darkBorder,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                  color: AppColors.brandAmber,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Depositing Bank',
-                            style: TextStyle(
-                              color: AppColors.darkTextSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _bankCtrl,
-                            style: TextStyle(color: AppColors.darkTextPrimary),
-                            decoration: InputDecoration(
-                              hintText: 'e.g. HDFC Bank',
-                              hintStyle: TextStyle(
-                                color: AppColors.darkTextTertiary,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: AppColors.darkBorder,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                  color: AppColors.brandAmber,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Allocation Controls
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _autoAllocate,
-                      activeColor: AppColors.brandAmber,
-                      onChanged: (val) {
-                        setState(() {
-                          _autoAllocate = val!;
-                          if (_autoAllocate) {
-                            _selectedInvoiceId = null;
-                          }
-                        });
-                      },
-                    ),
-                    Text(
-                      'Auto-allocate to oldest outstanding invoices',
-                      style: TextStyle(
-                        color: AppColors.darkTextPrimary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Specific Invoice dropdown if auto-allocate is false
-                if (!_autoAllocate) ...[
-                  const SizedBox(height: 12),
+                  // Customer Selector
                   Text(
-                    'Apply to Invoice',
+                    'Customer',
                     style: TextStyle(
                       color: AppColors.darkTextSecondary,
                       fontSize: 13,
@@ -1699,8 +1342,197 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  DropdownButtonFormField<String?>(
-                    initialValue: _selectedInvoiceId,
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCustomerId,
+                    dropdownColor: AppColors.darkSurface,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.darkBorder),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: AppColors.brandAmber,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: AppColors.error),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: AppColors.error),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    items: customers
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(
+                              c.name,
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedCustomerId = val;
+                        _selectedInvoiceId = null;
+                      });
+                    },
+                    validator: (val) =>
+                        val == null ? 'Please select a customer' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Amount and Date Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Amount Received (₹)',
+                              style: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _amountCtrl,
+                              onChanged: (val) => setState(() {}),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: '0.00',
+                                hintStyle: TextStyle(
+                                  color: AppColors.darkTextTertiary,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.darkBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: AppColors.brandAmber,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: AppColors.error,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: AppColors.error,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.isEmpty) {
+                                  return 'Required';
+                                }
+                                if (double.tryParse(val) == null ||
+                                    double.parse(val) <= 0) {
+                                  return 'Invalid amount';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Payment Date',
+                              style: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: () => _selectDate(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: AppColors.darkBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(_paymentDate),
+                                      style: TextStyle(
+                                        color: AppColors.darkTextPrimary,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.calendar_month_rounded,
+                                      color: AppColors.brandAmber,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Payment Mode Selector
+                  Text(
+                    'Payment Mode',
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    initialValue: _paymentMode,
                     dropdownColor: AppColors.darkSurface,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -1719,128 +1551,323 @@ class _RecordPaymentDialogState extends ConsumerState<RecordPaymentDialog> {
                       ),
                     ),
                     items: [
-                      DropdownMenuItem<String?>(
+                      DropdownMenuItem(
+                        value: 'CASH',
                         child: Text(
-                          'Leave as Advance Payment',
+                          'CASH',
                           style: TextStyle(color: AppColors.darkTextPrimary),
                         ),
                       ),
-                      ...customerInvoices.map(
-                        (inv) => DropdownMenuItem(
-                          value: inv.id,
-                          child: Text(
-                            '${inv.invoiceNumber} (O/S: ₹${inv.outstanding.toStringAsFixed(2)})',
-                            style: TextStyle(color: AppColors.darkTextPrimary),
-                          ),
+                      DropdownMenuItem(
+                        value: 'UPI',
+                        child: Text(
+                          'UPI',
+                          style: TextStyle(color: AppColors.darkTextPrimary),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'BANK_TRANSFER',
+                        child: Text(
+                          'BANK TRANSFER / IMPS / NEFT',
+                          style: TextStyle(color: AppColors.darkTextPrimary),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'CHEQUE',
+                        child: Text(
+                          'CHEQUE',
+                          style: TextStyle(color: AppColors.darkTextPrimary),
                         ),
                       ),
                     ],
                     onChanged: (val) {
                       setState(() {
-                        _selectedInvoiceId = val;
-                        if (val != null) {
-                          final selectedInv = customerInvoices.firstWhere(
-                            (inv) => inv.id == val,
-                          );
-                          _amountCtrl.text = selectedInv.outstanding
-                              .toStringAsFixed(2);
-                        }
+                        _paymentMode = val!;
                       });
                     },
                   ),
-                  if (_selectedInvoiceId != null &&
-                      _amountCtrl.text.isNotEmpty) ...[
-                    Builder(
-                      builder: (context) {
-                        try {
-                          final selectedInv = customerInvoices.firstWhere(
-                            (inv) => inv.id == _selectedInvoiceId,
-                          );
-                          final amt = double.tryParse(_amountCtrl.text) ?? 0.0;
-                          if (amt > selectedInv.outstanding) {
-                            final diff = amt - selectedInv.outstanding;
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                'Note: ₹${selectedInv.outstanding.toStringAsFixed(2)} will be applied to this invoice. The remaining ₹${diff.toStringAsFixed(2)} will be saved as Customer Advance.',
-                                style: const TextStyle(
-                                  color: AppColors.brandAmber,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                  const SizedBox(height: 16),
+
+                  // Txn Reference & Bank Name Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Reference / UTR No.',
+                              style: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _refCtrl,
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Txn ID / Cheque no.',
+                                hintStyle: TextStyle(
+                                  color: AppColors.darkTextTertiary,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.darkBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: AppColors.brandAmber,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Depositing Bank',
+                              style: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _bankCtrl,
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'e.g. HDFC Bank',
+                                hintStyle: TextStyle(
+                                  color: AppColors.darkTextTertiary,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: AppColors.darkBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                    color: AppColors.brandAmber,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Allocation Controls
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _autoAllocate,
+                        activeColor: AppColors.brandAmber,
+                        onChanged: (val) {
+                          setState(() {
+                            _autoAllocate = val!;
+                            if (_autoAllocate) {
+                              _selectedInvoiceId = null;
+                            }
+                          });
+                        },
+                      ),
+                      Text(
+                        'Auto-allocate to oldest outstanding invoices',
+                        style: TextStyle(
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Specific Invoice dropdown if auto-allocate is false
+                  if (!_autoAllocate) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Apply to Invoice',
+                      style: TextStyle(
+                        color: AppColors.darkTextSecondary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String?>(
+                      initialValue: _selectedInvoiceId,
+                      dropdownColor: AppColors.darkSurface,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.darkBorder),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: AppColors.brandAmber,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          child: Text(
+                            'Leave as Advance Payment',
+                            style: TextStyle(color: AppColors.darkTextPrimary),
+                          ),
+                        ),
+                        ...customerInvoices.map(
+                          (inv) => DropdownMenuItem(
+                            value: inv.id,
+                            child: Text(
+                              '${inv.invoiceNumber} (O/S: ₹${inv.outstanding.toStringAsFixed(2)})',
+                              style: TextStyle(
+                                color: AppColors.darkTextPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedInvoiceId = val;
+                          if (val != null) {
+                            final selectedInv = customerInvoices.firstWhere(
+                              (inv) => inv.id == val,
                             );
+                            _amountCtrl.text = selectedInv.outstanding
+                                .toStringAsFixed(2);
                           }
-                        } catch (_) {}
-                        return const SizedBox();
+                        });
                       },
                     ),
-                  ],
-                ],
-                const SizedBox(height: 16),
-
-                // Notes
-                Text(
-                  'Notes / Remarks',
-                  style: TextStyle(
-                    color: AppColors.darkTextSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _notesCtrl,
-                  maxLines: 2,
-                  style: TextStyle(color: AppColors.darkTextPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Enter notes...',
-                    hintStyle: TextStyle(color: AppColors.darkTextTertiary),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.darkBorder),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.brandAmber),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Action Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: AppColors.darkTextSecondary),
+                    if (_selectedInvoiceId != null &&
+                        _amountCtrl.text.isNotEmpty) ...[
+                      Builder(
+                        builder: (context) {
+                          try {
+                            final selectedInv = customerInvoices.firstWhere(
+                              (inv) => inv.id == _selectedInvoiceId,
+                            );
+                            final amt =
+                                double.tryParse(_amountCtrl.text) ?? 0.0;
+                            if (amt > selectedInv.outstanding) {
+                              final diff = amt - selectedInv.outstanding;
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  'Note: ₹${selectedInv.outstanding.toStringAsFixed(2)} will be applied to this invoice. The remaining ₹${diff.toStringAsFixed(2)} will be saved as Customer Advance.',
+                                  style: const TextStyle(
+                                    color: AppColors.brandAmber,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (_) {}
+                          return const SizedBox();
+                        },
                       ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 12),
-                    _isSaving
-                        ? const CircularProgressIndicator(
-                            color: AppColors.brandAmber,
-                          )
-                        : PrimaryButton(
-                            label: 'Save Receipt',
-                            onPressed: _save,
-                          ),
+                    ],
                   ],
-                ),
-              ],
+                  const SizedBox(height: 16),
+
+                  // Notes
+                  Text(
+                    'Notes / Remarks',
+                    style: TextStyle(
+                      color: AppColors.darkTextSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _notesCtrl,
+                    maxLines: 2,
+                    style: TextStyle(color: AppColors.darkTextPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Enter notes...',
+                      hintStyle: TextStyle(color: AppColors.darkTextTertiary),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.darkBorder),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: AppColors.brandAmber,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: AppColors.darkTextSecondary),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 12),
+                      _isSaving
+                          ? const CircularProgressIndicator(
+                              color: AppColors.brandAmber,
+                            )
+                          : PrimaryButton(
+                              label: 'Save Receipt',
+                              onPressed: _save,
+                            ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Future<void> _save() async {

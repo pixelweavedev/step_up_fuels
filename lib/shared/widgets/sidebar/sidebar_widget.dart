@@ -57,6 +57,7 @@ class SidebarWidget extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       height: UiConstants.sidebarLogoHeight,
       child: Padding(
@@ -67,16 +68,12 @@ class SidebarWidget extends ConsumerWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.brandAmber, AppColors.brandAmberDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.brandAmber,
+                borderRadius: BorderRadius.circular(6),
               ),
               child: const Icon(
                 Icons.local_gas_station_rounded,
-                color: AppColors.brandNavy,
+                color: Colors.white,
                 size: 18,
               ),
             ),
@@ -92,7 +89,7 @@ class SidebarWidget extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.darkTextPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -100,7 +97,7 @@ class SidebarWidget extends ConsumerWidget {
                       'ERP System',
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.darkTextTertiary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

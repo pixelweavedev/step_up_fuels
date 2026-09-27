@@ -34,7 +34,7 @@ class ReportsScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedType.isNotEmpty,
@@ -48,13 +48,18 @@ class ReportsScreen extends ConsumerWidget {
                           builder: (ctx) => Scaffold(
                             appBar: AppBar(
                               title: Text(_getReportTitle(type)),
-                              backgroundColor: AppColors.darkSurface,
-                              foregroundColor: AppColors.darkTextPrimary,
+                              backgroundColor:
+                                  Theme.of(ctx).colorScheme.surface,
+                              foregroundColor:
+                                  Theme.of(ctx).colorScheme.onSurface,
                             ),
                             body: Column(
                               children: [
                                 _buildFilterHeader(ctx, ref),
-                                Divider(color: AppColors.darkBorder, height: 1),
+                                Divider(
+                                  color: Theme.of(ctx).colorScheme.outline,
+                                  height: 1,
+                                ),
                                 Expanded(child: _buildReportContent(type)),
                               ],
                             ),
@@ -83,19 +88,25 @@ class ReportsScreen extends ConsumerWidget {
         selectedType != 'stock' && selectedType != 'outstanding';
 
     Future<void> selectDateRange() async {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       final DateTimeRange? picked = await showDateRangePicker(
         context: context,
         initialDateRange: DateTimeRange(start: fromDate, end: toDate),
         firstDate: DateTime(2020),
         lastDate: DateTime(2101),
         builder: (context, child) => Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.brandAmber,
-              onPrimary: AppColors.brandNavy,
-              surface: AppColors.darkSurface,
-              onSurface: AppColors.darkTextPrimary,
-            ),
+          data: (isDark ? ThemeData.dark() : ThemeData.light()).copyWith(
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: AppColors.brandAmber,
+                    onPrimary: Colors.white,
+                    surface: AppColors.darkThemeSurface,
+                    onSurface: AppColors.darkThemeTextPrimary,
+                  )
+                : const ColorScheme.light(
+                    primary: AppColors.brandAmber,
+                    onSurface: AppColors.lightTextPrimary,
+                  ),
           ),
           child: child!,
         ),

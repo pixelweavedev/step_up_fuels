@@ -30,8 +30,10 @@ class DriversScreen extends ConsumerWidget {
       return _buildMobileDrivers(context, ref, driversAsync);
     }
 
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(28),
         child: Column(
@@ -50,7 +52,7 @@ class DriversScreen extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.darkTextPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -58,7 +60,7 @@ class DriversScreen extends ConsumerWidget {
                       'Manage delivery drivers, licenses validity, and vehicle assignments.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.darkTextSecondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -165,7 +167,7 @@ class DriversScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -424,13 +426,11 @@ class DriversScreen extends ConsumerWidget {
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.brandAmber),
                 ),
-                error: (err, st) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      'Error: $err',
-                      style: const TextStyle(color: AppColors.error),
-                    ),
+                error: (err, st) => Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: AppErrorWidget(
+                    message: 'Failed to load drivers list.',
+                    onRetry: () => ref.refresh(driversListProvider),
                   ),
                 ),
               ),
@@ -476,20 +476,22 @@ class _DriverGridCard extends ConsumerWidget {
         ) &&
         !isLicenseExpired;
 
+    final theme = Theme.of(context);
+    final cardBg = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final borderColor = isLicenseExpired
+        ? AppColors.error.withValues(alpha: 0.5)
+        : (isLicenseExpiringSoon
+              ? AppColors.brandAmber.withValues(alpha: 0.5)
+              : theme.colorScheme.outline);
+
     return Card(
-      color: AppColors.darkCard,
+      color: cardBg,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isLicenseExpired
-              ? AppColors.error.withValues(alpha: 0.5)
-              : (isLicenseExpiringSoon
-                    ? AppColors.brandAmber.withValues(alpha: 0.5)
-                    : AppColors.darkBorder),
-        ),
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: borderColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -505,7 +507,7 @@ class _DriverGridCard extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.darkTextPrimary,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -541,14 +543,14 @@ class _DriverGridCard extends ConsumerWidget {
                 Icon(
                   Icons.phone_rounded,
                   size: 14,
-                  color: AppColors.darkTextSecondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   driver.phone,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.darkTextPrimary,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -561,7 +563,7 @@ class _DriverGridCard extends ConsumerWidget {
                 Icon(
                   Icons.badge_outlined,
                   size: 14,
-                  color: AppColors.darkTextSecondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -571,7 +573,7 @@ class _DriverGridCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.darkTextSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -591,7 +593,7 @@ class _DriverGridCard extends ConsumerWidget {
                       ? AppColors.error
                       : (isLicenseExpiringSoon
                             ? AppColors.brandAmber
-                            : AppColors.darkTextTertiary),
+                            : theme.colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -605,7 +607,7 @@ class _DriverGridCard extends ConsumerWidget {
                         ? AppColors.error
                         : (isLicenseExpiringSoon
                               ? AppColors.brandAmber
-                              : AppColors.darkTextTertiary),
+                              : theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -614,7 +616,7 @@ class _DriverGridCard extends ConsumerWidget {
               const SizedBox(height: 16)
             else
               const Spacer(),
-            Divider(color: AppColors.darkBorder, height: 1),
+            Divider(color: theme.colorScheme.outline, height: 1),
             const SizedBox(height: 12),
 
             // Assignment Actions

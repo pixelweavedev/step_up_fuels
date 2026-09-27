@@ -75,48 +75,41 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.brandAmber,
-                            AppColors.brandAmberDark,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.tune_rounded,
-                        color: AppColors.brandNavy,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Settings',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.2,
-                        color: textPrimary,
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.brandAmber,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.tune_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'Manage organization profile, invoice parameters, printing formats, and storage maintenance.',
-                  style: TextStyle(fontSize: 12, color: textSecondary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Configuration & preferences',
+                        style: TextStyle(fontSize: 11, color: textSecondary),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -149,7 +142,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Invoice Configuration',
                   subtitle: 'Prefix, numbering & terms',
                   icon: Icons.receipt_long_rounded,
-                  accentColor: const Color(0xFF6366F1),
+                  accentColor: AppColors.brandAmber,
                   isSelected: selectedIndex == 1,
                   onTap: () =>
                       ref
@@ -161,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Print Layout',
                   subtitle: 'Margins & document format',
                   icon: Icons.print_rounded,
-                  accentColor: const Color(0xFF8B5CF6),
+                  accentColor: AppColors.brandAmber,
                   isSelected: selectedIndex == 2,
                   onTap: () =>
                       ref
@@ -173,7 +166,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'System & Maintenance',
                   subtitle: 'Theme, diagnostics & backups',
                   icon: Icons.settings_suggest_rounded,
-                  accentColor: const Color(0xFF10B981),
+                  accentColor: AppColors.brandAmber,
                   isSelected: selectedIndex == 3,
                   onTap: () =>
                       ref
@@ -294,19 +287,12 @@ class SettingsScreen extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.brandAmber,
-                            AppColors.brandAmberDark,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.brandAmber,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.settings_suggest_rounded,
-                        color: AppColors.brandNavy,
+                        color: Colors.white,
                         size: 20,
                       ),
                     ),
@@ -317,9 +303,9 @@ class SettingsScreen extends ConsumerWidget {
                         Text(
                           'Settings',
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
                             color: textPrimary,
                           ),
                         ),
@@ -367,24 +353,17 @@ class SettingsScreen extends ConsumerWidget {
                       child: Row(
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [
-                                  AppColors.brandAmber,
-                                  AppColors.brandAmberDark,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.brandAmber,
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Center(
                               child: Icon(
                                 Icons.business_rounded,
-                                color: AppColors.brandNavy,
-                                size: 24,
+                                color: Colors.white,
+                                size: 22,
                               ),
                             ),
                           ),
@@ -457,10 +436,10 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Invoice Configuration',
                     subtitle: 'Prefix series, sequence starting number & terms',
                     icon: Icons.receipt_long_rounded,
-                    iconColor: const Color(0xFF6366F1),
-                    iconBgColor: const Color(
-                      0xFF6366F1,
-                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    iconColor: AppColors.brandAmber,
+                    iconBgColor: AppColors.brandAmber.withValues(
+                      alpha: isDark ? 0.15 : 0.1,
+                    ),
                     onTap: () => _navigateToSubpart(
                       context,
                       const InvoiceSettingsView(isStandaloneScreen: true),
@@ -485,10 +464,10 @@ class SettingsScreen extends ConsumerWidget {
                     subtitle:
                         'A4 / Letter formats, live preview & page padding',
                     icon: Icons.print_rounded,
-                    iconColor: const Color(0xFF8B5CF6),
-                    iconBgColor: const Color(
-                      0xFF8B5CF6,
-                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    iconColor: AppColors.brandAmber,
+                    iconBgColor: AppColors.brandAmber.withValues(
+                      alpha: isDark ? 0.15 : 0.1,
+                    ),
                     onTap: () => _navigateToSubpart(
                       context,
                       const PrintSettingsView(isStandaloneScreen: true),
@@ -514,10 +493,10 @@ class SettingsScreen extends ConsumerWidget {
                         ? 'Industrial Dark'
                         : 'Sandstone Light',
                     icon: Icons.palette_rounded,
-                    iconColor: const Color(0xFFF59E0B),
-                    iconBgColor: const Color(
-                      0xFFF59E0B,
-                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    iconColor: AppColors.brandAmber,
+                    iconBgColor: AppColors.brandAmber.withValues(
+                      alpha: isDark ? 0.15 : 0.1,
+                    ),
                     showChevron: false,
                     trailingWidget: Switch(
                       value: mode == ThemeMode.dark,
@@ -531,10 +510,10 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'System & Maintenance',
                     subtitle: 'Database diagnostics, seed demo data & backups',
                     icon: Icons.dns_rounded,
-                    iconColor: const Color(0xFF10B981),
-                    iconBgColor: const Color(
-                      0xFF10B981,
-                    ).withValues(alpha: isDark ? 0.15 : 0.1),
+                    iconColor: AppColors.brandAmber,
+                    iconBgColor: AppColors.brandAmber.withValues(
+                      alpha: isDark ? 0.15 : 0.1,
+                    ),
                     onTap: () => _navigateToSubpart(
                       context,
                       const SystemMaintenanceView(isStandaloneScreen: true),
@@ -568,7 +547,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                         ),
                         child: Text(
-                          'Step Up Fuels ERP • v1.0.0 (Build 2627)',
+                          'Made & maintained by PixelWeave Softwares',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -578,7 +557,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Offline-First Local SQLite Storage • High Precision ERP',
+                        'Step Up Fuels ERP v1.0.0',
                         style: TextStyle(
                           fontSize: 11,
                           color: textSecondary.withValues(alpha: 0.7),

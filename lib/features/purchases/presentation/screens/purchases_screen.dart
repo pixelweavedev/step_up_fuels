@@ -132,7 +132,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     final isMobile = context.isMobile;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
           // ── Tabs Header ───────────────────────────────────────────────────
@@ -155,9 +155,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         error: (e, _) => Center(
                           child: Text(
                             e.toString(),
-                            style: const TextStyle(
-                              color: AppColors.error,
-                            ),
+                            style: const TextStyle(color: AppColors.error),
                           ),
                         ),
                       )
@@ -200,10 +198,10 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                               axis: Axis.horizontal,
                               sizeFactor: _panelAnim,
                               child: Container(
-                                width: ResponsiveDimensions
-                                    .purchaseDetailPanelWidth(
-                                  context,
-                                ),
+                                width:
+                                    ResponsiveDimensions.purchaseDetailPanelWidth(
+                                      context,
+                                    ),
                                 decoration: BoxDecoration(
                                   color: AppColors.darkCard,
                                   border: Border(
@@ -369,7 +367,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         }
       },
       backgroundColor: AppColors.brandAmber,
-      foregroundColor: AppColors.darkBackground,
+      foregroundColor: Colors.white,
       icon: const Icon(Icons.add_rounded),
       label: Text(
         _tabCtrl.index == 0
@@ -389,10 +387,11 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
     String? selectedId,
   ) {
     final suppliers = ref.watch(suppliersListProvider).value ?? [];
-    final totalAmount =
-        purchases.fold<double>(0, (acc, p) => acc + p.totalAmount);
-    final paidCount =
-        purchases.where((p) => p.paymentStatus == 'PAID').length;
+    final totalAmount = purchases.fold<double>(
+      0,
+      (acc, p) => acc + p.totalAmount,
+    );
+    final paidCount = purchases.where((p) => p.paymentStatus == 'PAID').length;
 
     return Column(
       children: [
@@ -410,10 +409,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
             },
           ),
           kpis: [
-            AppKpiItem(
-              label: 'ORDERS',
-              value: '${purchases.length} P.O.s',
-            ),
+            AppKpiItem(label: 'ORDERS', value: '${purchases.length} P.O.s'),
             AppKpiItem(
               label: 'TOTAL SPEND',
               value: '₹${_fmt(totalAmount)}',
@@ -465,21 +461,26 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                       (s) => s?.id == pur.supplierId,
                       orElse: () => null,
                     );
-                    final supplierDisplay = supplier?.name ??
+                    final supplierDisplay =
+                        supplier?.name ??
                         (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
 
                     return MobileCard(
                       title: pur.purchaseNumber,
-                      subtitle: '$supplierDisplay • Ref: ${pur.supplierInvoiceNo}',
-                      statusBadge: EntityStatusPresentation.purchasePaymentBadge(
-                        pur.paymentStatus,
-                      ),
+                      subtitle:
+                          '$supplierDisplay • Ref: ${pur.supplierInvoiceNo}',
+                      statusBadge:
+                          EntityStatusPresentation.purchasePaymentBadge(
+                            pur.paymentStatus,
+                          ),
                       heroMetric: '₹${_fmt(pur.totalAmount)}',
                       heroLabel: 'TOTAL COST',
                       attributes: [
                         MobileCardAttribute(
                           label: 'Purchase Date',
-                          value: DateFormat('dd MMM yyyy').format(pur.purchaseDate),
+                          value: DateFormat(
+                            'dd MMM yyyy',
+                          ).format(pur.purchaseDate),
                         ),
                         MobileCardAttribute(
                           label: 'Taxable Base',
@@ -501,7 +502,6 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
   }
 
   Widget _buildPurchaseFilters() {
-
     final h = ResponsiveSpacing.pageHorizontal(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(h, 16, h, 8),
@@ -593,7 +593,8 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
           (s) => s?.id == pur.supplierId,
           orElse: () => null,
         );
-        final supplierDisplay = supplier?.name ?? (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
+        final supplierDisplay =
+            supplier?.name ?? (pur.supplierId.isNotEmpty ? 'Supplier' : 'N/A');
         return Container(
           decoration: BoxDecoration(
             color: isSelected ? AppColors.darkCard : AppColors.darkSurface,
@@ -720,10 +721,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         children: [
           AppKpiSummaryBar(
             kpis: [
-              AppKpiItem(
-                label: 'TOTAL VENDORS',
-                value: '${suppliers.length}',
-              ),
+              AppKpiItem(label: 'TOTAL VENDORS', value: '${suppliers.length}'),
               AppKpiItem(
                 label: 'ACTIVE STATUS',
                 value: '$activeCount Active',
@@ -775,9 +773,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                     ),
                     MobileCardAttribute(
                       label: 'Phone',
-                      value: spl.phone.isNotEmpty
-                          ? spl.phone
-                          : 'Not specified',
+                      value: spl.phone.isNotEmpty ? spl.phone : 'Not specified',
                     ),
                     if (spl.billingCity != null && spl.billingCity!.isNotEmpty)
                       MobileCardAttribute(
@@ -963,10 +959,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
         children: [
           AppKpiSummaryBar(
             kpis: [
-              AppKpiItem(
-                label: 'TOTAL ENTRIES',
-                value: '${expenses.length}',
-              ),
+              AppKpiItem(label: 'TOTAL ENTRIES', value: '${expenses.length}'),
               AppKpiItem(
                 label: 'TOTAL EXPENSES',
                 value: '₹${_fmt(totalExp)}',
@@ -1021,10 +1014,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen>
                         value: vehicle?.registrationNumber ?? 'Assigned',
                       ),
                     if (exp.notes != null && exp.notes!.isNotEmpty)
-                      MobileCardAttribute(
-                        label: 'Notes',
-                        value: exp.notes!,
-                      ),
+                      MobileCardAttribute(label: 'Notes', value: exp.notes!),
                   ],
                   actions: [
                     IconButton(
@@ -1304,7 +1294,9 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        EntityStatusPresentation.purchasePaymentBadge(detail.purchase.paymentStatus),
+                        EntityStatusPresentation.purchasePaymentBadge(
+                          detail.purchase.paymentStatus,
+                        ),
                       ],
                     ),
                   ],
@@ -1351,31 +1343,32 @@ class _PurchaseDetailPanel extends ConsumerWidget {
                   const SizedBox(height: 20),
                   _sectionHeader('Procurement Information'),
                   const SizedBox(height: 10),
-                Builder(
-                  builder: (context) {
-                    final supplier = suppliers.cast<Supplier?>().firstWhere(
-                      (s) => s?.id == detail.purchase.supplierId,
-                      orElse: () => null,
-                    );
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _metaRow(
-                          'Supplier',
-                          supplier?.name ?? 'Unknown Supplier',
-                        ),
-                        if (supplier != null && supplier.supplierCode.isNotEmpty)
-                          _metaRow('Supplier Code', supplier.supplierCode),
-                      ],
-                    );
-                  },
-                ),
-                _metaRow(
-                  'Purchase Date',
-                  DateFormat(
-                    'dd MMM yyyy',
-                  ).format(detail.purchase.purchaseDate),
-                ),
+                  Builder(
+                    builder: (context) {
+                      final supplier = suppliers.cast<Supplier?>().firstWhere(
+                        (s) => s?.id == detail.purchase.supplierId,
+                        orElse: () => null,
+                      );
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _metaRow(
+                            'Supplier',
+                            supplier?.name ?? 'Unknown Supplier',
+                          ),
+                          if (supplier != null &&
+                              supplier.supplierCode.isNotEmpty)
+                            _metaRow('Supplier Code', supplier.supplierCode),
+                        ],
+                      );
+                    },
+                  ),
+                  _metaRow(
+                    'Purchase Date',
+                    DateFormat(
+                      'dd MMM yyyy',
+                    ).format(detail.purchase.purchaseDate),
+                  ),
                   _metaRow('Payment Status', detail.purchase.paymentStatus),
                   if (detail.purchase.notes != null)
                     _metaRow('Notes', detail.purchase.notes!),

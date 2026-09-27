@@ -26,7 +26,7 @@ class LedgerScreen extends ConsumerWidget {
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -117,14 +117,10 @@ class _LedgerAccountsMasterListState
               },
             ),
             kpis: [
-              AppKpiItem(
-                label: 'TOTAL ACCOUNTS',
-                value: '${accounts.length}',
-              ),
+              AppKpiItem(label: 'TOTAL ACCOUNTS', value: '${accounts.length}'),
               AppKpiItem(
                 label: 'ACTIVE STATUS',
-                value:
-                    '${accounts.where((a) => a.isActive).length} Active',
+                value: '${accounts.where((a) => a.isActive).length} Active',
                 valueColor: AppColors.success,
               ),
             ],
@@ -167,8 +163,9 @@ class _LedgerAccountsMasterListState
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _getAccountTypeBgColor(acc.accountType)
-                              .withValues(alpha: 0.15),
+                          color: _getAccountTypeBgColor(
+                            acc.accountType,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -203,8 +200,9 @@ class _LedgerAccountsMasterListState
                       ],
                       onTap: () {
                         ref
-                            .read(selectedLedgerAccountIdProvider.notifier)
-                            .state = acc.id;
+                                .read(selectedLedgerAccountIdProvider.notifier)
+                                .state =
+                            acc.id;
                         if (widget.onMobileTap != null) {
                           widget.onMobileTap!(acc);
                         }
@@ -813,7 +811,8 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                             final isDebit = entry.debitAmount > 0;
                             return MobileCard(
                               title: entry.description,
-                              subtitle: entry.referenceType != null &&
+                              subtitle:
+                                  entry.referenceType != null &&
                                       entry.referenceType!.isNotEmpty
                                   ? 'Ref: ${entry.referenceType}'
                                   : 'Journal Entry',
@@ -824,7 +823,9 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDebit
-                                      ? AppColors.success.withValues(alpha: 0.15)
+                                      ? AppColors.success.withValues(
+                                          alpha: 0.15,
+                                        )
                                       : AppColors.error.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -849,8 +850,9 @@ class _LedgerAccountDetailView extends ConsumerWidget {
                               attributes: [
                                 MobileCardAttribute(
                                   label: 'Entry Date',
-                                  value: DateFormat('dd MMM yyyy')
-                                      .format(entry.entryDate),
+                                  value: DateFormat(
+                                    'dd MMM yyyy',
+                                  ).format(entry.entryDate),
                                 ),
                                 MobileCardAttribute(
                                   label: 'Running Balance',

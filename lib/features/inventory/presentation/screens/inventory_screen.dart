@@ -36,7 +36,7 @@ class InventoryScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: locationsAsync.when(
         data: (locations) {
           if (locations.isEmpty) {
@@ -73,7 +73,7 @@ class InventoryScreen extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.darkTextPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     IconButton(
@@ -86,7 +86,10 @@ class InventoryScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              Divider(color: AppColors.darkBorder, height: 1),
+              Divider(
+                color: Theme.of(context).colorScheme.outline,
+                height: 1,
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: locations.length,

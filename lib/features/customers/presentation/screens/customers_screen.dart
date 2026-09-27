@@ -43,7 +43,7 @@ class CustomersScreen extends ConsumerWidget {
     final isMobileOrSmall = context.isMobileOrSmallTablet;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: AdaptiveMasterDetail(
         masterWidth: AppDimensions.masterListWidth(context),
         hasSelection: selectedId != null,
@@ -113,7 +113,7 @@ class _CustomerMasterList extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.darkTextPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   IconButton(
@@ -156,15 +156,19 @@ class _CustomerMasterList extends ConsumerWidget {
                     'Type:',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.darkTextSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   DropdownButton<String?>(
                     value: typeFilter,
-                    dropdownColor: AppColors.darkSurface,
-                    underline: const SizedBox(),
+                    dropdownColor: Theme.of(context).colorScheme.surface,
+                    underline: Container(
+                      height: 1,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                     style: const TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.brandAmber,
                     ),
                     items: const [
@@ -196,7 +200,7 @@ class _CustomerMasterList extends ConsumerWidget {
                     'Show Soft-Deleted:',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.darkTextSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   Switch(
@@ -212,7 +216,7 @@ class _CustomerMasterList extends ConsumerWidget {
             ],
           ),
         ),
-        Divider(color: AppColors.darkBorder),
+        Divider(color: Theme.of(context).colorScheme.outline),
 
         // Customer Cards List
         Expanded(
@@ -255,15 +259,22 @@ class _CustomerMasterList extends ConsumerWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? (Theme.of(context).brightness == Brightness.dark
-                                    ? AppColors.darkSurface
-                                    : const Color(0xFFEFE9DF))
-                              : AppColors.darkCard,
+                              ? AppColors.brandAmber.withValues(
+                                  alpha:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? 0.12
+                                      : 0.08,
+                                )
+                              : (Theme.of(context).cardTheme.color ??
+                                    Theme.of(context).colorScheme.surface),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isDeleted
-                                ? AppColors.error.withValues(alpha: 0.3)
-                                : AppColors.darkBorder,
+                            color: isSelected
+                                ? AppColors.brandAmber
+                                : (isDeleted
+                                      ? AppColors.error.withValues(alpha: 0.3)
+                                      : Theme.of(context).colorScheme.outline),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -416,7 +427,7 @@ class _CustomerMasterList extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -449,15 +460,11 @@ class _CustomerMasterList extends ConsumerWidget {
                           val;
                     },
                     onClear: () {
-                      ref.read(customerSearchQueryProvider.notifier).state =
-                          '';
+                      ref.read(customerSearchQueryProvider.notifier).state = '';
                     },
                   ),
                   kpis: [
-                    AppKpiItem(
-                      label: 'CUSTOMERS',
-                      value: '$totalCount Listed',
-                    ),
+                    AppKpiItem(label: 'CUSTOMERS', value: '$totalCount Listed'),
                     AppKpiItem(
                       label: 'TOTAL OUTSTANDING',
                       value: NumberUtils.formatCurrency(totalBalance),
@@ -467,8 +474,8 @@ class _CustomerMasterList extends ConsumerWidget {
                       valueColor: totalBalance > 0
                           ? AppColors.warning
                           : (isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.lightTextPrimary),
+                                ? AppColors.darkTextPrimary
+                                : AppColors.lightTextPrimary),
                     ),
                   ],
                   filterWidget: AppFilterChipsBar<String>(
@@ -573,8 +580,8 @@ class _CustomerMasterList extends ConsumerWidget {
                           heroColor: customer.currentBalance > 0
                               ? AppColors.warning
                               : (isDark
-                                  ? AppColors.darkTextPrimary
-                                  : AppColors.lightTextPrimary),
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary),
                           statusBadge: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -584,30 +591,29 @@ class _CustomerMasterList extends ConsumerWidget {
                               color: isDeleted
                                   ? AppColors.error.withValues(alpha: 0.15)
                                   : (customer.isActive
-                                      ? AppColors.success.withValues(alpha: 0.15)
-                                      : (isDark
-                                          ? AppColors.darkThemeBorder.withValues(
-                                              alpha: 0.3,
-                                            )
-                                          : AppColors.lightBorder)),
+                                        ? AppColors.success.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : (isDark
+                                              ? AppColors.darkThemeBorder
+                                                    .withValues(alpha: 0.3)
+                                              : AppColors.lightBorder)),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               isDeleted
                                   ? 'Deleted'
-                                  : (customer.isActive
-                                      ? 'Active'
-                                      : 'Inactive'),
+                                  : (customer.isActive ? 'Active' : 'Inactive'),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: isDeleted
                                     ? AppColors.error
                                     : (customer.isActive
-                                        ? AppColors.success
-                                        : (isDark
-                                            ? AppColors.darkTextTertiary
-                                            : AppColors.lightTextTertiary)),
+                                          ? AppColors.success
+                                          : (isDark
+                                                ? AppColors.darkTextTertiary
+                                                : AppColors.lightTextTertiary)),
                               ),
                             ),
                           ),
@@ -630,7 +636,9 @@ class _CustomerMasterList extends ConsumerWidget {
                               ),
                           ],
                           onTap: () {
-                            ref.read(selectedCustomerIdProvider.notifier).state =
+                            ref
+                                    .read(selectedCustomerIdProvider.notifier)
+                                    .state =
                                 customer.id;
                             if (onMobileTap != null) {
                               onMobileTap!(customer);
@@ -890,9 +898,11 @@ class _CustomerDetailScaffoldState
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        backgroundColor: isDark
+            ? AppColors.darkSurface
+            : AppColors.lightSurface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -927,7 +937,10 @@ class _CustomerDetailScaffoldState
         actions: [
           if (!isDeleted) ...[
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.brandAmber),
+              icon: const Icon(
+                Icons.edit_outlined,
+                color: AppColors.brandAmber,
+              ),
               onPressed: () => Navigator.of(context).push<void>(
                 MaterialPageRoute<void>(
                   fullscreenDialog: true,
@@ -966,7 +979,11 @@ class _CustomerDetailScaffoldState
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                      Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: AppColors.error,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Soft-Delete',
@@ -979,7 +996,10 @@ class _CustomerDetailScaffoldState
             ),
           ] else ...[
             IconButton(
-              icon: const Icon(Icons.restore_outlined, color: AppColors.brandAmber),
+              icon: const Icon(
+                Icons.restore_outlined,
+                color: AppColors.brandAmber,
+              ),
               onPressed: () async => ref
                   .read(customersListProvider.notifier)
                   .restoreCustomer(customer.id),
@@ -995,7 +1015,10 @@ class _CustomerDetailScaffoldState
               : AppColors.lightTextSecondary,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          labelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
           tabs: const [
             Tab(text: 'Sites'),
             Tab(text: 'Contacts'),
@@ -1015,10 +1038,12 @@ class _CustomerDetailScaffoldState
               horizontal: 16,
               vertical: 8,
             ),
-            backgroundColor:
-                isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            collapsedBackgroundColor:
-                isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            backgroundColor: isDark
+                ? AppColors.darkSurface
+                : AppColors.lightSurface,
+            collapsedBackgroundColor: isDark
+                ? AppColors.darkSurface
+                : AppColors.lightSurface,
             title: Row(
               children: [
                 Text(
@@ -1052,12 +1077,12 @@ class _CustomerDetailScaffoldState
                     color: isDeleted
                         ? AppColors.error.withValues(alpha: 0.15)
                         : (customer.isActive
-                            ? AppColors.success.withValues(alpha: 0.15)
-                            : (isDark
-                                ? AppColors.darkThemeBorder.withValues(
-                                    alpha: 0.3,
-                                  )
-                                : AppColors.lightBorder)),
+                              ? AppColors.success.withValues(alpha: 0.15)
+                              : (isDark
+                                    ? AppColors.darkThemeBorder.withValues(
+                                        alpha: 0.3,
+                                      )
+                                    : AppColors.lightBorder)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -1070,10 +1095,10 @@ class _CustomerDetailScaffoldState
                       color: isDeleted
                           ? AppColors.error
                           : (customer.isActive
-                              ? AppColors.success
-                              : (isDark
-                                  ? AppColors.darkTextTertiary
-                                  : AppColors.lightTextTertiary)),
+                                ? AppColors.success
+                                : (isDark
+                                      ? AppColors.darkTextTertiary
+                                      : AppColors.lightTextTertiary)),
                     ),
                   ),
                 ),
@@ -1504,7 +1529,8 @@ class _CustomerDetailScaffoldState
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -1514,7 +1540,8 @@ class _CustomerDetailScaffoldState
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
-                                                color: AppColors.darkTextPrimary,
+                                                color:
+                                                    AppColors.darkTextPrimary,
                                               ),
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -1522,16 +1549,16 @@ class _CustomerDetailScaffoldState
                                           if (site.isDefault) ...[
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: AppColors.brandAmber
                                                     .withValues(alpha: 0.15),
-                                                borderRadius: BorderRadius.circular(
-                                                  4,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                                 border: Border.all(
                                                   color: AppColors.brandAmber
                                                       .withValues(alpha: 0.3),
@@ -1552,17 +1579,19 @@ class _CustomerDetailScaffoldState
                                       const SizedBox(height: 6),
                                       Text(
                                         [
-                                          site.addressLine1,
-                                          site.addressLine2,
-                                          site.city,
-                                          if (site.state != null &&
-                                              site.stateCode != null)
-                                            '${site.state} (${site.stateCode})'
-                                          else if (site.state != null)
-                                            site.state,
-                                          site.pincode,
-                                        ]
-                                            .where((x) => x != null && x.isNotEmpty)
+                                              site.addressLine1,
+                                              site.addressLine2,
+                                              site.city,
+                                              if (site.state != null &&
+                                                  site.stateCode != null)
+                                                '${site.state} (${site.stateCode})'
+                                              else if (site.state != null)
+                                                site.state,
+                                              site.pincode,
+                                            ]
+                                            .where(
+                                              (x) => x != null && x.isNotEmpty,
+                                            )
                                             .join(', '),
                                         style: TextStyle(
                                           fontSize: 12,
