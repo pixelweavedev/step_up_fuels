@@ -2,11 +2,8 @@
 class CustomerValidator {
   CustomerValidator._();
 
-  /// Validates that the customer name is not empty.
+  /// Validates customer name (optional).
   static String? validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Name is required';
-    }
     return null;
   }
 

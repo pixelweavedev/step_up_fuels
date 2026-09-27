@@ -36,6 +36,7 @@ class AppTextField extends StatelessWidget {
     this.isQuantity = false,
     this.showClearButton = false,
     this.onClear,
+    this.onTap,
   });
 
   final TextEditingController? controller;
@@ -68,13 +69,15 @@ class AppTextField extends StatelessWidget {
   final bool isQuantity;
   final bool showClearButton;
   final VoidCallback? onClear;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final effectiveKeyboardType = keyboardType ??
+    final effectiveKeyboardType =
+        keyboardType ??
         ((isCurrency || isQuantity)
             ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text);
@@ -139,6 +142,7 @@ class AppTextField extends StatelessWidget {
       maxLength: maxLength,
       textInputAction: textInputAction,
       validator: validator,
+      onTap: onTap,
       onChanged: onChanged,
       onEditingComplete: onEditingComplete,
       onFieldSubmitted: onFieldSubmitted,

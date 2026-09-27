@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/mobile_tokens.dart';
 import 'package:step_up_fuels/core/utils/date_utils.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/customer_contact.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/fuel_type.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/payment_terms.dart';
+import 'package:step_up_fuels/features/customers/domain/repositories/customer_repository.dart';
 import 'package:step_up_fuels/features/customers/domain/validators/customer_validator.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/administrative_location_input.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
 
-/// Dialog to create or edit enterprise customer details.
+/// Dialog to create or edit customer details.
+///
+/// Supports distinct workflows for:
+/// - **Individual** (retail consumer / vehicle owner / contractor)
+/// - **Corporate / Company** (B2B / enterprise client)
+/// - **Government** (institutional)
+///
+/// All fields are completely optional (nothing is strictly mandatory).
 class CustomerFormDialog extends ConsumerStatefulWidget {
   const CustomerFormDialog({super.key, this.customer});
 
@@ -25,30 +36,45 @@ class CustomerFormDialog extends ConsumerStatefulWidget {
 }
 
 class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TabController _tabController;
 
-  // Controllers — General & Address
+  // Customer Category
+  CustomerType _selectedType = CustomerType.company;
+  bool get _isIndividual => _selectedType == CustomerType.individual;
+  int get _tabCount => _isIndividual ? 3 : 5;
+
+  // Controllers — Common / Identity
   final _nameController = TextEditingController();
   final _displayNameController = TextEditingController();
-  final _billingAddress1Controller = TextEditingController();
-  final _billingAddress2Controller = TextEditingController();
-  final _billingAreaController = TextEditingController();
-  final _billingCityController = TextEditingController();
-  final _billingStateController = TextEditingController();
-  final _billingPincodeController = TextEditingController();
-  final _billingCountryController = TextEditingController();
 
-  // Controllers — GST & Compliance
-  final _gstinController = TextEditingController();
+  // Controllers — Individual specific
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _panController = TextEditingController();
+  final _aadhaarController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
+
+  // Controllers — Corporate / Compliance specific
   final _legalNameController = TextEditingController();
   final _tradeNameController = TextEditingController();
+  final _contactPersonController = TextEditingController();
+  final _gstinController = TextEditingController();
   final _gstRegTypeController = TextEditingController();
   final _tanController = TextEditingController();
 
-  // Controllers — Credit & Accounting
+  // Controllers — Address & Administrative Location
+  final _billingAddress1Controller = TextEditingController();
+  final _billingAddress2Controller = TextEditingController();
+  final _billingStateController = TextEditingController();
+  final _billingCityController = TextEditingController(); // Stores District / City
+  final _billingAreaController = TextEditingController(); // Stores Taluka / Sub-district
+  final _billingVillageController = TextEditingController(); // Stores Village / Town
+  final _billingPincodeController = TextEditingController();
+  final _billingCountryController = TextEditingController();
+
+  // Controllers — Credit & Terms
   final _creditLimitController = TextEditingController();
   final _creditDaysController = TextEditingController();
   final _securityDepositController = TextEditingController();
@@ -64,8 +90,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
   final _invoicePrefixController = TextEditingController();
   final _notesController = TextEditingController();
 
-  // Selected State variables
-  CustomerType _selectedType = CustomerType.company;
+  // Selected state variables
   PaymentTerms _selectedTerms = PaymentTerms.advance;
   FuelType _selectedFuel = FuelType.diesel;
 
@@ -90,17 +115,18 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
 
     if (_isEditMode) {
       final cust = widget.customer!;
+      _selectedType = cust.type;
       _nameController.text = cust.name;
       _displayNameController.text = cust.displayName ?? cust.name;
+
       _billingAddress1Controller.text = cust.billingAddressLine1 ?? '';
       _billingAddress2Controller.text = cust.billingAddressLine2 ?? '';
-      _billingAreaController.text = cust.billingArea ?? '';
+      _billingStateController.text = cust.billingState ?? cust.state ?? '';
       _billingCityController.text = cust.billingCity ?? '';
-      _billingStateController.text = cust.billingState ?? '';
+      _billingAreaController.text = cust.billingArea ?? '';
       _billingPincodeController.text = cust.billingPincode ?? '';
       _billingCountryController.text = cust.billingCountry ?? 'India';
 
@@ -124,7 +150,6 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       _invoicePrefixController.text = cust.invoicePrefix ?? '';
       _notesController.text = cust.notes ?? '';
 
-      _selectedType = cust.type;
       _selectedTerms = cust.paymentTerms ?? PaymentTerms.advance;
       _selectedFuel = cust.fuelType ?? FuelType.diesel;
       _poDate = cust.poDate;
@@ -139,6 +164,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       _gstApplicable = cust.gstApplicable;
       _eInvoiceRequired = cust.eInvoiceRequired;
       _eWayBillRequired = cust.eWayBillRequired;
+
+      _loadExistingContacts(cust.id);
     } else {
       _billingCountryController.text = 'India';
       _creditLimitController.text = '0.0';
@@ -147,6 +174,61 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       _openingBalanceController.text = '0.0';
       _defaultGstRateController.text = '0.18';
     }
+
+    _initTabController();
+  }
+
+  void _initTabController({int initialIndex = 0}) {
+    _tabController = TabController(
+      length: _tabCount,
+      vsync: this,
+      initialIndex: initialIndex.clamp(0, _tabCount - 1),
+    );
+  }
+
+  Future<void> _loadExistingContacts(String customerId) async {
+    try {
+      final repo = sl<CustomerRepository>();
+      final result = await repo.getContactsForCustomer(customerId);
+      result.when(
+        success: (contacts) {
+          if (contacts.isNotEmpty && mounted) {
+            final primary = contacts.firstWhere(
+              (c) => c.isPrimary,
+              orElse: () => contacts.first,
+            );
+            setState(() {
+              _contactPersonController.text = primary.name;
+              _phoneController.text = primary.phone ?? '';
+              _emailController.text = primary.email ?? '';
+            });
+          }
+        },
+        failure: (_) {},
+      );
+    } catch (_) {}
+  }
+
+  void _onCategoryChanged(CustomerType type) {
+    if (_selectedType == type) return;
+    final wasIndividual = _isIndividual;
+    setState(() {
+      _selectedType = type;
+      if (type == CustomerType.individual) {
+        _gstApplicable = false;
+        _eInvoiceRequired = false;
+        _eWayBillRequired = false;
+        _requirePo = false;
+        _requireDc = false;
+      } else {
+        _gstApplicable = true;
+      }
+
+      if (_isIndividual != wasIndividual) {
+        _tabController.dispose();
+        _initTabController(initialIndex: 0);
+      }
+    });
   }
 
   @override
@@ -154,17 +236,23 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
     _tabController.dispose();
     _nameController.dispose();
     _displayNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _panController.dispose();
+    _aadhaarController.dispose();
+    _vehicleNumberController.dispose();
+    _legalNameController.dispose();
+    _tradeNameController.dispose();
+    _contactPersonController.dispose();
     _billingAddress1Controller.dispose();
     _billingAddress2Controller.dispose();
-    _billingAreaController.dispose();
-    _billingCityController.dispose();
     _billingStateController.dispose();
+    _billingCityController.dispose();
+    _billingAreaController.dispose();
+    _billingVillageController.dispose();
     _billingPincodeController.dispose();
     _billingCountryController.dispose();
     _gstinController.dispose();
-    _panController.dispose();
-    _legalNameController.dispose();
-    _tradeNameController.dispose();
     _gstRegTypeController.dispose();
     _tanController.dispose();
     _creditLimitController.dispose();
@@ -181,7 +269,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
+    // Form validate is non-blocking (nothing is mandatory)
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
       return;
     }
 
@@ -192,6 +281,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
 
     try {
       final notifier = ref.read(customersListProvider.notifier);
+
+      // Safe numeric parsing with graceful defaults
       final double creditLimit =
           double.tryParse(_creditLimitController.text.trim()) ?? 0.0;
       final int creditDays =
@@ -207,13 +298,48 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       );
       final double? poValue = double.tryParse(_poValueController.text.trim());
 
+      // Safe name fallback if left blank (since nothing is mandatory)
+      final rawName = _nameController.text.trim();
+      final name = rawName.isNotEmpty
+          ? rawName
+          : (_isIndividual ? 'Individual Customer' : 'Corporate Customer');
+
+      final displayName = _displayNameController.text.trim().isNotEmpty
+          ? _displayNameController.text.trim()
+          : name;
+
+      final customerId =
+          _isEditMode ? widget.customer!.id : const Uuid().v4();
+
+      // State and District resolution
+      final stateValue = _billingStateController.text.trim().isNotEmpty
+          ? _billingStateController.text.trim()
+          : null;
+      final districtValue = _billingCityController.text.trim().isNotEmpty
+          ? _billingCityController.text.trim()
+          : null;
+      final talukaValue = _billingAreaController.text.trim().isNotEmpty
+          ? _billingAreaController.text.trim()
+          : null;
+
+      // Compile notes with vehicle / ID if individual entered them
+      final List<String> notesParts = [];
+      if (_isIndividual && _vehicleNumberController.text.trim().isNotEmpty) {
+        notesParts.add('Vehicle: ${_vehicleNumberController.text.trim()}');
+      }
+      if (_isIndividual && _aadhaarController.text.trim().isNotEmpty) {
+        notesParts.add('ID/Aadhaar: ${_aadhaarController.text.trim()}');
+      }
+      if (_notesController.text.trim().isNotEmpty) {
+        notesParts.add(_notesController.text.trim());
+      }
+      final finalNotes = notesParts.isNotEmpty ? notesParts.join('\n') : null;
+
       final customer = Customer(
-        id: _isEditMode ? widget.customer!.id : const Uuid().v4(),
+        id: customerId,
         customerCode: _isEditMode ? widget.customer!.customerCode : '',
-        name: _nameController.text.trim(),
-        displayName: _displayNameController.text.trim().isEmpty
-            ? _nameController.text.trim()
-            : _displayNameController.text.trim(),
+        name: name,
+        displayName: displayName,
         tradeName: _tradeNameController.text.trim().isEmpty
             ? null
             : _tradeNameController.text.trim(),
@@ -228,12 +354,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
         pan: _panController.text.trim().isEmpty
             ? null
             : _panController.text.trim().toUpperCase(),
-        state: _billingStateController.text.trim().isEmpty
-            ? null
-            : _billingStateController.text.trim(),
-        placeOfSupply: _billingStateController.text.trim().isEmpty
-            ? null
-            : _billingStateController.text.trim(),
+        state: stateValue,
+        placeOfSupply: stateValue,
         gstRegistrationType: _gstRegTypeController.text.trim().isEmpty
             ? null
             : _gstRegTypeController.text.trim(),
@@ -246,15 +368,9 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
         billingAddressLine2: _billingAddress2Controller.text.trim().isEmpty
             ? null
             : _billingAddress2Controller.text.trim(),
-        billingArea: _billingAreaController.text.trim().isEmpty
-            ? null
-            : _billingAreaController.text.trim(),
-        billingCity: _billingCityController.text.trim().isEmpty
-            ? null
-            : _billingCityController.text.trim(),
-        billingState: _billingStateController.text.trim().isEmpty
-            ? null
-            : _billingStateController.text.trim(),
+        billingArea: talukaValue,
+        billingCity: districtValue,
+        billingState: stateValue,
         billingPincode: _billingPincodeController.text.trim().isEmpty
             ? null
             : _billingPincodeController.text.trim(),
@@ -294,9 +410,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             : openingBalance,
         lastPaymentDate: _isEditMode ? widget.customer!.lastPaymentDate : null,
         lastInvoiceDate: _isEditMode ? widget.customer!.lastInvoiceDate : null,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
+        notes: finalNotes,
         createdBy: _isEditMode ? widget.customer!.createdBy : 'system',
         createdAt: _isEditMode ? widget.customer!.createdAt : DateTime.now(),
         updatedBy: 'system',
@@ -312,6 +426,28 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
         await notifier.createCustomer(customer);
       }
 
+      // Auto-save primary contact if phone or email was provided
+      final phone = _phoneController.text.trim();
+      final email = _emailController.text.trim();
+      final contactPerson = _contactPersonController.text.trim();
+
+      if (phone.isNotEmpty || email.isNotEmpty || contactPerson.isNotEmpty) {
+        try {
+          final contact = CustomerContact.newContact(
+            id: const Uuid().v4(),
+            customerId: customerId,
+            name: contactPerson.isNotEmpty ? contactPerson : name,
+            phone: phone.isNotEmpty ? phone : null,
+            email: email.isNotEmpty ? email : null,
+            whatsapp: _whatsappInvoice && phone.isNotEmpty ? phone : null,
+            isPrimary: true,
+          );
+          await sl<CustomerRepository>().saveContact(contact);
+        } catch (_) {
+          // Contact saving is non-blocking
+        }
+      }
+
       if (mounted) {
         Navigator.of(context).pop(true);
       }
@@ -325,7 +461,35 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = MediaQuery.sizeOf(context).width < 650;
+
+    final tabs = _isIndividual
+        ? const [
+            Tab(text: 'Personal & Contact'),
+            Tab(text: 'Address & Location'),
+            Tab(text: 'Fuel & Billing'),
+          ]
+        : const [
+            Tab(text: 'Company Profile'),
+            Tab(text: 'GST & Compliance'),
+            Tab(text: 'Billing Address'),
+            Tab(text: 'Credit & Terms'),
+            Tab(text: 'PO & Preferences'),
+          ];
+
+    final tabViews = _isIndividual
+        ? [
+            _buildIndividualPersonalTab(),
+            _buildAddressTab(),
+            _buildIndividualBillingTab(),
+          ]
+        : [
+            _buildCorporateProfileTab(),
+            _buildGstComplianceTab(),
+            _buildAddressTab(),
+            _buildCreditAccountingTab(),
+            _buildCorporatePreferencesTab(),
+          ];
 
     if (isMobile) {
       return Scaffold(
@@ -338,109 +502,49 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            _isEditMode ? 'Edit Customer' : 'Register Customer',
+            _isEditMode
+                ? 'Edit ${_selectedType.displayName}'
+                : 'Register ${_selectedType.displayName}',
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AppColors.darkTextPrimary,
             ),
           ),
-          bottom: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            indicatorColor: AppColors.brandAmber,
-            labelColor: AppColors.brandAmber,
-            unselectedLabelColor: AppColors.darkTextSecondary,
-            labelStyle: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(88),
+            child: Column(
+              children: [
+                _buildCategorySelectorBar(),
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  indicatorColor: AppColors.brandAmber,
+                  labelColor: AppColors.brandAmber,
+                  unselectedLabelColor: AppColors.darkTextSecondary,
+                  labelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  tabs: tabs,
+                ),
+              ],
             ),
-            tabs: const [
-              Tab(text: 'General & Address'),
-              Tab(text: 'GST & Compliance'),
-              Tab(text: 'Credit & Terms'),
-              Tab(text: 'Preferences & PO'),
-              Tab(text: 'Additional Details'),
-            ],
           ),
         ),
         body: Column(
           children: [
-            if (_errorMessage != null)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: AppColors.error, fontSize: 13),
-                ),
-              ),
+            if (_errorMessage != null) _buildErrorBanner(),
             Expanded(
               child: Form(
                 key: _formKey,
                 child: TabBarView(
                   controller: _tabController,
-                  children: [
-                    _buildGeneralAddressTab(),
-                    _buildGstComplianceTab(),
-                    _buildCreditAccountingTab(),
-                    _buildPreferencesPoTab(),
-                    _buildAdditionalNotesTab(),
-                  ],
+                  children: tabViews,
                 ),
               ),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                12,
-                16,
-                MediaQuery.paddingOf(context).bottom + 12,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.darkCard,
-                border: Border(top: BorderSide(color: AppColors.darkBorder)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(
-                          AppMobileTokens.preferredButtonHeight,
-                        ),
-                        side: BorderSide(color: AppColors.darkBorder),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppMobileTokens.radiusMD,
-                          ),
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: AppColors.darkTextSecondary),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: PrimaryButton(
-                      label: _isEditMode ? 'Save Changes' : 'Create Customer',
-                      isLoading: _isLoading,
-                      onPressed: _handleSubmit,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildMobileFooter(),
           ],
         ),
       );
@@ -450,28 +554,41 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       backgroundColor: AppColors.darkSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 650),
+        constraints: const BoxConstraints(maxWidth: 750, maxHeight: 680),
         child: Column(
           children: [
             // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      _isEditMode
-                          ? 'Edit Enterprise Customer'
-                          : 'Register Enterprise Customer',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.darkTextPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isEditMode
+                              ? 'Edit ${_selectedType.displayName} Customer'
+                              : 'Register New ${_selectedType.displayName} Customer',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.darkTextPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Fill in the customer details below. All fields are optional.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.darkTextTertiary,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  _buildCategorySelectorBar(),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(Icons.close, color: AppColors.darkTextSecondary),
                     onPressed: () => Navigator.of(context).pop(),
@@ -487,40 +604,14 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               labelColor: AppColors.brandAmber,
               unselectedLabelColor: AppColors.darkTextSecondary,
               labelStyle: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
               isScrollable: true,
-              tabs: const [
-                Tab(text: 'General & Address'),
-                Tab(text: 'GST & Compliance'),
-                Tab(text: 'Credit & Accounting'),
-                Tab(text: 'Preferences & PO'),
-                Tab(text: 'Additional Details'),
-              ],
+              tabs: tabs,
             ),
 
-            // Error display
-            if (_errorMessage != null)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppColors.error.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: AppColors.error, fontSize: 13),
-                ),
-              ),
+            if (_errorMessage != null) _buildErrorBanner(),
 
             // Form inputs view
             Expanded(
@@ -528,13 +619,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                 key: _formKey,
                 child: TabBarView(
                   controller: _tabController,
-                  children: [
-                    _buildGeneralAddressTab(),
-                    _buildGstComplianceTab(),
-                    _buildCreditAccountingTab(),
-                    _buildPreferencesPoTab(),
-                    _buildAdditionalNotesTab(),
-                  ],
+                  children: tabViews,
                 ),
               ),
             ),
@@ -542,16 +627,14 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             // Actions footer
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 12,
-                runSpacing: 8,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   SecondaryButton(
                     label: 'Cancel',
                     onPressed: () => Navigator.of(context).pop(),
                   ),
+                  const SizedBox(width: 12),
                   PrimaryButton(
                     label: _isEditMode ? 'Save Changes' : 'Create Customer',
                     isLoading: _isLoading,
@@ -566,7 +649,137 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
     );
   }
 
-  Widget _buildGeneralAddressTab() {
+  Widget _buildCategorySelectorBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.darkCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.darkBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: CustomerType.values.map((type) {
+          final isSelected = _selectedType == type;
+          return InkWell(
+            onTap: () => _onCategoryChanged(type),
+            borderRadius: BorderRadius.circular(8),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.brandAmber.withValues(alpha: 0.25)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.brandAmber
+                      : Colors.transparent,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    type == CustomerType.individual
+                        ? Icons.person_outline
+                        : (type == CustomerType.government
+                            ? Icons.account_balance_outlined
+                            : Icons.business_outlined),
+                    size: 15,
+                    color: isSelected
+                        ? AppColors.brandAmber
+                        : AppColors.darkTextSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    type.displayName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.brandAmber
+                          : AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        _errorMessage!,
+        style: const TextStyle(color: AppColors.error, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _buildMobileFooter() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        MediaQuery.paddingOf(context).bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.darkCard,
+        border: Border(top: BorderSide(color: AppColors.darkBorder)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(
+                  AppMobileTokens.preferredButtonHeight,
+                ),
+                side: BorderSide(color: AppColors.darkBorder),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppMobileTokens.radiusMD),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.darkTextSecondary),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: PrimaryButton(
+              label: _isEditMode ? 'Save Changes' : 'Create Customer',
+              isLoading: _isLoading,
+              onPressed: _handleSubmit,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // INDIVIDUAL SPECIFIC TABS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildIndividualPersonalTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -577,10 +790,383 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               Expanded(
                 child: AppTextField(
                   controller: _nameController,
-                  label: 'Company Legal Name *',
+                  label: 'Full Name',
+                  hint: 'e.g. Ramesh Patil',
+                  prefixIcon: Icons.person_outline,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _displayNameController,
+                  label: 'Nickname / Display Name',
+                  hint: 'e.g. Ramesh',
+                  prefixIcon: Icons.badge_outlined,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _phoneController,
+                  label: 'Mobile Number',
+                  hint: '10-digit mobile number',
+                  prefixIcon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  validator: CustomerValidator.validatePhone,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  hint: 'e.g. ramesh@example.com',
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: CustomerValidator.validateEmail,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _panController,
+                  label: 'PAN Number (Optional)',
+                  hint: 'e.g. ABCDE1234F',
+                  prefixIcon: Icons.credit_card_outlined,
+                  textCapitalization: TextCapitalization.characters,
+                  validator: CustomerValidator.validatePan,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _aadhaarController,
+                  label: 'Aadhaar / ID Ref (Optional)',
+                  hint: 'e.g. 12-digit Aadhaar / Voter ID',
+                  prefixIcon: Icons.fingerprint_outlined,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.brandAmber.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.brandAmber.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  size: 20,
+                  color: AppColors.brandAmber,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Individual retail customers are treated as Unregistered Persons (URP) under GST. Business tax fields are omitted.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndividualBillingTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Preferred Fuel Type',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<FuelType>(
+                      initialValue: _selectedFuel,
+                      dropdownColor: AppColors.darkSurface,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: FuelType.values.map((f) {
+                        return DropdownMenuItem(
+                          value: f,
+                          child: Text(
+                            f.displayName,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedFuel = val);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _vehicleNumberController,
+                  label: 'Primary Vehicle / Equipment No',
+                  hint: 'e.g. MH 12 AB 1234',
+                  prefixIcon: Icons.directions_car_outlined,
+                  textCapitalization: TextCapitalization.characters,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Arrangement',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<PaymentTerms>(
+                      initialValue: _selectedTerms,
+                      dropdownColor: AppColors.darkSurface,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: PaymentTerms.values.map((terms) {
+                        return DropdownMenuItem(
+                          value: terms,
+                          child: Text(
+                            terms.displayName,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedTerms = val);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _creditLimitController,
+                  label: 'Credit Limit (₹)',
+                  hint: '0.00 for no credit',
+                  prefixIcon: Icons.currency_rupee_outlined,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _openingBalanceController,
+                  label: 'Opening Balance (₹)',
+                  hint: 'e.g. 0.00',
+                  prefixIcon: Icons.account_balance_wallet_outlined,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  readOnly: _isEditMode,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Receipt & Notifications',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          Divider(color: AppColors.darkBorder),
+          Row(
+            children: [
+              Expanded(
+                child: CheckboxListTile(
+                  title: const Text(
+                    'WhatsApp Invoice / Receipt',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  subtitle: const Text(
+                    'Send fuel receipts directly to mobile',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: _whatsappInvoice,
+                  onChanged: (val) =>
+                      setState(() => _whatsappInvoice = val ?? false),
+                  activeColor: AppColors.brandAmber,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              Expanded(
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Email Invoice',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  subtitle: const Text(
+                    'Send monthly statement via email',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: _emailInvoice,
+                  onChanged: (val) =>
+                      setState(() => _emailInvoice = val ?? true),
+                  activeColor: AppColors.brandAmber,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AppTextField(
+            controller: _notesController,
+            label: 'Remarks / Special Notes',
+            hint: 'Customer preferences, farm/home delivery notes...',
+            prefixIcon: Icons.note_alt_outlined,
+            maxLines: 3,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // COMMON ADDRESS TAB (State + District + Taluka Dropdown & TextFields)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildAddressTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _isIndividual ? 'Residential / Delivery Address' : 'Billing Address',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Select State, District, and Taluka from directory or type freely.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.darkTextTertiary,
+            ),
+          ),
+          Divider(color: AppColors.darkBorder),
+          const SizedBox(height: 12),
+          AppTextField(
+            controller: _billingAddress1Controller,
+            label: 'Address Line 1',
+            hint: 'Flat/Office/House No., Building, Street...',
+            prefixIcon: Icons.location_on_outlined,
+          ),
+          const SizedBox(height: 16),
+          AppTextField(
+            controller: _billingAddress2Controller,
+            label: 'Address Line 2',
+            hint: 'Colony, Sector, Landmark, Road...',
+            prefixIcon: Icons.map_outlined,
+          ),
+          const SizedBox(height: 16),
+
+          // Coordinated Administrative Location: State -> District -> Taluka
+          AdministrativeLocationGroup(
+            stateController: _billingStateController,
+            districtController: _billingCityController,
+            talukaController: _billingAreaController,
+            cityController: _billingVillageController,
+            pincodeController: _billingPincodeController,
+          ),
+
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _billingCountryController,
+                  label: 'Country',
+                  hint: 'e.g. India',
+                  prefixIcon: Icons.public_outlined,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Spacer(flex: 2),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CORPORATE / COMPANY SPECIFIC TABS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildCorporateProfileTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _nameController,
+                  label: 'Company Legal Name',
                   hint: 'e.g. Tata Motors Ltd',
                   prefixIcon: Icons.business_outlined,
-                  validator: CustomerValidator.validateName,
                 ),
               ),
               const SizedBox(width: 16),
@@ -595,51 +1181,28 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            'Customer Category',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkTextSecondary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: CustomerType.values.map((type) {
-              final isSelected = _selectedType == type;
-              return ChoiceChip(
-                label: Text(type.displayName),
-                selected: isSelected,
-                onSelected: (val) {
-                  if (val) setState(() => _selectedType = type);
-                },
-                backgroundColor: AppColors.darkCard,
-                selectedColor: AppColors.brandAmber.withValues(alpha: 0.2),
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? AppColors.brandAmber
-                      : AppColors.darkTextSecondary,
-                  fontSize: 12,
-                  fontWeight: isSelected
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _legalNameController,
+                  label: 'Registered Business Name',
+                  hint: 'As printed on GST registration certificate',
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(
-                    color: isSelected
-                        ? AppColors.brandAmber
-                        : AppColors.darkBorder,
-                  ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: AppTextField(
+                  controller: _tradeNameController,
+                  label: 'Trade / Brand Name',
+                  hint: 'Trading division / operating name',
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Text(
-            'Billing Address Details',
+            'Primary Contact Person',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -648,65 +1211,37 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
           ),
           Divider(color: AppColors.darkBorder),
           const SizedBox(height: 12),
-          AppTextField(
-            controller: _billingAddress1Controller,
-            label: 'Address Line 1',
-            hint: 'Flat/Office No, Building name...',
-            prefixIcon: Icons.location_on_outlined,
-          ),
-          const SizedBox(height: 16),
-          AppTextField(
-            controller: _billingAddress2Controller,
-            label: 'Address Line 2',
-            hint: 'Street, sector, landmark...',
-            prefixIcon: Icons.map_outlined,
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: AppTextField(
-                  controller: _billingAreaController,
-                  label: 'Area / Locality',
-                  hint: 'e.g. Akurdi',
+                  controller: _contactPersonController,
+                  label: 'Contact Person Name',
+                  hint: 'e.g. Rajesh Kumar',
+                  prefixIcon: Icons.person_outline,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: AppTextField(
-                  controller: _billingCityController,
-                  label: 'City',
-                  hint: 'e.g. Pune',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _billingStateController,
-                  label: 'State',
-                  hint: 'e.g. Maharashtra',
+                  controller: _phoneController,
+                  label: 'Contact Phone',
+                  hint: '10-digit mobile number',
+                  prefixIcon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  validator: CustomerValidator.validatePhone,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: AppTextField(
-                  controller: _billingPincodeController,
-                  label: 'PIN Code',
-                  hint: '6-digit code',
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AppTextField(
-                  controller: _billingCountryController,
-                  label: 'Country',
-                  hint: 'e.g. India',
+                  controller: _emailController,
+                  label: 'Contact Email',
+                  hint: 'e.g. rajesh@tatamotors.com',
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: CustomerValidator.validateEmail,
                 ),
               ),
             ],
@@ -734,10 +1269,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   validator: CustomerValidator.validateGstin,
                   onChanged: (value) {
                     if (value.trim().length >= 12) {
-                      final potentialPan = value
-                          .trim()
-                          .substring(2, 12)
-                          .toUpperCase();
+                      final potentialPan =
+                          value.trim().substring(2, 12).toUpperCase();
                       if (CustomerValidator.validatePan(potentialPan) == null) {
                         _panController.text = potentialPan;
                       }
@@ -754,26 +1287,6 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   prefixIcon: Icons.payment_outlined,
                   textCapitalization: TextCapitalization.characters,
                   validator: CustomerValidator.validatePan,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: AppTextField(
-                  controller: _legalNameController,
-                  label: 'Legal Business Name',
-                  hint: 'Name registered in GST certificate',
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AppTextField(
-                  controller: _tradeNameController,
-                  label: 'Trade Name',
-                  hint: 'Brand/trade title',
                 ),
               ),
             ],
@@ -896,7 +1409,6 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                         if (val != null) {
                           setState(() {
                             _selectedTerms = val;
-                            // Set creditDays based on terms
                             _creditDaysController.text = switch (val) {
                               PaymentTerms.advance => '0',
                               PaymentTerms.days7 => '7',
@@ -972,8 +1484,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  readOnly:
-                      _isEditMode, // opening balance immutable after registration
+                  readOnly: _isEditMode,
                 ),
               ),
               if (_isEditMode) ...[
@@ -993,7 +1504,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
     );
   }
 
-  Widget _buildPreferencesPoTab() {
+  Widget _buildCorporatePreferencesTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1053,7 +1564,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               Expanded(
                 child: AppTextField(
                   controller: _defaultPriceController,
-                  label: 'Custom Selling Price (Optional)',
+                  label: 'Custom Selling Price',
                   hint: 'Default flat rate/Ltr',
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -1064,7 +1575,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
           ),
           const SizedBox(height: 20),
           Text(
-            'Active Purchase Order (PO) Details',
+            'Purchase Order (PO) Details',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -1079,7 +1590,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                 child: AppTextField(
                   controller: _poNumberController,
                   label: 'PO Number',
-                  hint: 'Enter active customer PO number',
+                  hint: 'Enter customer PO number',
                   prefixIcon: Icons.local_activity_outlined,
                 ),
               ),
@@ -1130,8 +1641,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   onTap: () async {
                     final date = await showDatePicker(
                       context: context,
-                      initialDate:
-                          _poValidTill ??
+                      initialDate: _poValidTill ??
                           DateTime.now().add(const Duration(days: 365)),
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2035),
@@ -1153,17 +1663,16 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdditionalNotesTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          const SizedBox(height: 20),
+          Text(
+            'Invoicing Rules & Notifications',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkTextPrimary,
+            ),
+          ),
+          Divider(color: AppColors.darkBorder),
           Row(
             children: [
               Expanded(
@@ -1182,16 +1691,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Communication & Print Settings',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkTextPrimary,
-            ),
-          ),
-          Divider(color: AppColors.darkBorder),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -1231,7 +1731,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     style: TextStyle(fontSize: 13),
                   ),
                   value: _requirePo,
-                  onChanged: (val) => setState(() => _requirePo = val ?? false),
+                  onChanged: (val) =>
+                      setState(() => _requirePo = val ?? false),
                   activeColor: AppColors.brandAmber,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -1243,7 +1744,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     style: TextStyle(fontSize: 13),
                   ),
                   value: _requireDc,
-                  onChanged: (val) => setState(() => _requireDc = val ?? false),
+                  onChanged: (val) =>
+                      setState(() => _requireDc = val ?? false),
                   activeColor: AppColors.brandAmber,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -1267,7 +1769,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
             label: 'General Remarks / Notes',
             hint: 'Security gate directives, specific dispatch instructions...',
             prefixIcon: Icons.note_alt_outlined,
-            maxLines: 4,
+            maxLines: 3,
           ),
         ],
       ),

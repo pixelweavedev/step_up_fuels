@@ -25,6 +25,7 @@ import 'package:step_up_fuels/shared/widgets/cards/entity_status_presentation.da
 import 'package:step_up_fuels/shared/widgets/cards/financial_breakdown.dart';
 import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
 import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/administrative_location_input.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
@@ -1507,6 +1508,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
   final _phoneCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _stateCtrl = TextEditingController();
+  final _talukaCtrl = TextEditingController();
   bool _saving = false;
 
   @override
@@ -1518,6 +1520,7 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
     _phoneCtrl.dispose();
     _cityCtrl.dispose();
     _stateCtrl.dispose();
+    _talukaCtrl.dispose();
     super.dispose();
   }
 
@@ -1594,19 +1597,11 @@ class _AddSupplierDialogState extends ConsumerState<_AddSupplierDialog> {
               ],
             ),
             const SizedBox(height: 12),
-            AdaptiveFormRow(
-              children: [
-                TextFormField(
-                  controller: _cityCtrl,
-                  style: TextStyle(color: AppColors.darkTextPrimary),
-                  decoration: _inputDeco('City', 'e.g. Pune'),
-                ),
-                TextFormField(
-                  controller: _stateCtrl,
-                  style: TextStyle(color: AppColors.darkTextPrimary),
-                  decoration: _inputDeco('State', 'e.g. Maharashtra'),
-                ),
-              ],
+            AdministrativeLocationGroup(
+              stateController: _stateCtrl,
+              districtController: _cityCtrl,
+              talukaController: _talukaCtrl,
+              isStacked: true,
             ),
           ],
         ),

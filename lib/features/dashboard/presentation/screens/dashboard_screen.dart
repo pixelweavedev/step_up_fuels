@@ -984,38 +984,6 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            // Container(
-            //   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            //   decoration: BoxDecoration(
-            //     color: AppColors.success.withValues(alpha: 0.15),
-            //     borderRadius: BorderRadius.circular(AppMobileTokens.radiusPill),
-            //     border: Border.all(
-            //       color: AppColors.success.withValues(alpha: 0.3),
-            //     ),
-            //   ),
-            //   child: Row(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: [
-            //       Container(
-            //         width: 6,
-            //         height: 6,
-            //         decoration: const BoxDecoration(
-            //           color: AppColors.success,
-            //           shape: BoxShape.circle,
-            //         ),
-            //       ),
-            //       const SizedBox(width: 6),
-            //       Text(
-            //         'Online',
-            //         style: GoogleFonts.inter(
-            //           fontSize: 11,
-            //           fontWeight: FontWeight.w600,
-            //           color: AppColors.success,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
           ],
         );
       },

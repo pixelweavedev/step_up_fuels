@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:step_up_fuels/core/services/location/administrative_location_service.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_site.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/administrative_location_input.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,6 +33,7 @@ class _CustomerSiteFormDialogState
   final _addressLine1Controller = TextEditingController();
   final _addressLine2Controller = TextEditingController();
   final _cityController = TextEditingController();
+  final _districtController = TextEditingController();
   final _stateController = TextEditingController();
   final _stateCodeController = TextEditingController();
   final _pincodeController = TextEditingController();
@@ -78,6 +81,7 @@ class _CustomerSiteFormDialogState
     _addressLine1Controller.dispose();
     _addressLine2Controller.dispose();
     _cityController.dispose();
+    _districtController.dispose();
     _stateController.dispose();
     _stateCodeController.dispose();
     _pincodeController.dispose();
@@ -261,24 +265,18 @@ class _CustomerSiteFormDialogState
                         prefixIcon: Icons.map_outlined,
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppTextField(
-                              controller: _cityController,
-                              label: 'City',
-                              hint: 'e.g. Pune',
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AppTextField(
-                              controller: _stateController,
-                              label: 'State',
-                              hint: 'e.g. Maharashtra',
-                            ),
-                          ),
-                        ],
+                      AdministrativeLocationGroup(
+                        stateController: _stateController,
+                        districtController: _districtController,
+                        talukaController: _cityController,
+                        pincodeController: _pincodeController,
+                        onStateChanged: (state) {
+                          final code = AdministrativeLocationService.instance
+                              .getStateGstCode(state);
+                          if (code != null && code.isNotEmpty) {
+                            _stateCodeController.text = code;
+                          }
+                        },
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -290,16 +288,6 @@ class _CustomerSiteFormDialogState
                               hint: 'e.g. 27',
                               keyboardType: TextInputType.number,
                               maxLength: 2,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AppTextField(
-                              controller: _pincodeController,
-                              label: 'PIN Code',
-                              hint: '6-digit code',
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
                             ),
                           ),
                           const SizedBox(width: 12),
