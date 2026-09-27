@@ -220,3 +220,22 @@ final customerNotesProvider = FutureProvider.family<List<CustomerNote>, String>(
     );
   },
 );
+
+/// Provider mapping customerId to primary contact (for instant phone & email lookup).
+final allPrimaryContactsMapProvider =
+    FutureProvider<Map<String, CustomerContact>>((ref) async {
+      // Re-fetch when customer list changes
+      ref.watch(customersListProvider);
+      final repo = sl<CustomerRepository>();
+      final result = await repo.getAllPrimaryContacts();
+      return result.when(
+        success: (list) {
+          final map = <String, CustomerContact>{};
+          for (final contact in list) {
+            map[contact.customerId] = contact;
+          }
+          return map;
+        },
+        failure: (_) => <String, CustomerContact>{},
+      );
+    });

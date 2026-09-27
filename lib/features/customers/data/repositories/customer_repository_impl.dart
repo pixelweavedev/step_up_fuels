@@ -174,6 +174,19 @@ class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @override
+  Future<Result<List<CustomerContact>>> getAllPrimaryContacts() async {
+    try {
+      final rows = await _dao.getAllPrimaryContacts();
+      final domainList = rows.map((row) => row.toDomain()).toList();
+      return Result.success(domainList);
+    } catch (e, st) {
+      return Result.failure(
+        DatabaseFailure(message: e.toString(), stackTrace: st),
+      );
+    }
+  }
+
+  @override
   Future<Result<void>> saveContact(CustomerContact contact) async {
     try {
       await _dao.saveContact(contact.toCompanion());

@@ -112,6 +112,13 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  /// Get all active primary contacts across all customers.
+  Future<List<CustomerContactRow>> getAllPrimaryContacts() async {
+    return (select(
+      customerContacts,
+    )..where((t) => t.deletedAt.isNull() & t.isPrimary.equals(true))).get();
+  }
+
   /// Inserts or updates a contact person.
   Future<void> saveContact(CustomerContactsCompanion contact) async {
     final isPrimaryVal = contact.isPrimary.value;

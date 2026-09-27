@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:step_up_fuels/app/di/injection_container.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_form.dart';
 import 'package:step_up_fuels/core/responsive/adaptive_master_detail.dart';
 import 'package:step_up_fuels/core/responsive/breakpoints.dart';
+import 'package:step_up_fuels/core/services/location/administrative_location_service.dart';
 import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/customer_contact.dart';
 import 'package:step_up_fuels/features/customers/domain/entities/customer_type.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/fuel_type.dart';
+import 'package:step_up_fuels/features/customers/domain/entities/payment_terms.dart';
+import 'package:step_up_fuels/features/customers/domain/repositories/customer_repository.dart';
 import 'package:step_up_fuels/features/customers/presentation/providers/customers_provider.dart';
+import 'package:step_up_fuels/features/customers/presentation/widgets/customer_form_dialog.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice.dart';
 import 'package:step_up_fuels/features/invoices/domain/entities/invoice_item.dart';
 import 'package:step_up_fuels/features/invoices/domain/services/gst_calculation_service.dart';
@@ -366,8 +373,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.darkBackground : AppColors.lightBackground,
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : AppColors.lightBackground,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateInvoiceDialog(context),
         backgroundColor: AppColors.brandAmber,
@@ -386,13 +394,17 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             // Sticky Mobile Header (Search + KPI Bar + Filter Chips Bar)
             invoicesAsync.maybeWhen(
               data: (invoices) {
-                final totalInvoiced =
-                    invoices.fold<double>(0, (s, i) => s + i.totalAmount);
+                final totalInvoiced = invoices.fold<double>(
+                  0,
+                  (s, i) => s + i.totalAmount,
+                );
                 final totalOutstanding = invoices
-                    .where((i) =>
-                        i.status == InvoiceStatus.posted ||
-                        i.status == InvoiceStatus.partiallyPaid ||
-                        i.status == InvoiceStatus.overdue)
+                    .where(
+                      (i) =>
+                          i.status == InvoiceStatus.posted ||
+                          i.status == InvoiceStatus.partiallyPaid ||
+                          i.status == InvoiceStatus.overdue,
+                    )
                     .fold<double>(0, (s, i) => s + i.outstanding);
 
                 return AppMobileHeader(
@@ -546,8 +558,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       FilterChipOption(
         value: InvoiceStatus.verified,
         label: 'Verified',
-        count:
-            invoices.where((i) => i.status == InvoiceStatus.verified).length,
+        count: invoices.where((i) => i.status == InvoiceStatus.verified).length,
       ),
       FilterChipOption(
         value: InvoiceStatus.draft,
@@ -575,7 +586,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       (c) => c?.id == inv.customerId,
       orElse: () => null,
     );
-    final customerTitle = customer?.name ??
+    final customerTitle =
+        customer?.name ??
         (inv.customerId.isNotEmpty
             ? 'Customer ID: ${inv.customerId.substring(0, 8)}...'
             : 'Walk-in Customer');
@@ -588,7 +600,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
       heroMetric:
           '₹${NumberFormat('#,##,##0.00', 'en_IN').format(inv.totalAmount)}',
       heroLabel: 'Invoice Amount',
-      heroColor: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+      heroColor: isDark
+          ? AppColors.darkTextPrimary
+          : AppColors.lightTextPrimary,
       leadingIcon: Icons.receipt_long_rounded,
       attributes: [
         MobileCardAttribute(
@@ -600,10 +614,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
           value: '₹${NumberFormat('#,##,###').format(inv.outstanding)}',
           isHighlighted: inv.outstanding > 0,
         ),
-        MobileCardAttribute(
-          label: 'Supply',
-          value: inv.supplyType,
-        ),
+        MobileCardAttribute(label: 'Supply', value: inv.supplyType),
       ],
       actions: [
         if (inv.outstanding > 0)
@@ -1695,6 +1706,8 @@ class _CreateInvoiceDialog extends ConsumerStatefulWidget {
 class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   final _formKey = GlobalKey<FormState>();
   Customer? _selectedCustomer;
+  final _customerSearchCtrl = TextEditingController();
+  final _customerSearchFocus = FocusNode();
   final List<_LineItemDraft> _lineItems = [];
   final _notesCtrl = TextEditingController();
   String _supplyType = 'B2B';
@@ -1708,14 +1721,91 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   bool _saving = false;
 
   @override
+  void initState() {
+    super.initState();
+    _customerSearchFocus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _notesCtrl.dispose();
+    _customerSearchCtrl.dispose();
+    _customerSearchFocus.dispose();
     super.dispose();
+  }
+
+  void _selectCustomer(Customer customer) {
+    setState(() {
+      _selectedCustomer = customer;
+      _customerSearchCtrl.clear();
+      _customerSearchFocus.unfocus();
+
+      final state = customer.billingState ?? customer.state;
+      if (state != null && state.isNotEmpty) {
+        _buyerStateCode = _stateNameToCode(state);
+      }
+
+      if (customer.type == CustomerType.individual) {
+        _supplyType = 'B2C';
+      } else if (customer.gstin != null && customer.gstin!.isNotEmpty) {
+        _supplyType = 'B2B';
+      }
+    });
+  }
+
+  void _clearCustomer() {
+    setState(() {
+      _selectedCustomer = null;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _customerSearchFocus.requestFocus();
+      }
+    });
+  }
+
+  Future<void> _openQuickAddDialog({String? initialQuery}) async {
+    final customer = await showDialog<Customer?>(
+      context: context,
+      barrierColor: AppColors.scrim,
+      builder: (_) => _QuickAddCustomerDialog(
+        initialQuery: initialQuery,
+        uuid: widget.uuid,
+      ),
+    );
+
+    if (!mounted || customer == null) return;
+    _selectCustomer(customer);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.success,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Customer "${customer.name}" added & selected for billing!',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.darkSurface,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final customersAsync = ref.watch(customersListProvider);
+    final contactsMap = ref.watch(allPrimaryContactsMapProvider).value ?? {};
     final productsAsync = ref.watch(productsListProvider);
 
     return ResponsiveDialog(
@@ -1770,14 +1860,8 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Customer selector
-            const _FieldLabel('Customer *'),
-            customersAsync.when(
-              data: (customers) => _buildCustomerDropdown(customers),
-              loading: () =>
-                  const CircularProgressIndicator(color: AppColors.brandAmber),
-              error: (e, _) => Text(e.toString()),
-            ),
+            // Smart Customer Selector & Instant Add
+            _buildCustomerSelectorSection(customersAsync, contactsMap),
             const SizedBox(height: 16),
 
             // Dates & Supply Type row
@@ -1918,25 +2002,652 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
     );
   }
 
-  Widget _buildCustomerDropdown(List<Customer> customers) {
-    return DropdownButtonFormField<Customer>(
-      initialValue: _selectedCustomer,
-      dropdownColor: AppColors.darkCard,
-      style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
-      decoration: _inputDecoration('Select customer'),
-      items: customers
-          .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
-          .toList(),
-      onChanged: (c) => setState(() {
-        _selectedCustomer = c;
-        if (c != null) {
-          final state = c.billingState;
-          _buyerStateCode = (state != null && state.isNotEmpty)
-              ? _stateNameToCode(state)
-              : '27';
-        }
-      }),
-      validator: (v) => v == null ? 'Please select a customer' : null,
+  Widget _buildCustomerSelectorSection(
+    AsyncValue<List<Customer>> customersAsync,
+    Map<String, CustomerContact> contactsMap,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const _FieldLabel('Customer *'),
+            const Spacer(),
+            if (_selectedCustomer == null)
+              InkWell(
+                onTap: () => _openQuickAddDialog(
+                  initialQuery: _customerSearchCtrl.text.trim(),
+                ),
+                borderRadius: BorderRadius.circular(6),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.person_add_alt_1_rounded,
+                        size: 15,
+                        color: AppColors.brandAmber,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'New Customer',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.brandAmber,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        if (_selectedCustomer != null)
+          _buildSelectedCustomerCard(contactsMap)
+        else
+          customersAsync.when(
+            data: (customers) =>
+                _buildCustomerSearchArea(customers, contactsMap),
+            loading: () => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: LinearProgressIndicator(
+                color: AppColors.brandAmber,
+                backgroundColor: AppColors.darkSurface,
+              ),
+            ),
+            error: (e, _) => Text(
+              'Failed to load customers: $e',
+              style: const TextStyle(color: AppColors.error),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedCustomerCard(Map<String, CustomerContact> contactsMap) {
+    final customer = _selectedCustomer!;
+    final contact = contactsMap[customer.id];
+    final isIndividual = customer.type == CustomerType.individual;
+    final phone = contact?.phone;
+    final city = customer.billingCity;
+    final state = customer.billingState ?? customer.state;
+    final locationParts = <String>[];
+    if (city != null && city.isNotEmpty) locationParts.add(city);
+    if (state != null && state.isNotEmpty) locationParts.add(state);
+    final locationText = locationParts.join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.brandAmber.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Icon Avatar
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isIndividual
+                  ? AppColors.brandAmber.withValues(alpha: 0.15)
+                  : Colors.cyan.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isIndividual
+                    ? AppColors.brandAmber.withValues(alpha: 0.3)
+                    : Colors.cyan.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Icon(
+              isIndividual ? Icons.person_rounded : Icons.business_rounded,
+              color: isIndividual ? AppColors.brandAmber : Colors.cyanAccent,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        customer.name,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkTextPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isIndividual
+                            ? AppColors.brandAmber.withValues(alpha: 0.2)
+                            : Colors.cyan.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isIndividual ? 'INDIVIDUAL' : 'B2B',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isIndividual
+                              ? AppColors.brandAmber
+                              : Colors.cyanAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    if (phone != null && phone.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.phone_outlined,
+                            size: 13,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            phone,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (customer.gstin != null && customer.gstin!.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.verified_outlined,
+                            size: 13,
+                            color: AppColors.success,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            customer.gstin!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (locationText.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            locationText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                color: AppColors.darkTextSecondary,
+                tooltip: 'Edit Customer Details',
+                onPressed: () async {
+                  final updated = await showDialog<Customer?>(
+                    context: context,
+                    builder: (_) => CustomerFormDialog(customer: customer),
+                  );
+                  if (updated != null && mounted) {
+                    _selectCustomer(updated);
+                  }
+                },
+              ),
+              OutlinedButton.icon(
+                onPressed: _clearCustomer,
+                icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+                label: const Text('Change'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.darkTextPrimary,
+                  side: BorderSide(color: AppColors.darkBorder),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 12),
+                  minimumSize: Size.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerSearchArea(
+    List<Customer> customers,
+    Map<String, CustomerContact> contactsMap,
+  ) {
+    final query = _customerSearchCtrl.text.trim();
+    final queryLower = query.toLowerCase();
+    final cleanDigits = query.replaceAll(RegExp(r'\D'), '');
+
+    final List<Customer> matches;
+    if (query.isNotEmpty) {
+      matches = customers
+          .where((c) {
+            if (c.name.toLowerCase().contains(queryLower)) {
+              return true;
+            }
+            if (c.displayName?.toLowerCase().contains(queryLower) == true) {
+              return true;
+            }
+            if (c.tradeName?.toLowerCase().contains(queryLower) == true) {
+              return true;
+            }
+            if (c.customerCode.toLowerCase().contains(queryLower)) {
+              return true;
+            }
+            if (c.gstin?.toLowerCase().contains(queryLower) == true) {
+              return true;
+            }
+            if (c.billingCity?.toLowerCase().contains(queryLower) == true) {
+              return true;
+            }
+
+            if (cleanDigits.isNotEmpty) {
+              final phone = contactsMap[c.id]?.phone;
+              if (phone != null) {
+                final pDigits = phone.replaceAll(RegExp(r'\D'), '');
+                if (pDigits.contains(cleanDigits)) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          })
+          .take(6)
+          .toList();
+    } else {
+      matches = [];
+    }
+
+    final isSearching = query.isNotEmpty || _customerSearchFocus.hasFocus;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search Input Box
+        TextFormField(
+          controller: _customerSearchCtrl,
+          focusNode: _customerSearchFocus,
+          style: TextStyle(color: AppColors.darkTextPrimary, fontSize: 14),
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Type mobile number (e.g. 98765...) or customer name',
+            hintStyle: TextStyle(
+              color: AppColors.darkTextSecondary,
+              fontSize: 13,
+            ),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.brandAmber,
+              size: 20,
+            ),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (query.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.clear_rounded, size: 18),
+                    color: AppColors.darkTextSecondary,
+                    onPressed: () {
+                      _customerSearchCtrl.clear();
+                      setState(() {});
+                    },
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openQuickAddDialog(initialQuery: query),
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('Add'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brandAmber.withValues(
+                        alpha: 0.2,
+                      ),
+                      foregroundColor: AppColors.brandAmber,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      minimumSize: Size.zero,
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            filled: true,
+            fillColor: AppColors.darkCard,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: AppColors.darkBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: isSearching
+                    ? AppColors.brandAmber.withValues(alpha: 0.5)
+                    : AppColors.darkBorder,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppColors.brandAmber,
+                width: 1.5,
+              ),
+            ),
+          ),
+        ),
+
+        // Live suggestions and Instant Add Option
+        if (query.isNotEmpty || _customerSearchFocus.hasFocus) ...[
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.darkSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.darkBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // If matching customers found
+                if (matches.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                    child: Text(
+                      'MATCHING CUSTOMERS',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: AppColors.darkTextTertiary,
+                      ),
+                    ),
+                  ),
+                  ...matches.map((c) {
+                    final contact = contactsMap[c.id];
+                    final phone = contact?.phone;
+                    final isIndividual = c.type == CustomerType.individual;
+                    return InkWell(
+                      onTap: () => _selectCustomer(c),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: AppColors.darkBorder.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: isIndividual
+                                  ? AppColors.brandAmber.withValues(alpha: 0.15)
+                                  : Colors.cyan.withValues(alpha: 0.15),
+                              child: Icon(
+                                isIndividual
+                                    ? Icons.person_outline
+                                    : Icons.business_outlined,
+                                size: 16,
+                                color: isIndividual
+                                    ? AppColors.brandAmber
+                                    : Colors.cyanAccent,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          c.name,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.darkTextPrimary,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (c.customerCode.isNotEmpty) ...[
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '(${c.customerCode})',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.darkTextTertiary,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      if (phone != null &&
+                                          phone.isNotEmpty) ...[
+                                        Icon(
+                                          Icons.phone_outlined,
+                                          size: 11,
+                                          color: AppColors.darkTextSecondary,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          phone,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.darkTextSecondary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      if (c.billingCity != null &&
+                                          c.billingCity!.isNotEmpty)
+                                        Text(
+                                          c.billingCity!,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.darkTextTertiary,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 12,
+                              color: AppColors.brandAmber,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ] else if (query.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: AppColors.darkTextSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No customer found matching "$query"',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Prominent Quick Add Banner / Tile
+                InkWell(
+                  onTap: () => _openQuickAddDialog(initialQuery: query),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandAmber.withValues(alpha: 0.08),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.brandAmber.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.person_add_alt_1_rounded,
+                            size: 16,
+                            color: AppColors.brandAmber,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                query.isNotEmpty
+                                    ? '+ Add "$query" as New Customer'
+                                    : '+ Add New Customer',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.brandAmber,
+                                ),
+                              ),
+                              Text(
+                                'Instant setup & select for this billing without leaving',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.darkTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.brandAmber,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -2004,11 +2715,29 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   }
 
   Future<void> _saveDraft() async {
+    if (_selectedCustomer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please search and select or add a customer first.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     await _buildAndSave(post: false);
   }
 
   Future<void> _saveAndPost() async {
+    if (_selectedCustomer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please search and select or add a customer first.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     if (_lineItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2136,6 +2865,10 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
   }
 
   String _stateNameToCode(String stateName) {
+    final code = AdministrativeLocationService.instance.getStateGstCode(
+      stateName,
+    );
+    if (code != null) return code;
     final stateMap = {
       'maharashtra': '27',
       'delhi': '07',
@@ -2146,6 +2879,519 @@ class _CreateInvoiceDialogState extends ConsumerState<_CreateInvoiceDialog> {
       'uttar pradesh': '09',
     };
     return stateMap[stateName.toLowerCase()] ?? '27';
+  }
+}
+
+// ── Quick Add Customer Dialog ────────────────────────────────────────────────
+
+class _QuickAddCustomerDialog extends ConsumerStatefulWidget {
+  const _QuickAddCustomerDialog({this.initialQuery, required this.uuid});
+
+  final String? initialQuery;
+  final Uuid uuid;
+
+  @override
+  ConsumerState<_QuickAddCustomerDialog> createState() =>
+      _QuickAddCustomerDialogState();
+}
+
+class _QuickAddCustomerDialogState
+    extends ConsumerState<_QuickAddCustomerDialog> {
+  final _formKey = GlobalKey<FormState>();
+  CustomerType _selectedType = CustomerType.individual;
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
+  final _emailCtrl = TextEditingController();
+  final _gstinCtrl = TextEditingController();
+
+  String? _selectedState = 'Maharashtra';
+  String? _selectedDistrict;
+  List<String> _districts = [];
+
+  bool _saving = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    final query = (widget.initialQuery ?? '').trim();
+    final digitsOnly = query.replaceAll(RegExp(r'\D'), '');
+
+    if (digitsOnly.length >= 6 && digitsOnly.length == query.length) {
+      _phoneCtrl = TextEditingController(text: digitsOnly);
+      _nameCtrl = TextEditingController();
+      _selectedType = CustomerType.individual;
+    } else {
+      _phoneCtrl = TextEditingController();
+      _nameCtrl = TextEditingController(text: query);
+      _selectedType = CustomerType.individual;
+    }
+
+    _loadDistricts();
+  }
+
+  void _loadDistricts() {
+    if (_selectedState != null) {
+      _districts = AdministrativeLocationService.instance.getDistricts(
+        _selectedState,
+      );
+      if (_districts.isNotEmpty && !_districts.contains(_selectedDistrict)) {
+        _selectedDistrict = _districts.first;
+      }
+    } else {
+      _districts = [];
+      _selectedDistrict = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _gstinCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final name = _nameCtrl.text.trim();
+      final phone = _phoneCtrl.text.trim();
+      final email = _emailCtrl.text.trim();
+      final gstin = _gstinCtrl.text.trim().toUpperCase();
+
+      final customerName = name.isNotEmpty
+          ? name
+          : (phone.isNotEmpty ? 'Customer $phone' : 'Retail Customer');
+
+      final customerId = widget.uuid.v4();
+      final customer = Customer.newCustomer(
+        id: customerId,
+        customerCode: 'CUST-${DateTime.now().millisecondsSinceEpoch % 1000000}',
+        name: customerName,
+        displayName: customerName,
+        type: _selectedType,
+        gstin: gstin.isNotEmpty ? gstin : null,
+        state: _selectedState,
+        placeOfSupply: _selectedState,
+        billingState: _selectedState,
+        billingCity: _selectedDistrict,
+        billingCountry: 'India',
+        paymentTerms: PaymentTerms.advance,
+        fuelType: FuelType.diesel,
+        defaultGstRate: 0.18,
+      );
+
+      // Create Customer
+      await ref.read(customersListProvider.notifier).createCustomer(customer);
+
+      // Create Primary Contact if phone or email was provided
+      if (phone.isNotEmpty || email.isNotEmpty) {
+        try {
+          final contact = CustomerContact.newContact(
+            id: widget.uuid.v4(),
+            customerId: customerId,
+            name: customerName,
+            phone: phone.isNotEmpty ? phone : null,
+            email: email.isNotEmpty ? email : null,
+            isPrimary: true,
+          );
+          await sl<CustomerRepository>().saveContact(contact);
+          ref.invalidate(allPrimaryContactsMapProvider);
+        } catch (_) {}
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop(customer);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _saving = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openFullForm() async {
+    final fullCustomer = await showDialog<Customer?>(
+      context: context,
+      builder: (_) => CustomerFormDialog(
+        initialName: _nameCtrl.text.trim().isNotEmpty
+            ? _nameCtrl.text.trim()
+            : null,
+        initialPhone: _phoneCtrl.text.trim().isNotEmpty
+            ? _phoneCtrl.text.trim()
+            : null,
+        initialType: _selectedType,
+      ),
+    );
+    if (fullCustomer != null && mounted) {
+      Navigator.of(context).pop(fullCustomer);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final states = AdministrativeLocationService.instance.getStates();
+
+    return Dialog(
+      backgroundColor: AppColors.darkSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppColors.darkBorder),
+      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.brandAmber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.person_add_alt_1_rounded,
+                        color: AppColors.brandAmber,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick Add Customer',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.darkTextPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Register instantly and proceed with billing',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.darkTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: AppColors.darkTextSecondary,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Customer Type Selector
+                SegmentedButton<CustomerType>(
+                  segments: const [
+                    ButtonSegment(
+                      value: CustomerType.individual,
+                      label: Text('Individual / Retail'),
+                      icon: Icon(Icons.person_outline, size: 16),
+                    ),
+                    ButtonSegment(
+                      value: CustomerType.company,
+                      label: Text('Company / B2B'),
+                      icon: Icon(Icons.business_outlined, size: 16),
+                    ),
+                  ],
+                  selected: {_selectedType},
+                  onSelectionChanged: (set) {
+                    setState(() => _selectedType = set.first);
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith(
+                      (states) => states.contains(WidgetState.selected)
+                          ? AppColors.brandAmber.withValues(alpha: 0.2)
+                          : AppColors.darkCard,
+                    ),
+                    foregroundColor: WidgetStateProperty.resolveWith(
+                      (states) => states.contains(WidgetState.selected)
+                          ? AppColors.brandAmber
+                          : AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Name field
+                TextFormField(
+                  controller: _nameCtrl,
+                  autofocus: _phoneCtrl.text.isNotEmpty,
+                  style: TextStyle(
+                    color: AppColors.darkTextPrimary,
+                    fontSize: 14,
+                  ),
+                  decoration:
+                      _inputDecoration(
+                        _selectedType == CustomerType.individual
+                            ? 'Customer Full Name (e.g. Ramesh Patil)'
+                            : 'Company / Business Name',
+                      ).copyWith(
+                        labelText: _selectedType == CustomerType.individual
+                            ? 'Customer Name'
+                            : 'Company Name',
+                        labelStyle: TextStyle(
+                          color: AppColors.darkTextSecondary,
+                          fontSize: 13,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.badge_outlined,
+                          size: 18,
+                          color: AppColors.darkTextSecondary,
+                        ),
+                      ),
+                ),
+                const SizedBox(height: 12),
+
+                // Mobile Number & Email Row
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: TextFormField(
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        style: TextStyle(
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 14,
+                        ),
+                        decoration: _inputDecoration('10-digit mobile')
+                            .copyWith(
+                              labelText: 'Mobile Number',
+                              labelStyle: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                              ),
+                              prefixIcon: Icon(
+                                Icons.phone_outlined,
+                                size: 18,
+                                color: AppColors.darkTextSecondary,
+                              ),
+                            ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 5,
+                      child: TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        style: TextStyle(
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 14,
+                        ),
+                        decoration: _inputDecoration('Email (optional)')
+                            .copyWith(
+                              labelText: 'Email',
+                              labelStyle: TextStyle(
+                                color: AppColors.darkTextSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // State & District Dropdowns
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _selectedState,
+                        isExpanded: true,
+                        dropdownColor: AppColors.darkCard,
+                        style: TextStyle(
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 13,
+                        ),
+                        decoration: _inputDecoration('State').copyWith(
+                          labelText: 'State',
+                          labelStyle: TextStyle(
+                            color: AppColors.darkTextSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        items: states
+                            .map(
+                              (s) => DropdownMenuItem(
+                                value: s,
+                                child: Text(s, overflow: TextOverflow.ellipsis),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedState = val;
+                            _loadDistricts();
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _selectedDistrict,
+                        isExpanded: true,
+                        dropdownColor: AppColors.darkCard,
+                        style: TextStyle(
+                          color: AppColors.darkTextPrimary,
+                          fontSize: 13,
+                        ),
+                        decoration: _inputDecoration('District').copyWith(
+                          labelText: 'District',
+                          labelStyle: TextStyle(
+                            color: AppColors.darkTextSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        items: _districts
+                            .map(
+                              (d) => DropdownMenuItem(
+                                value: d,
+                                child: Text(d, overflow: TextOverflow.ellipsis),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          setState(() => _selectedDistrict = val);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+
+                // If Company, show GSTIN
+                if (_selectedType == CustomerType.company) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _gstinCtrl,
+                    textCapitalization: TextCapitalization.characters,
+                    style: TextStyle(
+                      color: AppColors.darkTextPrimary,
+                      fontSize: 14,
+                    ),
+                    decoration: _inputDecoration('e.g. 27AAAAA0000A1Z5')
+                        .copyWith(
+                          labelText: 'GSTIN (optional)',
+                          labelStyle: TextStyle(
+                            color: AppColors.darkTextSecondary,
+                            fontSize: 13,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.verified_outlined,
+                            size: 18,
+                            color: AppColors.darkTextSecondary,
+                          ),
+                        ),
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+
+                // Footer Actions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _openFullForm,
+                      icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                      label: const Text('Complete Form...'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.darkTextSecondary,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: _saving ? null : _handleSave,
+                          icon: _saving
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Icon(Icons.check_rounded, size: 16),
+                          label: const Text('Save & Select'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.brandAmber,
+                            foregroundColor: AppColors.darkBackground,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

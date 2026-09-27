@@ -26,10 +26,25 @@ import 'package:uuid/uuid.dart';
 ///
 /// All fields are completely optional (nothing is strictly mandatory).
 class CustomerFormDialog extends ConsumerStatefulWidget {
-  const CustomerFormDialog({super.key, this.customer});
+  const CustomerFormDialog({
+    super.key,
+    this.customer,
+    this.initialName,
+    this.initialPhone,
+    this.initialType,
+  });
 
   /// The customer to edit (null for creation mode).
   final Customer? customer;
+
+  /// Pre-filled customer name for fast creation from billing.
+  final String? initialName;
+
+  /// Pre-filled phone number for fast creation from billing.
+  final String? initialPhone;
+
+  /// Pre-filled customer category.
+  final CustomerType? initialType;
 
   @override
   ConsumerState<CustomerFormDialog> createState() => _CustomerFormDialogState();
@@ -68,9 +83,12 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
   final _billingAddress1Controller = TextEditingController();
   final _billingAddress2Controller = TextEditingController();
   final _billingStateController = TextEditingController();
-  final _billingCityController = TextEditingController(); // Stores District / City
-  final _billingAreaController = TextEditingController(); // Stores Taluka / Sub-district
-  final _billingVillageController = TextEditingController(); // Stores Village / Town
+  final _billingCityController =
+      TextEditingController(); // Stores District / City
+  final _billingAreaController =
+      TextEditingController(); // Stores Taluka / Sub-district
+  final _billingVillageController =
+      TextEditingController(); // Stores Village / Town
   final _billingPincodeController = TextEditingController();
   final _billingCountryController = TextEditingController();
 
@@ -173,6 +191,17 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       _securityDepositController.text = '0.0';
       _openingBalanceController.text = '0.0';
       _defaultGstRateController.text = '0.18';
+
+      if (widget.initialType != null) {
+        _selectedType = widget.initialType!;
+      }
+      if (widget.initialName != null && widget.initialName!.isNotEmpty) {
+        _nameController.text = widget.initialName!;
+        _displayNameController.text = widget.initialName!;
+      }
+      if (widget.initialPhone != null && widget.initialPhone!.isNotEmpty) {
+        _phoneController.text = widget.initialPhone!;
+      }
     }
 
     _initTabController();
@@ -308,8 +337,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
           ? _displayNameController.text.trim()
           : name;
 
-      final customerId =
-          _isEditMode ? widget.customer!.id : const Uuid().v4();
+      final customerId = _isEditMode ? widget.customer!.id : const Uuid().v4();
 
       // State and District resolution
       final stateValue = _billingStateController.text.trim().isNotEmpty
@@ -449,7 +477,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
       }
 
       if (mounted) {
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(customer);
       }
     } catch (e) {
       setState(() {
@@ -673,9 +701,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected
-                      ? AppColors.brandAmber
-                      : Colors.transparent,
+                  color: isSelected ? AppColors.brandAmber : Colors.transparent,
                 ),
               ),
               child: Row(
@@ -685,8 +711,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     type == CustomerType.individual
                         ? Icons.person_outline
                         : (type == CustomerType.government
-                            ? Icons.account_balance_outlined
-                            : Icons.business_outlined),
+                              ? Icons.account_balance_outlined
+                              : Icons.business_outlined),
                     size: 15,
                     color: isSelected
                         ? AppColors.brandAmber
@@ -697,7 +723,9 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     type.displayName,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                       color: isSelected
                           ? AppColors.brandAmber
                           : AppColors.darkTextSecondary,
@@ -1088,7 +1116,9 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _isIndividual ? 'Residential / Delivery Address' : 'Billing Address',
+            _isIndividual
+                ? 'Residential / Delivery Address'
+                : 'Billing Address',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -1098,10 +1128,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
           const SizedBox(height: 4),
           Text(
             'Select State, District, and Taluka from directory or type freely.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.darkTextTertiary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.darkTextTertiary),
           ),
           Divider(color: AppColors.darkBorder),
           const SizedBox(height: 12),
@@ -1269,8 +1296,10 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   validator: CustomerValidator.validateGstin,
                   onChanged: (value) {
                     if (value.trim().length >= 12) {
-                      final potentialPan =
-                          value.trim().substring(2, 12).toUpperCase();
+                      final potentialPan = value
+                          .trim()
+                          .substring(2, 12)
+                          .toUpperCase();
                       if (CustomerValidator.validatePan(potentialPan) == null) {
                         _panController.text = potentialPan;
                       }
@@ -1641,7 +1670,8 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                   onTap: () async {
                     final date = await showDatePicker(
                       context: context,
-                      initialDate: _poValidTill ??
+                      initialDate:
+                          _poValidTill ??
                           DateTime.now().add(const Duration(days: 365)),
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2035),
@@ -1731,8 +1761,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     style: TextStyle(fontSize: 13),
                   ),
                   value: _requirePo,
-                  onChanged: (val) =>
-                      setState(() => _requirePo = val ?? false),
+                  onChanged: (val) => setState(() => _requirePo = val ?? false),
                   activeColor: AppColors.brandAmber,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -1744,8 +1773,7 @@ class _CustomerFormDialogState extends ConsumerState<CustomerFormDialog>
                     style: TextStyle(fontSize: 13),
                   ),
                   value: _requireDc,
-                  onChanged: (val) =>
-                      setState(() => _requireDc = val ?? false),
+                  onChanged: (val) => setState(() => _requireDc = val ?? false),
                   activeColor: AppColors.brandAmber,
                   contentPadding: EdgeInsets.zero,
                 ),

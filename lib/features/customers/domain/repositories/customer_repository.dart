@@ -21,6 +21,7 @@ abstract class CustomerRepository {
   Future<Result<List<CustomerContact>>> getContactsForCustomer(
     String customerId,
   );
+  Future<Result<List<CustomerContact>>> getAllPrimaryContacts();
   Future<Result<void>> saveContact(CustomerContact contact);
   Future<Result<void>> deleteContact(String id);
 
