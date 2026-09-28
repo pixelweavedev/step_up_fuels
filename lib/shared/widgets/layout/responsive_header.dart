@@ -140,10 +140,14 @@ class ResponsiveHeader extends StatelessWidget {
       actionsRow = Row(
         mainAxisSize: MainAxisSize.min,
         children: actions!
+            .asMap()
+            .entries
             .map(
-              (a) => Padding(
-                padding: const EdgeInsets.only(left: AppMobileTokens.spacingSM),
-                child: a,
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  left: entry.key == 0 ? 0 : AppMobileTokens.spacingSM,
+                ),
+                child: entry.value,
               ),
             )
             .toList(),
@@ -151,12 +155,13 @@ class ResponsiveHeader extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        vertical: isMobile
-            ? AppMobileTokens.spacingMD
+      padding: EdgeInsets.only(
+        top: isMobile ? AppMobileTokens.spacingSM : AppMobileTokens.spacingXL,
+        bottom: isMobile
+            ? (actionsRow != null ? 2.0 : AppMobileTokens.spacingSM)
             : AppMobileTokens.spacingXL,
       ),
-      constraints: const BoxConstraints(minHeight: 56.0),
+      constraints: BoxConstraints(minHeight: isMobile ? 40.0 : 56.0),
       child: isMobile
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +169,7 @@ class ResponsiveHeader extends StatelessWidget {
               children: [
                 headerContent,
                 if (actionsRow != null) ...[
-                  const SizedBox(height: AppMobileTokens.spacingMD),
+                  const SizedBox(height: 2),
                   actionsRow,
                 ],
               ],

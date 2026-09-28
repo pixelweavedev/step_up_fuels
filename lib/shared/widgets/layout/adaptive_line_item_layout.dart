@@ -9,6 +9,7 @@ class AdaptiveLineItemLayout extends StatelessWidget {
     required this.quantityField,
     required this.rateField,
     this.unitSelector,
+    this.taxSelector,
     required this.summary,
     required this.removeButton,
     this.productFlex = 3,
@@ -21,6 +22,7 @@ class AdaptiveLineItemLayout extends StatelessWidget {
   final Widget quantityField;
   final Widget rateField;
   final Widget? unitSelector;
+  final Widget? taxSelector;
   final Widget summary;
   final Widget removeButton;
   final int productFlex;
@@ -59,10 +61,14 @@ class AdaptiveLineItemLayout extends StatelessWidget {
                 Expanded(flex: rateFlex, child: rateField),
                 if (unitSelector != null) ...[
                   SizedBox(width: spacing),
-                  SizedBox(width: 80, child: unitSelector),
+                  SizedBox(width: 90, child: unitSelector),
                 ],
               ],
             ),
+            if (taxSelector != null) ...[
+              SizedBox(height: spacing),
+              taxSelector!,
+            ],
             SizedBox(height: spacing),
             Divider(color: AppColors.darkBorder),
             SizedBox(height: spacing / 2),
@@ -98,11 +104,15 @@ class AdaptiveLineItemLayout extends StatelessWidget {
           Expanded(flex: productFlex, child: productSelector),
           SizedBox(width: spacing),
           Expanded(flex: quantityFlex, child: quantityField),
-          SizedBox(width: spacing),
-          Expanded(flex: rateFlex, child: rateField),
           if (unitSelector != null) ...[
             SizedBox(width: spacing),
-            SizedBox(width: 80, child: unitSelector),
+            SizedBox(width: 90, child: unitSelector),
+          ],
+          SizedBox(width: spacing),
+          Expanded(flex: rateFlex, child: rateField),
+          if (taxSelector != null) ...[
+            SizedBox(width: spacing),
+            SizedBox(width: 115, child: taxSelector),
           ],
           SizedBox(width: spacing),
           SizedBox(width: 100, child: summary),

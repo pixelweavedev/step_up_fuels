@@ -28,6 +28,7 @@ import 'package:step_up_fuels/shared/widgets/dialogs/responsive_dialog.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/administrative_location_input.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_date_picker.dart';
 import 'package:step_up_fuels/shared/widgets/inputs/app_text_field.dart';
+import 'package:step_up_fuels/shared/widgets/inputs/gst_rate_field.dart';
 import 'package:step_up_fuels/shared/widgets/layout/adaptive_line_item_layout.dart';
 import 'package:step_up_fuels/shared/widgets/layout/app_mobile_header.dart';
 import 'package:uuid/uuid.dart';
@@ -2094,7 +2095,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                               ? '27'
                               : '27', // Simplified
                           taxableAmount: draft.quantity * draft.rate,
-                          gstRate: draft.product!.gstRate,
+                          gstRate: draft.gstRate,
                         )
                       : null;
 
@@ -2118,6 +2119,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                           draft.product = p;
                           if (p != null) {
                             draft.rate = p.currentSellingPrice ?? 0.0;
+                            draft.gstRate = p.gstRate;
                           }
                         });
                       },
@@ -2144,6 +2146,10 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                       onChanged: (v) =>
                           setState(() => draft.rate = double.tryParse(v) ?? 0),
                     ),
+                    taxSelector: GstRateField(
+                      value: draft.gstRate,
+                      onChanged: (r) => setState(() => draft.gstRate = r),
+                    ),
                     summary: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisSize: MainAxisSize.min,
@@ -2157,7 +2163,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
                           ),
                         ),
                         Text(
-                          'Taxes: ₹${_fmt(breakdown?.totalTax ?? 0.0)}',
+                          'GST: ₹${_fmt(breakdown?.totalTax ?? 0.0)}',
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.darkTextTertiary,
@@ -2198,7 +2204,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
         final b = _gstService.compute(
           buyerStateCode: '27',
           taxableAmount: item.quantity * item.rate,
-          gstRate: item.product!.gstRate,
+          gstRate: item.gstRate,
         );
         subtotal += b.taxableAmount;
         cgst += b.cgstAmount;
@@ -2295,7 +2301,7 @@ class _CreatePurchaseDialogState extends ConsumerState<_CreatePurchaseDialog> {
         final b = _gstService.compute(
           buyerStateCode: '27',
           taxableAmount: draft.quantity * draft.rate,
-          gstRate: draft.product!.gstRate,
+          gstRate: draft.gstRate,
         );
         subtotal += b.taxableAmount;
         cgst += b.cgstAmount;
@@ -2380,6 +2386,7 @@ class _PurchaseItemDraft {
   double quantity = 0;
   double rate = 0;
   String unit = 'LTRS';
+  double gstRate = 18.0;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import 'package:step_up_fuels/core/theme/app_colors.dart';
 import 'package:step_up_fuels/core/theme/dimensions.dart';
 import 'package:step_up_fuels/features/products/domain/entities/product.dart';
 import 'package:step_up_fuels/features/products/presentation/providers/products_provider.dart';
+import 'package:step_up_fuels/features/products/presentation/widgets/daily_selling_price_dialog.dart';
 import 'package:step_up_fuels/shared/providers/theme_provider.dart';
 import 'package:step_up_fuels/shared/widgets/buttons/primary_button.dart';
 import 'package:step_up_fuels/shared/widgets/cards/mobile_card.dart';
@@ -96,18 +97,51 @@ class _ProductMasterList extends ConsumerWidget {
                       color: AppColors.darkTextPrimary,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.add_circle_outline,
-                      color: AppColors.brandAmber,
-                    ),
-                    onPressed: () {
-                      showDialog<void>(
-                        context: context,
-                        builder: (context) => const ProductFormDialog(),
-                      );
-                    },
-                    tooltip: 'Add New Product',
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.brandAmber,
+                          side: const BorderSide(color: AppColors.brandAmber),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.price_change_outlined, size: 16),
+                        label: const Text(
+                          'Daily Rates',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (context) => const DailySellingPriceDialog(),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: AppColors.brandAmber,
+                        ),
+                        onPressed: () {
+                          showDialog<void>(
+                            context: context,
+                            builder: (context) => const ProductFormDialog(),
+                          );
+                        },
+                        tooltip: 'Add New Product',
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -229,7 +263,7 @@ class _ProductMasterList extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  'GST: ${(product.gstRate * 100).toInt()}%',
+                                  'GST: ${product.gstRate.toStringAsFixed(0)}%',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.darkTextSecondary,
@@ -364,25 +398,64 @@ class _ProductMasterList extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Show Inactive / Archived',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.lightTextSecondary,
+                        InkWell(
+                          onTap: () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) => const DailySellingPriceDialog(),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.price_change_outlined,
+                                  size: 15,
+                                  color: AppColors.brandAmber,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Daily Rates',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.brandAmber,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Switch(
-                          value: statusFilter == null || statusFilter == false,
-                          activeThumbColor: AppColors.brandAmber,
-                          onChanged: (val) {
-                            ref
-                                .read(productStatusFilterProvider.notifier)
-                                .state = val
-                                ? null
-                                : true;
-                          },
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Archived',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                            ),
+                            Switch(
+                              value: statusFilter == null || statusFilter == false,
+                              activeThumbColor: AppColors.brandAmber,
+                              onChanged: (val) {
+                                ref
+                                    .read(productStatusFilterProvider.notifier)
+                                    .state = val
+                                    ? null
+                                    : true;
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
